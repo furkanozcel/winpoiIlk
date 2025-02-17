@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "607247914246",
+    "project_id": "winpoi-ba357",
+    "storage_bucket": "winpoi-ba357.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:607247914246:android:156a8869ae34eba2c1ba87",
+        "android_client_info": {
+          "package_name": "com.example.winpoi"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyALIbFc-SSObzaTHD5Ux9EPByYS4eJaE2c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
