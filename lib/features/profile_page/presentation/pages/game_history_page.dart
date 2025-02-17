@@ -5,30 +5,53 @@ class GameHistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final List<String> gameNames = [
+      'MacBook Pro M3 Yarışması',
+      'Samsung S24 Ultra Yarışması',
+      'PlayStation 5 Yarışması',
+      'iPad Pro M2 Yarışması',
+      'Asus ROG Gaming Laptop Yarışması',
+      'iPhone 15 Pro Max Yarışması',
+      'Dell XPS 15 Yarışması',
+      'Nintendo Switch OLED Yarışması',
+      'AirPods Pro 2 Yarışması',
+      'MSI Titan GT77 Yarışması',
+    ];
+
     return Scaffold(
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
-        title: const Text('Oyun Geçmişi'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list),
-            onPressed: () {
-              // Filtreleme seçenekleri
-            },
-          ),
-        ],
+        title: const Text(
+          'Oyun Geçmişi',
+          style: TextStyle(fontWeight: FontWeight.w600),
+        ),
+        backgroundColor: const Color(0xFFFF6600),
+        foregroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: true,
       ),
       body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: 10, // Örnek veri sayısı
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        physics: const BouncingScrollPhysics(),
+        itemCount: gameNames.length,
         itemBuilder: (context, index) {
-          return _buildGameHistoryCard(
-            date: DateTime.now().subtract(Duration(days: index)),
-            gameName: 'iPhone 15 Pro Yarışması',
-            result: index % 3 == 0 ? 'Kazandın!' : 'Kaybettin',
-            prize: index % 3 == 0 ? 'iPhone 15 Pro' : null,
-            earnedPoi: (100 - (index * 5)).toDouble(),
-            rank: index + 1,
-            totalParticipants: 150,
+          return TweenAnimationBuilder(
+            duration: Duration(milliseconds: 400 + (index * 100)),
+            tween: Tween<double>(begin: 0, end: 1),
+            builder: (context, double value, child) {
+              return Transform.translate(
+                offset: Offset(0, 50 * (1 - value)),
+                child: Opacity(
+                  opacity: value,
+                  child: _buildGameHistoryCard(
+                    date: DateTime.now().subtract(Duration(days: index)),
+                    gameName: gameNames[index],
+                    result: index % 3 == 0 ? 'Kazandın!' : 'Kaybettin',
+                    earnedPoi: (100 - (index * 5)).toDouble(),
+                  ),
+                ),
+              );
+            },
           );
         },
       ),
@@ -39,21 +62,18 @@ class GameHistoryPage extends StatelessWidget {
     required DateTime date,
     required String gameName,
     required String result,
-    String? prize,
     required double earnedPoi,
-    required int rank,
-    required int totalParticipants,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -61,44 +81,77 @@ class GameHistoryPage extends StatelessWidget {
         children: [
           // Üst Kısım - Tarih ve Sonuç
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
             decoration: BoxDecoration(
               color: result == 'Kazandın!'
-                  ? Colors.green.shade50
+                  ? const Color(0xFFFF6600).withOpacity(0.08)
                   : Colors.grey.shade50,
               borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(16),
+                top: Radius.circular(20),
               ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  '${date.day}/${date.month}/${date.year}',
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontWeight: FontWeight.w500,
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: result == 'Kazandın!'
+                            ? const Color(0xFFFF6600).withOpacity(0.1)
+                            : Colors.grey.shade100,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.calendar_today,
+                        size: 16,
+                        color: result == 'Kazandın!'
+                            ? const Color(0xFFFF6600)
+                            : Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      '${date.day}/${date.month}/${date.year}',
+                      style: TextStyle(
+                        color: result == 'Kazandın!'
+                            ? const Color(0xFFFF6600)
+                            : Colors.grey.shade700,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ],
                 ),
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
+                    horizontal: 16,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
                     color: result == 'Kazandın!'
-                        ? Colors.green.shade100
+                        ? const Color(0xFFFF6600)
                         : Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(30),
+                    boxShadow: result == 'Kazandın!'
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFFF6600).withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
                   ),
                   child: Text(
                     result,
                     style: TextStyle(
                       color: result == 'Kazandın!'
-                          ? Colors.green.shade700
+                          ? Colors.white
                           : Colors.grey.shade700,
                       fontWeight: FontWeight.bold,
-                      fontSize: 12,
+                      fontSize: 13,
                     ),
                   ),
                 ),
@@ -108,7 +161,7 @@ class GameHistoryPage extends StatelessWidget {
 
           // Oyun Detayları
           Padding(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -117,105 +170,51 @@ class GameHistoryPage extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
+                    letterSpacing: -0.5,
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 16),
 
-                // Sıralama ve Katılımcı Sayısı
-                Row(
-                  children: [
-                    Icon(
-                      Icons.leaderboard,
-                      size: 16,
-                      color: Colors.grey.shade600,
+                // Kazanılan POI
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6600).withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: const Color(0xFFFF6600).withOpacity(0.1),
+                      width: 1,
                     ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$rank. sıra',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Icon(
-                      Icons.people_outline,
-                      size: 16,
-                      color: Colors.grey.shade600,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '$totalParticipants katılımcı',
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-
-                // Kazanılan Ödül ve POI
-                Row(
-                  children: [
-                    if (prize != null) ...[
-                      Expanded(
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.orange.shade50,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.card_giftcard,
-                                size: 16,
-                                color: Colors.orange.shade700,
-                              ),
-                              const SizedBox(width: 4),
-                              Expanded(
-                                child: Text(
-                                  prize,
-                                  style: TextStyle(
-                                    color: Colors.orange.shade700,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: Container(
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
                         padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
+                          color: const Color(0xFFFF6600).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.monetization_on,
-                              size: 16,
-                              color: Colors.blue.shade700,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '+$earnedPoi POI',
-                              style: TextStyle(
-                                color: Colors.blue.shade700,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
+                        child: const Icon(
+                          Icons.currency_lira,
+                          size: 18,
+                          color: Color(0xFFFF6600),
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(width: 12),
+                      Text(
+                        '+$earnedPoi POI',
+                        style: const TextStyle(
+                          color: Color(0xFFFF6600),
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
