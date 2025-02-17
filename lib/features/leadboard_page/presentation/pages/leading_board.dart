@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:winpoi/core/theme/app_theme.dart';
 import 'package:winpoi/features/leadboard_page/data/models/leader.dart';
 
 class LeadingBoard extends StatelessWidget {
@@ -20,6 +21,7 @@ class LeadingBoard extends StatelessWidget {
     );
 
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -34,13 +36,13 @@ class LeadingBoard extends StatelessWidget {
             expandedHeight: 220,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Colors.orange.shade400,
-                      Colors.orange.shade600,
+                      AppTheme.primaryColor,
+                      AppTheme.primaryDarkColor,
                     ],
                   ),
                 ),
@@ -133,7 +135,7 @@ class LeadingBoard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
@@ -154,8 +156,9 @@ class LeadingBoard extends StatelessWidget {
                 '#${leader.rank}',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
-                  color:
-                      leader.rank <= 3 ? Colors.orange : Colors.grey.shade600,
+                  color: leader.rank <= 3
+                      ? AppTheme.primaryColor
+                      : AppTheme.textSecondaryColor,
                 ),
               ),
             ),
@@ -169,14 +172,15 @@ class LeadingBoard extends StatelessWidget {
         ),
         title: Text(
           leader.name,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.bold,
+            color: AppTheme.textPrimaryColor,
           ),
         ),
         subtitle: Text(
           '${leader.totalPrizeCount} Ödül Kazandı',
           style: TextStyle(
-            color: Colors.grey.shade600,
+            color: AppTheme.textSecondaryColor,
             fontSize: 12,
           ),
         ),
@@ -186,13 +190,13 @@ class LeadingBoard extends StatelessWidget {
             vertical: 6,
           ),
           decoration: BoxDecoration(
-            color: Colors.orange.shade50,
+            color: AppTheme.primaryColor.withOpacity(0.1),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Text(
             '${leader.poiBalance.toStringAsFixed(0)} POI',
-            style: TextStyle(
-              color: Colors.orange.shade800,
+            style: const TextStyle(
+              color: AppTheme.primaryDarkColor,
               fontWeight: FontWeight.bold,
             ),
           ),

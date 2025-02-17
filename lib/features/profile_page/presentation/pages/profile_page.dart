@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:winpoi/core/theme/app_theme.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/about_app_page.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/agreements_page.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/game_history_page.dart';
@@ -16,6 +17,7 @@ class _ProfilePageState extends State<ProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: AppTheme.backgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -23,13 +25,13 @@ class _ProfilePageState extends State<ProfilePage> {
             pinned: true,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Colors.orange.shade400,
-                      Colors.orange.shade600,
+                      AppTheme.primaryColor,
+                      AppTheme.primaryDarkColor,
                     ],
                   ),
                 ),
@@ -39,7 +41,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   CircleAvatar(
                     radius: 20,
                     backgroundColor: Colors.white,
-                    child: Icon(Icons.person, color: Colors.orange),
+                    child: Icon(Icons.person, color: AppTheme.primaryColor),
                   ),
                   SizedBox(width: 12),
                   Text('Ahmet Yılmaz'),
@@ -83,7 +85,6 @@ class _ProfilePageState extends State<ProfilePage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-
                   // Menü Listesi
                   _buildMenuSection(context),
                 ],
@@ -103,7 +104,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -115,20 +116,21 @@ class _ProfilePageState extends State<ProfilePage> {
       ),
       child: Column(
         children: [
-          Icon(icon, color: Colors.orange, size: 28),
+          Icon(icon, color: AppTheme.primaryColor, size: 28),
           const SizedBox(height: 8),
           Text(
             value,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
+              color: AppTheme.textPrimaryColor,
             ),
           ),
           const SizedBox(height: 4),
           Text(
             title,
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: AppTheme.textSecondaryColor,
               fontSize: 11,
             ),
             textAlign: TextAlign.center,
@@ -141,7 +143,7 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildMenuSection(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppTheme.surfaceColor,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -156,45 +158,38 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.person_outline,
             title: 'Profil Bilgileri',
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileDetailsPage()));
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ProfileDetailsPage()),
+            ),
           ),
           _buildDivider(),
           _buildMenuItem(
             icon: Icons.history,
             title: 'Oyun Geçmişi',
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const GameHistoryPage()));
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const GameHistoryPage()),
+            ),
           ),
           _buildDivider(),
           _buildMenuItem(
             icon: Icons.info_outline,
             title: 'Uygulama Hakkında',
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const AboutAppPage()));
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AboutAppPage()),
+            ),
           ),
           _buildDivider(),
           _buildMenuItem(
             icon: Icons.description_outlined,
             title: 'Sözleşmeler',
-            onTap: () {
-              Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const AgreementsPage()));
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AgreementsPage()),
+            ),
           ),
           _buildDivider(),
           _buildMenuItem(
@@ -206,7 +201,7 @@ class _ProfilePageState extends State<ProfilePage> {
           _buildMenuItem(
             icon: Icons.logout,
             title: 'Çıkış Yap',
-            textColor: Colors.red,
+            textColor: AppTheme.errorColor,
             onTap: () async {
               final result = await showDialog<bool>(
                 context: context,
@@ -215,10 +210,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
               if (result == true) {
                 // Çıkış işlemleri burada yapılacak
-                // Örneğin:
-                // - Token'ı sil
-                // - Kullanıcı verilerini temizle
-                // - Login sayfasına yönlendir
               }
             },
           ),
@@ -242,21 +233,21 @@ class _ProfilePageState extends State<ProfilePage> {
             Icon(
               icon,
               size: 24,
-              color: textColor ?? Colors.grey.shade700,
+              color: textColor ?? AppTheme.textSecondaryColor,
             ),
             const SizedBox(width: 12),
             Text(
               title,
               style: TextStyle(
                 fontSize: 16,
-                color: textColor ?? Colors.grey.shade700,
+                color: textColor ?? AppTheme.textSecondaryColor,
                 fontWeight: FontWeight.w500,
               ),
             ),
             const Spacer(),
             Icon(
               Icons.chevron_right,
-              color: Colors.grey.shade400,
+              color: AppTheme.textSecondaryColor.withOpacity(0.5),
             ),
           ],
         ),
