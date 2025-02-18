@@ -19,6 +19,30 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: const Color(0xFFFF6600),
+        title: const Row(
+          children: [
+            Text(
+              'Win',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
+              ),
+            ),
+            Text(
+              'Poi',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w300,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -34,7 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 Hero(
                   tag: 'profile_header',
                   child: Container(
-                    height: 250,
+                    height: 180,
                     padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFF6600),
