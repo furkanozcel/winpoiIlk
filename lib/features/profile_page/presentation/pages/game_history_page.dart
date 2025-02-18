@@ -1,120 +1,79 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class GameHistoryPage extends StatelessWidget {
   const GameHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final List<String> gameNames = [
-      'MacBook Pro M3 ',
-      'Samsung S24 Ultra ',
-      'PlayStation 5 ',
-      'iPad Pro M2 ',
-      'Asus ROG Gaming Laptop ',
-      'iPhone 15 Pro Max ',
-      'Dell XPS 15 ',
-      'Nintendo Switch OLED ',
-      'AirPods Pro 2 ',
-      'MSI Titan GT77 ',
-    ];
+    final userId = FirebaseAuth.instance.currentUser?.uid;
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        centerTitle: false,
-        title: TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 400),
-          tween: Tween(begin: 0, end: 1),
-          builder: (context, value, child) {
-            return Transform.scale(
-              scale: 0.8 + (0.2 * value),
-              child: Opacity(
-                opacity: value,
-                child: const Text(
-                  'Oyun Geçmişi',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 26,
-                    letterSpacing: -0.5,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFFFF6600),
-                const Color(0xFFFF6600).withOpacity(0.95),
-              ],
-            ),
-          ),
-        ),
-      ),
-      body: Stack(
-        children: [
-          Container(
-            height: MediaQuery.of(context).padding.top + 150,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  const Color(0xFFFF6600),
-                  const Color(0xFFFF6600).withOpacity(0.0),
-                ],
-              ),
-            ),
-          ),
-          ListView.builder(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              MediaQuery.of(context).padding.top + 80,
-              16,
-              24,
-            ),
-            physics: const BouncingScrollPhysics(),
-            itemCount: gameNames.length,
-            itemBuilder: (context, index) {
-              return TweenAnimationBuilder(
-                duration: Duration(milliseconds: 300 + (index * 50)),
-                tween: Tween<double>(begin: 0, end: 1),
-                curve: Curves.easeOutCubic,
-                builder: (context, double value, child) {
-                  return Transform.translate(
-                    offset: Offset(30 * (1 - value), 0),
-                    child: Opacity(
-                      opacity: value,
-                      child: _buildEnhancedGameHistoryCard(
-                        date: DateTime.now().subtract(Duration(days: index)),
-                        gameName: gameNames[index],
-                        result: index % 3 == 0 ? 'Kazandın!' : 'Kaybettin',
-                        earnedPoi: (100 - (index * 5)).toDouble(),
-                      ),
-                    ),
-                  );
-                },
-              );
+        title: const Text('Oyun Geçmişi'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {
+              // Filtreleme seçenekleri
             },
           ),
         ],
       ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .collection('gameHistory')
+            .orderBy('date', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Bir hata oluştu'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final games = snapshot.data!.docs;
+
+          if (games.isEmpty) {
+            return const Center(
+              child: Text('Henüz oyun geçmişiniz bulunmuyor'),
+            );
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: games.length,
+            itemBuilder: (context, index) {
+              final game = games[index].data() as Map<String, dynamic>;
+              return _buildGameHistoryCard(
+                date: (game['date'] as Timestamp).toDate(),
+                gameName: game['gameName'] ?? '',
+                result: game['result'] ?? '',
+                prize: game['prize'],
+                earnedPoi: (game['earnedPoi'] ?? 0).toDouble(),
+                rank: game['rank'] ?? 0,
+                totalParticipants: game['totalParticipants'] ?? 0,
+              );
+            },
+          );
+        },
+      ),
     );
   }
 
-  Widget _buildEnhancedGameHistoryCard({
+  Widget _buildGameHistoryCard({
     required DateTime date,
     required String gameName,
     required String result,
+    required dynamic prize,
     required double earnedPoi,
+    required int rank,
+    required int totalParticipants,
   }) {
     final bool isWinner = result == 'Kazandın!';
     return Container(

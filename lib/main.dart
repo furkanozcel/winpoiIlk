@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:winpoi/core/navigation/navigator_page.dart';
 import 'package:winpoi/core/theme/app_theme.dart';
+import 'package:winpoi/features/admin/presentation/pages/competition_management_page.dart';
 import 'package:winpoi/features/auth/presentation/pages/login_page.dart';
 import 'package:winpoi/features/auth/presentation/pages/register_page.dart';
 import 'firebase_options.dart';
@@ -28,6 +29,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const NavigatorPage(),
+        '/admin/competitions': (context) => const CompetitionManagementPage(),
       },
     );
   }

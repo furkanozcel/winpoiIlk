@@ -1,7 +1,9 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:winpoi/core/services/auth_service.dart';
 import 'package:winpoi/core/services/firestore_service.dart';
 import 'package:winpoi/core/theme/app_theme.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,7 +16,11 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
+  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
+  bool _obscurePassword = true;
+  bool _obscureConfirmPassword = true;
   final _authService = AuthService();
   final _firestoreService = FirestoreService();
   bool _isLoading = false;
@@ -23,33 +29,47 @@ class _RegisterPageState extends State<RegisterPage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
-        // Kullanıcı oluştur
-        final userCredential = await _authService.signUpWithEmail(
+        // 1. Firebase Auth'a kullanıcı oluştur
+        final userCredential =
+            await FirebaseAuth.instance.createUserWithEmailAndPassword(
           email: _emailController.text.trim(),
           password: _passwordController.text.trim(),
         );
 
-        // Firestore'a kullanıcı bilgilerini kaydet
-        await _firestoreService.updateUserProfile(
-          userId: userCredential.user!.uid,
-          data: {
-            'name': _nameController.text.trim(),
-            'email': _emailController.text.trim(),
-            'createdAt': DateTime.now(),
-            'totalPrizeCount': 0,
-            'poiBalance': 0,
-            'totalGames': 0,
-          },
-        );
+        // 2. Firestore'a kullanıcı bilgilerini kaydet
+        await FirebaseFirestore.instance
+            .collection('users')
+            .doc(userCredential.user!.uid)
+            .set({
+          'name': _nameController.text.trim(),
+          'email': _emailController.text.trim(),
+          'username': _usernameController.text.trim(),
+          'poiBalance': 0,
+          'totalPrizeCount': 0,
+          'totalGames': 0,
+          'createdAt': FieldValue.serverTimestamp(),
+          'role': 'user', // Varsayılan kullanıcı rolü
+        });
 
-        // Ana sayfaya yönlendir
         if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
+          // Başarılı kayıt mesajı
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Kayıt başarılı! Lütfen giriş yapın.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // Login sayfasına yönlendir
+          Navigator.of(context).pushReplacementNamed('/login');
         }
       } catch (e) {
+        // Hata mesajı göster
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Kayıt hatası: $e')),
+            SnackBar(
+              content: Text('Hata: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       } finally {
@@ -96,7 +116,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                       child: ClipOval(
                         child: Image.asset(
-                          'assets/logo.jpg',
+                          'lib/features/auth/assets/images/logo.jpg',
                           fit: BoxFit.cover,
                         ),
                       ),
@@ -125,9 +145,15 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 32),
                   TextFormField(
                     controller: _nameController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Ad Soyad',
-                      border: OutlineInputBorder(),
+                      hintText: 'John Doe',
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
@@ -138,15 +164,47 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 16),
                   TextFormField(
+                    controller: _usernameController,
+                    decoration: InputDecoration(
+                      labelText: 'Kullanıcı Adı',
+                      hintText: '@kullaniciadi',
+                      prefixIcon: const Icon(Icons.alternate_email),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Kullanıcı adı gerekli';
+                      }
+                      if (value.length < 3) {
+                        return 'Kullanıcı adı en az 3 karakter olmalı';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
                     controller: _emailController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'E-posta',
-                      border: OutlineInputBorder(),
+                      hintText: 'ornek@email.com',
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'E-posta gerekli';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Geçerli bir e-posta adresi girin';
                       }
                       return null;
                     },
@@ -154,11 +212,26 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 16),
                   TextFormField(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
+                    decoration: InputDecoration(
                       labelText: 'Şifre',
-                      border: OutlineInputBorder(),
+                      hintText: '••••••••',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscurePassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                        onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
                     ),
-                    obscureText: true,
+                    obscureText: _obscurePassword,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Şifre gerekli';
@@ -169,15 +242,74 @@ class _RegisterPageState extends State<RegisterPage> {
                       return null;
                     },
                   ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    decoration: InputDecoration(
+                      labelText: 'Şifre Onayı',
+                      hintText: '••••••••',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _obscureConfirmPassword
+                              ? Icons.visibility_outlined
+                              : Icons.visibility_off_outlined,
+                        ),
+                        onPressed: () => setState(() =>
+                            _obscureConfirmPassword = !_obscureConfirmPassword),
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                    ),
+                    obscureText: _obscureConfirmPassword,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Şifre onayı gerekli';
+                      }
+                      if (value != _passwordController.text) {
+                        return 'Şifreler eşleşmiyor';
+                      }
+                      return null;
+                    },
+                  ),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 40, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      elevation: 3,
+                      backgroundColor: Theme.of(context).primaryColor,
                     ),
                     child: _isLoading
-                        ? const CircularProgressIndicator()
-                        : const Text('Kayıt Ol'),
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.person_add_outlined, size: 20),
+                              SizedBox(width: 8),
+                              Text(
+                                'Kayıt Ol',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                   ),
                 ],
               ),
@@ -191,8 +323,10 @@ class _RegisterPageState extends State<RegisterPage> {
   @override
   void dispose() {
     _nameController.dispose();
+    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 }

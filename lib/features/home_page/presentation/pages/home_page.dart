@@ -1,27 +1,18 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    // Örnek veri
-    final competitions = [
-      Competition(
-        id: '1',
-        title: 'iPhone 15 Pro Yarışması',
-        description:
-            'Şehrin en heyecanlı hazine avında iPhone 15 Pro senin olsun! 🎮',
-        prize: 'iPhone 15 Pro',
-        dateTime: DateTime.now().add(const Duration(days: 1)),
-        entryFee: 49.99,
-        imageUrl: 'https://example.com/iphone15.jpg',
-        participantCount: 156,
-      ),
-    ];
+  State<HomePage> createState() => _HomePageState();
+}
 
+class _HomePageState extends State<HomePage> {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('WinPoi'),
@@ -34,11 +25,30 @@ class HomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: competitions.length,
-        itemBuilder: (context, index) {
-          return CompetitionCard(competition: competitions[index]);
+      body: StreamBuilder<QuerySnapshot>(
+        stream:
+            FirebaseFirestore.instance.collection('competitions').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(child: Text('Bir hata oluştu'));
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final competitions = snapshot.data?.docs
+                  .map((doc) => Competition.fromFirestore(doc))
+                  .toList() ??
+              [];
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: competitions.length,
+            itemBuilder: (context, index) {
+              return CompetitionCard(competition: competitions[index]);
+            },
+          );
         },
       ),
     );
