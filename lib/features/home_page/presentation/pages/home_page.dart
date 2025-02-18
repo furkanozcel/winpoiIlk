@@ -55,7 +55,7 @@ class _HomePageState extends State<HomePage> {
   }
 }
 
-class CompetitionCard extends StatelessWidget {
+class CompetitionCard extends StatefulWidget {
   final Competition competition;
 
   const CompetitionCard({
@@ -63,6 +63,11 @@ class CompetitionCard extends StatelessWidget {
     required this.competition,
   });
 
+  @override
+  State<CompetitionCard> createState() => _CompetitionCardState();
+}
+
+class _CompetitionCardState extends State<CompetitionCard> {
   @override
   Widget build(BuildContext context) {
     return Card(
@@ -83,7 +88,7 @@ class CompetitionCard extends StatelessWidget {
                 child: AspectRatio(
                   aspectRatio: 16 / 9,
                   child: Image.network(
-                    competition.imageUrl,
+                    widget.competition.imageUrl,
                     fit: BoxFit.cover,
                     errorBuilder: (context, error, stackTrace) {
                       return Container(
@@ -111,7 +116,7 @@ class CompetitionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    '${competition.participantCount} Katılımcı',
+                    '${widget.competition.participantCount} Katılımcı',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 12,
@@ -137,7 +142,7 @@ class CompetitionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    '🎁 ${competition.prize}',
+                    '🎁 ${widget.competition.prize}',
                     style: TextStyle(
                       color: Colors.orange.shade800,
                       fontWeight: FontWeight.bold,
@@ -148,7 +153,7 @@ class CompetitionCard extends StatelessWidget {
 
                 // Yarışma Başlığı
                 Text(
-                  competition.title,
+                  widget.competition.title,
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -158,7 +163,7 @@ class CompetitionCard extends StatelessWidget {
 
                 // Yarışma Açıklaması
                 Text(
-                  competition.description,
+                  widget.competition.description,
                   style: TextStyle(
                     color: Colors.grey.shade600,
                     fontSize: 14,
@@ -177,7 +182,7 @@ class CompetitionCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       DateFormat('dd MMM yyyy HH:mm')
-                          .format(competition.dateTime),
+                          .format(widget.competition.dateTime),
                       style: TextStyle(
                         color: Colors.grey.shade600,
                         fontSize: 14,
@@ -202,7 +207,7 @@ class CompetitionCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '${competition.entryFee.toStringAsFixed(2)} ₺',
+                          '${widget.competition.entryFee.toStringAsFixed(2)} ₺',
                           style: const TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
