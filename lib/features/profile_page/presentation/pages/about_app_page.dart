@@ -95,10 +95,14 @@ class AboutAppPage extends StatelessWidget {
                                   ),
                                 ],
                               ),
-                              child: const Icon(
-                                Icons.emoji_events,
-                                size: 70,
-                                color: Color(0xFFFF6600),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(25),
+                                child: Image.asset(
+                                  'lib/features/auth/assets/images/logo.jpg',
+                                  width: 70,
+                                  height: 70,
+                                  fit: BoxFit.contain,
+                                ),
                               ),
                             ),
                             const SizedBox(height: 20),
