@@ -15,6 +15,19 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  late BuildContext _context;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _context = context;
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -273,70 +286,70 @@ class _ProfilePageState extends State<ProfilePage> {
     required String value,
     required String title,
   }) {
-    return SafeArea(
-      child: TweenAnimationBuilder(
-        duration: const Duration(milliseconds: 500),
-        tween: Tween<double>(begin: 0, end: 1),
-        builder: (context, double animValue, child) {
-          return Transform.scale(
-            scale: animValue,
-            child: Container(
-              width: 110,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 16,
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFFF6600).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: const Color(0xFFFF6600),
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    value,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    title,
-                    style: TextStyle(
-                      color: Colors.grey.shade600,
-                      fontSize: 12,
-                      height: 1.2,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
+    return TweenAnimationBuilder(
+      duration: const Duration(milliseconds: 500),
+      tween: Tween<double>(begin: 0, end: 1),
+      builder: (context, double animValue, child) {
+        if (!mounted) return const SizedBox.shrink();
+
+        return Transform.scale(
+          scale: animValue,
+          child: Container(
+            width: 110,
+            padding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 16,
             ),
-          );
-        },
-      ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.grey.withOpacity(0.1),
+                  spreadRadius: 1,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF6600).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: const Color(0xFFFF6600),
+                    size: 24,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 12,
+                    height: 1.2,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 

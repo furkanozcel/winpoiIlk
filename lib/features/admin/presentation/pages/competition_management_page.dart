@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:winpoi/core/services/firestore_service.dart';
+import 'package:winpoi/core/services/notification_service.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
 
 class CompetitionManagementPage extends StatefulWidget {
@@ -50,6 +51,12 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
         }
       }
     }
+
+    final notificationService = NotificationService();
+    notificationService.sendNotificationToAllUsers(
+        title: "Yarışma Vakti!!!",
+        message: "Yeni yarışma listeye eklenmiştir.",
+        type: "competition");
   }
 
   void _clearForm() {

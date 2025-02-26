@@ -1,7 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:winpoi/core/services/notification_service.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
+import 'package:winpoi/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -90,15 +93,60 @@ class _HomePageState extends State<HomePage>
             padding: const EdgeInsets.only(right: 16),
             child: FadeTransition(
               opacity: _fadeAnimation!,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
-                  onPressed: () {},
-                ),
+              child: Stack(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.notifications_outlined),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NotificationsPage(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  // Okunmamış bildirim sayısı için badge
+                  StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(FirebaseAuth.instance.currentUser?.uid)
+                        .collection('notifications')
+                        .where('isRead', isEqualTo: false)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+
+                      return Positioned(
+                        right: 0,
+                        top: 0,
+                        child: Container(
+                          padding: const EdgeInsets.all(4),
+                          decoration: const BoxDecoration(
+                            color: Colors.red,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Text(
+                            snapshot.data!.docs.length.toString(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
           ),
@@ -280,18 +328,18 @@ class AnimatedCompetitionCard extends StatefulWidget {
 
 class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _expandAnimation;
+  late AnimationController controller;
+  late Animation<double> expandAnimation;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
+    controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _expandAnimation = CurvedAnimation(
-      parent: _controller,
+    expandAnimation = CurvedAnimation(
+      parent: controller,
       curve: Curves.easeInOut,
     );
   }
@@ -300,15 +348,15 @@ class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard>
   void didUpdateWidget(AnimatedCompetitionCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (widget.isExpanded) {
-      _controller.forward();
+      controller.forward();
     } else {
-      _controller.reverse();
+      controller.reverse();
     }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    controller.dispose();
     super.dispose();
   }
 
@@ -450,9 +498,9 @@ class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard>
                                           .withOpacity(0.1),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
-                                    child: Icon(
+                                    child: const Icon(
                                       Icons.calendar_today,
-                                      color: const Color(0xFFFF6600),
+                                      color: Color(0xFFFF6600),
                                       size: 24,
                                     ),
                                   ),

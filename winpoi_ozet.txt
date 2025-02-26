@@ -48,3 +48,11 @@ Poi Parası bakiyesi ve kazandığı yarışmalar burada listelenecek.
 
 Uygulama bu olacak ancak biz oyun kısmı ile şu anlık ilgilenmeyeceğiz. Önce mobil uygulamanın içini geliştireceğiz. Oyun kısmı için şu an yorum yapmana gerek yok.
 
+
+
+TO-DO LİST
+
+- Push notification yapıalcak.(daha sonra)
+- 
+
+Şimdi senden şunu istiyorum, bildirimler sayfasında kullanıcının istediği bildirimi silmesini sağlamamız lazım.

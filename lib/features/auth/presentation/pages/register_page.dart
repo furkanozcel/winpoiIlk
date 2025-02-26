@@ -4,6 +4,7 @@ import 'package:winpoi/core/services/auth_service.dart';
 import 'package:winpoi/core/services/firestore_service.dart';
 import 'package:winpoi/core/theme/app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -50,6 +51,10 @@ class _RegisterPageState extends State<RegisterPage> {
           'createdAt': FieldValue.serverTimestamp(),
           'role': 'user', // Varsayılan kullanıcı rolü
         });
+
+        // Kayıt başarılı olduğunda SharedPreferences'ı güncelle
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('hasRegistered', true);
 
         if (mounted) {
           // Başarılı kayıt mesajı

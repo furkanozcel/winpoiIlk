@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:winpoi/features/profile_page/presentation/pages/edit_profile_page.dart';
 
 class ProfileDetailsPage extends StatefulWidget {
   const ProfileDetailsPage({super.key});
@@ -99,7 +100,11 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage>
                     size: 28,
                   ),
                   onPressed: () {
-                    // Düzenleme sayfasına yönlendirme
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const EditProfilePage()),
+                    );
                   },
                 ),
               );
@@ -243,6 +248,13 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage>
                                 value: userData['name']?.toString() ??
                                     'Belirtilmemiş',
                                 delay: 100,
+                              ),
+                              _buildInfoItem(
+                                icon: Icons.account_circle_outlined,
+                                label: 'Kullanıcı Adı',
+                                value: userData['username']?.toString() ??
+                                    'Belirtilmemiş',
+                                delay: 150,
                               ),
                               _buildInfoItem(
                                 icon: Icons.email_outlined,
