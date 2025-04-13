@@ -8,13 +8,16 @@ import 'package:winpoi/features/auth/presentation/pages/register_page.dart';
 import 'package:winpoi/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'firebase_options.dart';
 
 void main() async {
   // Widget binding'i başlat
   WidgetsFlutterBinding.ensureInitialized();
 
   // Firebase ve SharedPreferences'ı başlat
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   final prefs = await SharedPreferences.getInstance();
   final hasRegistered = prefs.getBool('hasRegistered') ?? false;
 
