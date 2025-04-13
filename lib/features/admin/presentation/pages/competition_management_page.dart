@@ -16,58 +16,66 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _prizeController = TextEditingController();
   final _entryFeeController = TextEditingController();
-  final _imageUrlController = TextEditingController();
-  DateTime _selectedDate = DateTime.now();
+  final _imageController = TextEditingController();
+  final _durationController = TextEditingController();
 
   Future<void> _addCompetition() async {
     if (_formKey.currentState!.validate()) {
       try {
+        // Saat cinsinden süreyi al
+        final durationInHours = double.parse(_durationController.text);
+        // Şu anki zamana süreyi ekle
+        final endTime =
+            DateTime.now().add(Duration(hours: durationInHours.toInt()));
+
         final competition = Competition(
           id: '', // Firestore otomatik oluşturacak
           title: _titleController.text,
           description: _descriptionController.text,
-          prize: _prizeController.text,
-          dateTime: _selectedDate,
           entryFee: double.parse(_entryFeeController.text),
-          imageUrl: _imageUrlController.text,
-          status: 'upcoming',
+          endTime: endTime,
+          image: _imageController.text,
         );
 
         await _firestoreService.addCompetition(competition);
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Yarışma başarıyla eklendi')),
+            const SnackBar(
+              content: Text('Yarışma başarıyla eklendi'),
+              backgroundColor: Colors.green,
+            ),
           );
           _clearForm();
         }
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Hata: $e')),
+            SnackBar(
+              content: Text('Hata: $e'),
+              backgroundColor: Colors.red,
+            ),
           );
         }
       }
     }
 
+    // Bildirim gönder
     final notificationService = NotificationService();
-    notificationService.sendNotificationToAllUsers(
-        title: "Yarışma Vakti!!!",
-        message: "Yeni yarışma listeye eklenmiştir.",
-        type: "competition");
+    await notificationService.sendNotificationToAllUsers(
+      title: "Yeni Yarışma!",
+      message: "${_titleController.text} yarışması başladı!",
+      type: "competition",
+    );
   }
 
   void _clearForm() {
     _titleController.clear();
     _descriptionController.clear();
-    _prizeController.clear();
     _entryFeeController.clear();
-    _imageUrlController.clear();
-    setState(() {
-      _selectedDate = DateTime.now();
-    });
+    _imageController.clear();
+    _durationController.clear();
   }
 
   @override
@@ -75,6 +83,7 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Yarışma Yönetimi'),
+        backgroundColor: const Color(0xFFFF6600),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -83,31 +92,47 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Başlık
               TextFormField(
                 controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Yarışma Başlığı'),
+                decoration: InputDecoration(
+                  labelText: 'Yarışma Başlığı',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.title),
+                ),
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
               ),
               const SizedBox(height: 16),
+
+              // Açıklama
               TextFormField(
                 controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Açıklama'),
+                decoration: InputDecoration(
+                  labelText: 'Açıklama',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.description),
+                ),
                 maxLines: 3,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
               ),
               const SizedBox(height: 16),
-              TextFormField(
-                controller: _prizeController,
-                decoration: const InputDecoration(labelText: 'Ödül'),
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
-              ),
-              const SizedBox(height: 16),
+
+              // Katılım Puanı
               TextFormField(
                 controller: _entryFeeController,
-                decoration: const InputDecoration(labelText: 'Katılım Ücreti'),
+                decoration: InputDecoration(
+                  labelText: 'Katılım Puanı',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.attach_money),
+                ),
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value?.isEmpty ?? true) return 'Bu alan gerekli';
@@ -118,16 +143,65 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
                 },
               ),
               const SizedBox(height: 16),
+
+              // Görsel URL
               TextFormField(
-                controller: _imageUrlController,
-                decoration: const InputDecoration(labelText: 'Görsel URL'),
+                controller: _imageController,
+                decoration: InputDecoration(
+                  labelText: 'Görsel URL',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.image),
+                ),
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
               ),
+              const SizedBox(height: 16),
+
+              // Süre (Saat)
+              TextFormField(
+                controller: _durationController,
+                decoration: InputDecoration(
+                  labelText: 'Yarışma Süresi (Saat)',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.timer),
+                  suffixText: 'saat',
+                ),
+                keyboardType: TextInputType.number,
+                validator: (value) {
+                  if (value?.isEmpty ?? true) return 'Bu alan gerekli';
+                  if (double.tryParse(value!) == null) {
+                    return 'Geçerli bir sayı girin';
+                  }
+                  if (double.parse(value) <= 0) {
+                    return 'Süre 0\'dan büyük olmalı';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 24),
+
+              // Yarışma Ekle Butonu
               ElevatedButton(
                 onPressed: _addCompetition,
-                child: const Text('Yarışma Ekle'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFFF6600),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: const Text(
+                  'Yarışma Ekle',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
               ),
             ],
           ),
@@ -140,9 +214,9 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _prizeController.dispose();
     _entryFeeController.dispose();
-    _imageUrlController.dispose();
+    _imageController.dispose();
+    _durationController.dispose();
     super.dispose();
   }
 }

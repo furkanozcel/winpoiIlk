@@ -5,6 +5,8 @@ import 'package:winpoi/core/services/notification_service.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
 import 'package:winpoi/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
+import 'package:winpoi/core/services/firestore_service.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,11 +21,14 @@ class _HomePageState extends State<HomePage>
   final ScrollController _scrollController = ScrollController();
   late AnimationController _fadeController;
   Animation<double>? _fadeAnimation;
+  late Timer _cleanupTimer;
+  final _firestoreService = FirestoreService();
 
   @override
   void initState() {
     super.initState();
     _setupAnimations();
+    _setupCleanupTimer();
   }
 
   void _setupAnimations() {
@@ -38,6 +43,13 @@ class _HomePageState extends State<HomePage>
     );
 
     _fadeController.forward();
+  }
+
+  void _setupCleanupTimer() {
+    // Her 5 dakikada bir biten yarışmaları kontrol et ve sil
+    _cleanupTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
+      _firestoreService.deleteExpiredCompetitions();
+    });
   }
 
   void _scrollToSelectedContent(int index) {
@@ -153,8 +165,10 @@ class _HomePageState extends State<HomePage>
         ],
       ),
       body: StreamBuilder<QuerySnapshot>(
-        stream:
-            FirebaseFirestore.instance.collection('competitions').snapshots(),
+        stream: FirebaseFirestore.instance
+            .collection('competitions')
+            .orderBy('endTime', descending: false)
+            .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return _buildErrorState();
@@ -249,8 +263,8 @@ class _HomePageState extends State<HomePage>
           Text(
             'Bir Hata Oluştu',
             style: TextStyle(
-              color: Colors.grey.shade800,
-              fontSize: 18,
+              color: Colors.grey.shade700,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -258,8 +272,8 @@ class _HomePageState extends State<HomePage>
           Text(
             'Lütfen daha sonra tekrar deneyin',
             style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 14,
+              color: Colors.grey.shade500,
+              fontSize: 16,
             ),
           ),
         ],
@@ -279,19 +293,19 @@ class _HomePageState extends State<HomePage>
           ),
           const SizedBox(height: 16),
           Text(
-            'Henüz Yarışma Bulunmuyor',
+            'Henüz Yarışma Yok',
             style: TextStyle(
-              color: Colors.grey.shade800,
-              fontSize: 18,
+              color: Colors.grey.shade700,
+              fontSize: 20,
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Yeni yarışmalar için takipte kalın',
+            'Yakında yeni yarışmalar eklenecek',
             style: TextStyle(
-              color: Colors.grey.shade600,
-              fontSize: 14,
+              color: Colors.grey.shade500,
+              fontSize: 16,
             ),
           ),
         ],
@@ -303,6 +317,7 @@ class _HomePageState extends State<HomePage>
   void dispose() {
     _fadeController.dispose();
     _scrollController.dispose();
+    _cleanupTimer.cancel();
     super.dispose();
   }
 }
@@ -326,292 +341,207 @@ class AnimatedCompetitionCard extends StatefulWidget {
       _AnimatedCompetitionCardState();
 }
 
-class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController controller;
-  late Animation<double> expandAnimation;
+class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard> {
+  late Timer _timer;
+  Duration _remainingTime = Duration.zero;
 
   @override
   void initState() {
     super.initState();
-    controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 300),
-    );
-    expandAnimation = CurvedAnimation(
-      parent: controller,
-      curve: Curves.easeInOut,
-    );
+    _updateRemainingTime();
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      _updateRemainingTime();
+    });
   }
 
-  @override
-  void didUpdateWidget(AnimatedCompetitionCard oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.isExpanded) {
-      controller.forward();
+  void _updateRemainingTime() {
+    final now = DateTime.now();
+    final endTime = widget.competition.endTime;
+    final difference = endTime.difference(now);
+
+    if (difference.isNegative) {
+      _remainingTime = Duration.zero;
     } else {
-      controller.reverse();
+      _remainingTime = difference;
     }
+
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  String _formatDuration(Duration duration) {
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(duration.inHours);
+    final minutes = twoDigits(duration.inMinutes.remainder(60));
+    final seconds = twoDigits(duration.inSeconds.remainder(60));
+    return '$hours:$minutes:$seconds';
   }
 
   @override
   void dispose() {
-    controller.dispose();
+    _timer.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return TweenAnimationBuilder<double>(
+    return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      tween: Tween(begin: 0, end: 1),
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 50 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: child,
+      curve: Curves.easeInOut,
+      margin: EdgeInsets.only(
+        bottom: 16,
+        top: widget.index == 0 ? 0 : 16,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.1),
+            spreadRadius: 1,
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        child: Material(
-          color: Colors.white,
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: widget.onTap,
           borderRadius: BorderRadius.circular(16),
-          elevation: widget.isExpanded ? 4 : 2,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Stack(
-                children: [
-                  ClipRRect(
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 16 / 9,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    // Ödül Resmi
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
                       child: Image.network(
-                        widget.competition.imageUrl,
-                        fit: BoxFit.contain,
+                        widget.competition.image,
+                        width: 80,
+                        height: 80,
+                        fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            color: const Color(0xFFFF6600).withOpacity(0.1),
-                            child: const Center(
-                              child: Icon(
-                                Icons.emoji_events,
-                                size: 50,
-                                color: Color(0xFFFF6600),
-                              ),
+                            width: 80,
+                            height: 80,
+                            color: Colors.grey.shade200,
+                            child: const Icon(
+                              Icons.image_not_supported_outlined,
+                              color: Colors.grey,
                             ),
                           );
                         },
                       ),
                     ),
-                  ),
-                ],
-              ),
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF6600).withOpacity(0.1),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            child: Text(
-                              '🎁 ${widget.competition.prize}',
-                              style: const TextStyle(
-                                color: Color(0xFFFF6600),
-                                fontWeight: FontWeight.bold,
-                              ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            widget.competition.title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 16),
-                        InkWell(
-                          onTap: widget.onTap,
-                          borderRadius: BorderRadius.circular(30),
-                          child: Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFF6600).withOpacity(0.1),
-                              shape: BoxShape.circle,
+                          const SizedBox(height: 4),
+                          Text(
+                            widget.competition.description,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
                             ),
-                            child: AnimatedRotation(
-                              turns: widget.isExpanded ? 0.5 : 0,
-                              duration: const Duration(milliseconds: 300),
-                              child: const Icon(
-                                Icons.keyboard_arrow_down,
-                                color: Color(0xFFFF6600),
-                                size: 28,
-                              ),
-                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
-                    ),
-                    AnimatedCrossFade(
-                      firstChild: const SizedBox.shrink(),
-                      secondChild: Container(
-                        margin: const EdgeInsets.only(top: 16),
-                        padding: const EdgeInsets.only(top: 16),
-                        decoration: BoxDecoration(
-                          border: Border(
-                            top: BorderSide(
-                              color: Colors.grey.shade200,
-                              width: 1,
-                            ),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFF6600).withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color:
-                                      const Color(0xFFFF6600).withOpacity(0.3),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  Container(
-                                    padding: const EdgeInsets.all(8),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFF6600)
-                                          .withOpacity(0.1),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: const Icon(
-                                      Icons.calendar_today,
-                                      color: Color(0xFFFF6600),
-                                      size: 24,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      const Text(
-                                        'Yarışma Tarihi',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Color(0xFFFF6600),
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        DateFormat('dd MMMM yyyy - HH:mm')
-                                            .format(
-                                                widget.competition.dateTime),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                          color: Color(0xFF2C3E50),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.all(16),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    'Katılım Ücreti',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      color: Colors.grey.shade800,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  Text(
-                                    '${widget.competition.entryFee.toStringAsFixed(2)} ₺',
-                                    style: const TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Color(0xFFFF6600),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              widget.competition.description,
-                              style: TextStyle(
-                                color: Colors.grey.shade700,
-                                fontSize: 15,
-                                height: 1.5,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      crossFadeState: widget.isExpanded
-                          ? CrossFadeState.showSecond
-                          : CrossFadeState.showFirst,
-                      duration: const Duration(milliseconds: 300),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          // Katıl butonuna basıldığında yapılacak işlemler
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF6600),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 16,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Text(
-                          'KATIL',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            letterSpacing: 1,
-                          ),
-                        ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
+                if (widget.isExpanded) ...[
+                  const SizedBox(height: 16),
+                  const Divider(),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Katılım Puanı',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${widget.competition.entryFee} Puan',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            'Kalan Süre',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            _formatDuration(_remainingTime),
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFF6600),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        // Yarışmaya katılma işlemi
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFFFF6600),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Yarışmaya Katıl',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
           ),
         ),
       ),
