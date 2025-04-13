@@ -4,25 +4,19 @@ class Competition {
   final String id;
   final String title;
   final String description;
-  final String prize;
-  final DateTime dateTime;
   final double entryFee;
-  final String imageUrl;
+  final DateTime endTime;
+  final String image;
   final int participantCount;
-  final bool isActive;
-  final String status;
 
   Competition({
     required this.id,
     required this.title,
     required this.description,
-    required this.prize,
-    required this.dateTime,
     required this.entryFee,
-    required this.imageUrl,
+    required this.endTime,
+    required this.image,
     this.participantCount = 0,
-    this.isActive = false,
-    this.status = 'upcoming',
   });
 
   factory Competition.fromFirestore(DocumentSnapshot doc) {
@@ -31,13 +25,10 @@ class Competition {
       id: doc.id,
       title: data['title'] ?? '',
       description: data['description'] ?? '',
-      prize: data['prize'] ?? '',
-      dateTime: (data['dateTime'] as Timestamp).toDate(),
       entryFee: (data['entryFee'] ?? 0).toDouble(),
-      imageUrl: data['imageUrl'] ?? '',
+      endTime: (data['endTime'] as Timestamp).toDate(),
+      image: data['image'] ?? '',
       participantCount: data['participantCount'] ?? 0,
-      isActive: data['isActive'] ?? false,
-      status: data['status'] ?? 'upcoming',
     );
   }
 
@@ -45,14 +36,13 @@ class Competition {
     return {
       'title': title,
       'description': description,
-      'prize': prize,
-      'dateTime': Timestamp.fromDate(dateTime),
       'entryFee': entryFee,
-      'imageUrl': imageUrl,
+      'endTime': Timestamp.fromDate(endTime),
+      'image': image,
       'participantCount': participantCount,
-      'isActive': isActive,
-      'status': status,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }
+
+  bool get isActive => DateTime.now().isBefore(endTime);
 }

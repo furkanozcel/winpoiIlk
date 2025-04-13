@@ -68,33 +68,49 @@ class FirestoreService {
   // Tüm yarışmaları getir
   Stream<List<Competition>> getCompetitions() {
     return _competitionsRef
-        .orderBy('dateTime', descending: false)
+        .where('endTime', isGreaterThan: Timestamp.now())
+        .orderBy('endTime', descending: false)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Competition.fromFirestore(doc))
             .toList());
   }
 
-  // Aktif yarışmaları getir
+  // Aktif yarışmaları getir (endTime'ı gelmemiş olanlar)
   Stream<List<Competition>> getActiveCompetitions() {
     return _competitionsRef
-        .where('isActive', isEqualTo: true)
-        .orderBy('dateTime', descending: false)
+        .where('endTime', isGreaterThan: Timestamp.now())
+        .orderBy('endTime', descending: false)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Competition.fromFirestore(doc))
             .toList());
   }
 
-  // Gelecek yarışmaları getir
+  // Gelecek yarışmaları getir (endTime'ı gelmemiş olanlar)
   Stream<List<Competition>> getUpcomingCompetitions() {
     return _competitionsRef
-        .where('status', isEqualTo: 'upcoming')
-        .orderBy('dateTime', descending: false)
+        .where('endTime', isGreaterThan: Timestamp.now())
+        .orderBy('endTime', descending: false)
         .snapshots()
         .map((snapshot) => snapshot.docs
             .map((doc) => Competition.fromFirestore(doc))
             .toList());
+  }
+
+  // Biten yarışmaları sil
+  Future<void> deleteExpiredCompetitions() async {
+    try {
+      final now = Timestamp.now();
+      final expiredCompetitions =
+          await _competitionsRef.where('endTime', isLessThan: now).get();
+
+      for (var doc in expiredCompetitions.docs) {
+        await doc.reference.delete();
+      }
+    } catch (e) {
+      throw Exception('Biten yarışmalar silinirken hata oluştu: $e');
+    }
   }
 
   // Username kontrolü için yeni metod
@@ -116,5 +132,15 @@ class FirestoreService {
     if (doc.docs.isEmpty) return null;
 
     return UserModel.fromMap(doc.docs.first.id, doc.docs.first.data());
+  }
+
+  Future<void> incrementParticipantCount(String competitionId) async {
+    try {
+      await _firestore.collection('competitions').doc(competitionId).update({
+        'participantCount': FieldValue.increment(1),
+      });
+    } catch (e) {
+      throw Exception('Katılımcı sayısı güncellenirken hata oluştu: $e');
+    }
   }
 }
