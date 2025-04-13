@@ -12,7 +12,20 @@
           "package_name": "com.example.winpoi"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "607247914246-s2f5tgc57416d9mt9kqdvgsl09cfi8rh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.winpoi",
+            "certificate_hash": "08251e4f11c00035bd81cb4b0339f8aba903aadb"
+          }
+        },
+        {
+          "client_id": "607247914246-sifqmfcnkd6tm61kfrom0pibdmkvapkd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyALIbFc-SSObzaTHD5Ux9EPByYS4eJaE2c"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "607247914246-sifqmfcnkd6tm61kfrom0pibdmkvapkd.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "607247914246-c6r7h3spcretevk343pt04bvp0ip95h6.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.winpoi"
+              }
+            }
+          ]
         }
       }
     }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/services.dart';
+import 'dart:math' as math;
 
 class LeadingBoard extends StatefulWidget {
   const LeadingBoard({super.key});
@@ -52,7 +53,7 @@ class _LeadingBoardState extends State<LeadingBoard>
 
     final userData = user.data() as Map<String, dynamic>;
     final isFirst = rank == '1';
-    final Color primaryColor = const Color(0xFFFF6600);
+    const Color primaryColor = Color(0xFFFF6600);
 
     return AnimatedBuilder(
       animation: _controller,
@@ -67,7 +68,7 @@ class _LeadingBoardState extends State<LeadingBoard>
               parent: _controller,
               curve: Interval(
                 0.1 * index,
-                0.6 + (0.1 * index),
+                math.min(0.6 + (0.1 * index), 1.0),
                 curve: Curves.easeOutCubic,
               ),
             )),
@@ -150,7 +151,7 @@ class _LeadingBoardState extends State<LeadingBoard>
                         ),
                         const SizedBox(width: 4),
                         Text(
-                          '${userData['poiBalance']?.toString() ?? '0'}',
+                          userData['poiBalance']?.toString() ?? '0',
                           style: TextStyle(
                             color: primaryColor,
                             fontWeight: FontWeight.w600,
@@ -173,7 +174,7 @@ class _LeadingBoardState extends State<LeadingBoard>
     if (user.data() == null) return const SizedBox.shrink();
 
     final userData = user.data() as Map<String, dynamic>;
-    final Color primaryColor = const Color(0xFFFF6600);
+    const Color primaryColor = Color(0xFFFF6600);
 
     return FadeTransition(
       opacity: Tween<double>(begin: 0.0, end: 1.0).animate(
@@ -181,7 +182,7 @@ class _LeadingBoardState extends State<LeadingBoard>
           parent: _controller,
           curve: Interval(
             0.2 + (0.05 * (rank - 3)),
-            0.8 + (0.05 * (rank - 3)),
+            math.min(0.8 + (0.05 * (rank - 3)), 1.0),
             curve: Curves.easeOut,
           ),
         ),
@@ -195,7 +196,7 @@ class _LeadingBoardState extends State<LeadingBoard>
             parent: _controller,
             curve: Interval(
               0.2 + (0.05 * (rank - 3)),
-              0.8 + (0.05 * (rank - 3)),
+              math.min(0.8 + (0.05 * (rank - 3)), 1.0),
               curve: Curves.easeOutCubic,
             ),
           ),
@@ -227,7 +228,7 @@ class _LeadingBoardState extends State<LeadingBoard>
                   child: Center(
                     child: Text(
                       rank.toString(),
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: primaryColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
@@ -276,7 +277,7 @@ class _LeadingBoardState extends State<LeadingBoard>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.star_rounded,
                         color: primaryColor,
                         size: 16,
@@ -284,7 +285,7 @@ class _LeadingBoardState extends State<LeadingBoard>
                       const SizedBox(width: 4),
                       Text(
                         userData['poiBalance']?.toString() ?? '0',
-                        style: TextStyle(
+                        style: const TextStyle(
                           color: primaryColor,
                           fontWeight: FontWeight.w600,
                           fontSize: 14,

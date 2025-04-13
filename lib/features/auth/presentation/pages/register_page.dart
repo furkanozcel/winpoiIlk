@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import 'package:winpoi/core/services/auth_service.dart';
 import 'package:winpoi/core/services/firestore_service.dart';
 import 'package:winpoi/core/theme/app_theme.dart';
@@ -15,18 +16,25 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
-  final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
   final _authService = AuthService();
   final _firestoreService = FirestoreService();
   bool _isLoading = false;
+  bool _acceptedTerms = false;
 
   Future<void> _register() async {
+    if (!_acceptedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kullanım koşullarını kabul etmelisiniz.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       try {
@@ -42,9 +50,9 @@ class _RegisterPageState extends State<RegisterPage> {
             .collection('users')
             .doc(userCredential.user!.uid)
             .set({
-          'name': _nameController.text.trim(),
+          'name': '',
           'email': _emailController.text.trim(),
-          'username': _usernameController.text.trim(),
+          'username': _emailController.text.trim().split('@')[0],
           'poiBalance': 0,
           'totalPrizeCount': 0,
           'totalGames': 0,
@@ -83,6 +91,96 @@ class _RegisterPageState extends State<RegisterPage> {
         }
       }
     }
+  }
+
+  Future<void> _signInWithGoogle() async {
+    if (!_acceptedTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Kullanım koşullarını kabul etmelisiniz.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+    try {
+      // Google ile oturum aç
+      final userCredential = await _authService.signInWithGoogle();
+
+      // Kullanıcı zaten kaydoldu, SharedPreferences'ı güncelle
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('hasRegistered', true);
+
+      if (mounted) {
+        // Başarılı kayıt mesajı
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Google ile giriş başarılı!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        // Ana sayfaya yönlendir
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    } catch (e) {
+      // Hata ayrıntılarını konsola yazdır
+      print('Google sign-in detailed error: $e');
+
+      // Kullanıcıya daha anlaşılır bir hata mesajı göster
+      String errorMessage = 'Google ile giriş yapılamadı.';
+
+      if (e.toString().contains('PlatformException')) {
+        errorMessage =
+            'Google servislerine bağlanılamadı. Lütfen internet bağlantınızı kontrol edin.';
+      } else if (e.toString().contains('network_error')) {
+        errorMessage = 'İnternet bağlantınızı kontrol edin ve tekrar deneyin.';
+      } else if (e.toString().contains('credential')) {
+        errorMessage = 'Kimlik doğrulama hatası. Lütfen tekrar deneyin.';
+      } else if (e.toString().contains('cancelled')) {
+        errorMessage = 'Google ile giriş işlemi iptal edildi.';
+      }
+
+      // Hata mesajı göster
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  void _showTermsOfService() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Kullanım Koşulları'),
+        content: const SingleChildScrollView(
+          child: Text(
+            'Bu uygulamayı kullanarak aşağıdaki koşulları kabul etmiş olursunuz:\n\n'
+            '1. Kişisel bilgileriniz güvenle saklanacaktır.\n'
+            '2. Uygulama içi yarışmalara katılım kurallarına uyacağınızı taahhüt edersiniz.\n'
+            '3. Uygulama üzerinden yapılan işlemlerden tamamen siz sorumlusunuz.\n'
+            '4. Hizmet koşullarımız ve gizlilik politikamızda değişiklik yapma hakkımız saklıdır.\n'
+            '5. Uygunsuz içerik paylaşımı veya kötüye kullanım durumlarında hesabınız askıya alınabilir.',
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Kapat'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -149,49 +247,6 @@ class _RegisterPageState extends State<RegisterPage> {
                   ),
                   const SizedBox(height: 32),
                   TextFormField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: 'Ad Soyad',
-                      hintText: 'John Doe',
-                      prefixIcon: const Icon(Icons.person_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Ad Soyad gerekli';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _usernameController,
-                    decoration: InputDecoration(
-                      labelText: 'Kullanıcı Adı',
-                      hintText: '@kullaniciadi',
-                      prefixIcon: const Icon(Icons.alternate_email),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Kullanıcı adı gerekli';
-                      }
-                      if (value.length < 3) {
-                        return 'Kullanıcı adı en az 3 karakter olmalı';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
                       labelText: 'E-posta',
@@ -248,41 +303,46 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    decoration: InputDecoration(
-                      labelText: 'Şifre Onayı',
-                      hintText: '••••••••',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirmPassword
-                              ? Icons.visibility_outlined
-                              : Icons.visibility_off_outlined,
+                  // Kullanım Koşulları onay kutusu
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _acceptedTerms,
+                        onChanged: (value) {
+                          setState(() {
+                            _acceptedTerms = value ?? false;
+                          });
+                        },
+                      ),
+                      Expanded(
+                        child: RichText(
+                          text: TextSpan(
+                            style: TextStyle(
+                              color: AppTheme.textSecondaryColor,
+                              fontSize: 14,
+                            ),
+                            children: [
+                              const TextSpan(
+                                text: 'Kullanım koşullarını ',
+                              ),
+                              TextSpan(
+                                text: 'okudum ve kabul ediyorum',
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = _showTermsOfService,
+                              ),
+                            ],
+                          ),
                         ),
-                        onPressed: () => setState(() =>
-                            _obscureConfirmPassword = !_obscureConfirmPassword),
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                    ),
-                    obscureText: _obscureConfirmPassword,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Şifre onayı gerekli';
-                      }
-                      if (value != _passwordController.text) {
-                        return 'Şifreler eşleşmiyor';
-                      }
-                      return null;
-                    },
+                    ],
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
+                    onPressed: _isLoading || !_acceptedTerms ? null : _register,
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 40, vertical: 12),
@@ -316,6 +376,82 @@ class _RegisterPageState extends State<RegisterPage> {
                             ],
                           ),
                   ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Divider(thickness: 1),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'veya',
+                          style: TextStyle(
+                            color: AppTheme.textSecondaryColor,
+                          ),
+                        ),
+                      ),
+                      const Expanded(
+                        child: Divider(thickness: 1),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // Google ile giriş butonu
+                  ElevatedButton.icon(
+                    onPressed: _isLoading || !_acceptedTerms
+                        ? null
+                        : _signInWithGoogle,
+                    icon: const Icon(
+                      Icons.g_mobiledata_rounded,
+                      size: 28,
+                      color: Colors.red,
+                    ),
+                    label: const Text(
+                      'Google ile Kayıt ol',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(25),
+                      ),
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black87,
+                      elevation: 2,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Zaten hesabın var mı? Giriş Yap bölümü
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'Zaten hesabın var mı?',
+                        style: TextStyle(
+                          color: AppTheme.textSecondaryColor,
+                          fontSize: 14,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.of(context).pushReplacementNamed('/login');
+                        },
+                        child: Text(
+                          'Giriş Yap',
+                          style: TextStyle(
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
             ),
@@ -327,11 +463,8 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 }
