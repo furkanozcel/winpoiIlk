@@ -344,6 +344,8 @@ class AnimatedCompetitionCard extends StatefulWidget {
 class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard> {
   late Timer _timer;
   Duration _remainingTime = Duration.zero;
+  bool _isExpired = false;
+  final _firestoreService = FirestoreService();
 
   @override
   void initState() {
@@ -361,6 +363,11 @@ class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard> {
 
     if (difference.isNegative) {
       _remainingTime = Duration.zero;
+      if (!_isExpired) {
+        _isExpired = true;
+        // Yarışma süresi bittiğinde sil
+        _firestoreService.deleteCompetition(widget.competition.id);
+      }
     } else {
       _remainingTime = difference;
     }
@@ -386,6 +393,11 @@ class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard> {
 
   @override
   Widget build(BuildContext context) {
+    // Süresi bitmiş yarışmaları gösterme
+    if (_isExpired) {
+      return const SizedBox.shrink();
+    }
+
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
       curve: Curves.easeInOut,
