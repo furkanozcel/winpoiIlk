@@ -56,10 +56,10 @@ class FirestoreService {
     }
   }
 
-  // Yarışma silme
-  Future<void> deleteCompetition(String id) async {
+  // Tek bir yarışmayı sil
+  Future<void> deleteCompetition(String competitionId) async {
     try {
-      await _competitionsRef.doc(id).delete();
+      await _competitionsRef.doc(competitionId).delete();
     } catch (e) {
       throw Exception('Yarışma silinirken hata oluştu: $e');
     }
