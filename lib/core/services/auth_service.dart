@@ -141,6 +141,15 @@ class AuthService {
       throw Exception('Çıkış yapma hatası: $e');
     }
   }
+
+  // Şifre sıfırlama e-postası gönder
+  Future<void> sendPasswordResetEmail({required String email}) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      throw Exception('Şifre sıfırlama e-postası gönderme hatası: $e');
+    }
+  }
 }
 
 // Yardımcı fonksiyon

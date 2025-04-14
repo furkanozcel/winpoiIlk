@@ -77,6 +77,107 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _resetPassword() async {
+    final emailController = TextEditingController();
+    bool isLoading = false;
+
+    await showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Şifre Sıfırlama'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Şifre sıfırlama bağlantısı e-posta adresinize gönderilecektir.',
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: emailController,
+                decoration: InputDecoration(
+                  labelText: 'E-posta',
+                  hintText: 'ornek@email.com',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  prefixIcon: const Icon(Icons.email_outlined),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('İptal'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      if (emailController.text.isEmpty) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Lütfen e-posta adresinizi girin'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                        return;
+                      }
+
+                      setState(() => isLoading = true);
+                      try {
+                        await _authService.sendPasswordResetEmail(
+                          email: emailController.text.trim(),
+                        );
+                        if (mounted) {
+                          Navigator.pop(context);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text(
+                                'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
+                              ),
+                              backgroundColor: Colors.green,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Hata: $e'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                        }
+                      } finally {
+                        if (mounted) {
+                          setState(() => isLoading = false);
+                        }
+                      }
+                    },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).primaryColor,
+              ),
+              child: isLoading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text('Gönder'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -212,9 +313,7 @@ class _LoginPageState extends State<LoginPage> {
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                        // Şifre sıfırlama sayfasına yönlendir
-                      },
+                      onPressed: _resetPassword,
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.grey.shade700,
                         padding: EdgeInsets.zero,
