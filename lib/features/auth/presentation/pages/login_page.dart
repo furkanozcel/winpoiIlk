@@ -54,33 +54,57 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  Future<void> _signInWithGoogle() async {
+    setState(() => _isLoading = true);
+    try {
+      await _authService.signInWithGoogle();
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Google ile giriş hatası: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Form(
               key: _formKey,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const SizedBox(height: 40),
                   // Logo
                   Center(
                     child: Container(
-                      width: 150,
-                      height: 150,
+                      width: 80,
+                      height: 80,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
+                        color: Colors.white,
                         boxShadow: [
                           BoxShadow(
                             color: Colors.grey.withOpacity(0.2),
-                            spreadRadius: 5,
-                            blurRadius: 7,
-                            offset: const Offset(0, 3),
+                            spreadRadius: 2,
+                            blurRadius: 5,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
@@ -93,48 +117,39 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
-                  // Hoş Geldiniz Metni
+                  // Sign in your account text
                   const Text(
-                    'Hoş Geldiniz!',
+                    'Hesabına Giriş Yap',
                     style: TextStyle(
-                      fontSize: 28,
+                      fontSize: 24,
                       fontWeight: FontWeight.bold,
                       color: Colors.black87,
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Yarışmalara katılmak için giriş yapın',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey.shade600,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 48),
-                  // Email Alanı
+                  const SizedBox(height: 32),
+                  // Email field
                   TextFormField(
                     controller: _emailController,
                     decoration: InputDecoration(
                       labelText: 'E-posta',
                       hintText: 'ornek@email.com',
-                      prefixIcon: const Icon(Icons.email_outlined),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(15),
+                        borderRadius: BorderRadius.circular(12),
                         borderSide:
                             BorderSide(color: Theme.of(context).primaryColor),
                       ),
                       filled: true,
                       fillColor: Colors.grey.shade50,
+                      contentPadding: const EdgeInsets.all(16),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
@@ -148,18 +163,34 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  // Şifre Alanı
+                  // Password field
                   TextFormField(
                     controller: _passwordController,
                     decoration: InputDecoration(
                       labelText: 'Şifre',
                       hintText: '••••••••',
-                      prefixIcon: const Icon(Icons.lock_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide:
+                            BorderSide(color: Theme.of(context).primaryColor),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey.shade50,
+                      contentPadding: const EdgeInsets.all(16),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
                               ? Icons.visibility_outlined
                               : Icons.visibility_off_outlined,
+                          color: Colors.grey,
                         ),
                         onPressed: () {
                           setState(() {
@@ -177,33 +208,32 @@ class _LoginPageState extends State<LoginPage> {
                     },
                   ),
                   const SizedBox(height: 8),
-                  // Şifremi Unuttum
+                  // Forgot password
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
                       onPressed: () {
                         // Şifre sıfırlama sayfasına yönlendir
                       },
-                      child: Text(
-                        'Şifremi Unuttum',
-                        style: TextStyle(
-                          color: Colors.grey.shade700,
-                        ),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.grey.shade700,
+                        padding: EdgeInsets.zero,
                       ),
+                      child: const Text('Şifremi Unuttum'),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Giriş Yap Butonu
+                  // Sign in button
                   ElevatedButton(
                     onPressed: _isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 40, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(25),
-                      ),
-                      elevation: 3,
                       backgroundColor: Theme.of(context).primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
                     ),
                     child: _isLoading
                         ? const SizedBox(
@@ -214,23 +244,64 @@ class _LoginPageState extends State<LoginPage> {
                               color: Colors.white,
                             ),
                           )
-                        : const Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(Icons.login, size: 20),
-                              SizedBox(width: 8),
-                              Text(
-                                'Giriş Yap',
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
+                        : const Text(
+                            'GİRİŞ YAP',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                   ),
                   const SizedBox(height: 24),
-                  // Kayıt Ol Yönlendirmesi
+                  // Or sign in with
+                  Row(
+                    children: [
+                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Text(
+                          'veya',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ),
+                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // Google sign in button
+                  OutlinedButton(
+                    onPressed: _isLoading ? null : _signInWithGoogle,
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(color: Colors.grey.shade300),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset(
+                          'lib/features/auth/assets/images/google_logo.png',
+                          height: 24,
+                        ),
+                        const SizedBox(width: 12),
+                        const Text(
+                          'Google ile Giriş Yap',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  // Don't have an account
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -238,16 +309,22 @@ class _LoginPageState extends State<LoginPage> {
                         'Hesabın yok mu?',
                         style: TextStyle(
                           color: Colors.grey.shade600,
+                          fontSize: 14,
                         ),
                       ),
                       TextButton(
                         onPressed: () {
                           Navigator.of(context).pushNamed('/register');
                         },
-                        child: const Text(
-                          'Hemen Kayıt Ol',
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                        ),
+                        child: Text(
+                          'KAYIT OL',
                           style: TextStyle(
-                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColor,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
                           ),
                         ),
                       ),
