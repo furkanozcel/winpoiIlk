@@ -100,6 +100,11 @@ class _EditProfilePageState extends State<EditProfilePage> {
       }
 
       final newEmail = _emailController.text.trim();
+      final newName = _nameController.text.trim();
+      final newUsername = _usernameController.text.trim();
+      final newPhone = _phoneController.text.trim();
+      final newAddress = _addressController.text.trim();
+
       if (newEmail != user.email) {
         final shouldProceed = await _showReauthDialog();
         if (!shouldProceed) {
@@ -113,7 +118,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
             password: _passwordController.text,
           );
           await user.reauthenticateWithCredential(credential);
-
           await user.updateEmail(newEmail);
         } catch (e) {
           _showErrorMessage('Kimlik doğrulama hatası: $e');
@@ -122,15 +126,21 @@ class _EditProfilePageState extends State<EditProfilePage> {
         }
       }
 
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .update({
-        'name': _nameController.text.trim(),
-        'username': _usernameController.text.trim(),
+      final userRef =
+          FirebaseFirestore.instance.collection('users').doc(user.uid);
+
+      final userDoc = await userRef.get();
+      if (!userDoc.exists) {
+        throw Exception('Kullanıcı verisi bulunamadı');
+      }
+
+      await userRef.update({
+        'name': newName,
+        'username': newUsername,
         'email': newEmail,
-        'phone': _phoneController.text.trim(),
-        'address': _addressController.text.trim(),
+        'phone': newPhone,
+        'address': newAddress,
+        'updatedAt': FieldValue.serverTimestamp(),
       });
 
       if (mounted) {
@@ -275,7 +285,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
         filled: true,
         fillColor: Colors.white,
       ),
-      validator: validator,
+      validator: validator ??
+          (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Bu alan zorunludur';
+            }
+            return null;
+          },
       maxLines: maxLines,
     );
   }
