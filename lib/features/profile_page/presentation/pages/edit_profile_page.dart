@@ -189,28 +189,62 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         controller: _nameController,
                         label: 'Ad Soyad',
                         icon: Icons.person_outline,
-                        validator: (value) => null,
+                        validator: (value) {
+                          if (value != null &&
+                              value.trim().isNotEmpty &&
+                              value.trim().length < 3) {
+                            return 'Ad Soyad en az 3 karakter olmalıdır';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _usernameController,
                         label: 'Kullanıcı Adı',
                         icon: Icons.account_circle_outlined,
-                        validator: (value) => null,
+                        validator: (value) {
+                          if (value != null && value.trim().isNotEmpty) {
+                            if (value.trim().length < 3) {
+                              return 'Kullanıcı adı en az 3 karakter olmalıdır';
+                            }
+                            if (!RegExp(r'^[a-zA-Z0-9_]+$')
+                                .hasMatch(value.trim())) {
+                              return 'Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir';
+                            }
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _emailController,
                         label: 'E-posta',
                         icon: Icons.email_outlined,
-                        validator: (value) => null,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'E-posta adresi boş bırakılamaz';
+                          }
+                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                              .hasMatch(value.trim())) {
+                            return 'Geçerli bir e-posta adresi giriniz';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _phoneController,
                         label: 'Telefon',
                         icon: Icons.phone_outlined,
-                        validator: (value) => null,
+                        validator: (value) {
+                          if (value != null &&
+                              value.trim().isNotEmpty &&
+                              !RegExp(r'^[0-9]{10}$').hasMatch(value.trim())) {
+                            return 'Geçerli bir telefon numarası giriniz (10 haneli)';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
@@ -218,7 +252,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         label: 'Adres',
                         icon: Icons.location_on_outlined,
                         maxLines: 3,
-                        validator: (value) => null,
+                        validator: (value) {
+                          if (value != null &&
+                              value.trim().isNotEmpty &&
+                              value.trim().length < 10) {
+                            return 'Adres en az 10 karakter olmalıdır';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 24),
                       SizedBox(
