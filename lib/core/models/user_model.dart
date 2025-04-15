@@ -10,6 +10,9 @@ class UserModel {
   final int totalGames;
   final DateTime createdAt;
   final String role;
+  final String? phoneNumber;
+  final String? profilePicture;
+  final String? address;
 
   UserModel({
     required this.id,
@@ -21,6 +24,9 @@ class UserModel {
     required this.totalGames,
     required this.createdAt,
     this.role = 'user',
+    this.phoneNumber,
+    this.profilePicture,
+    this.address,
   });
 
   bool get isAdmin => role == 'admin';
@@ -36,6 +42,9 @@ class UserModel {
       totalGames: map['totalGames'] ?? 0,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       role: map['role'] ?? 'user',
+      phoneNumber: map['phoneNumber'],
+      profilePicture: map['profilePicture'],
+      address: map['address'],
     );
   }
 
@@ -49,6 +58,9 @@ class UserModel {
       'totalGames': totalGames,
       'createdAt': createdAt,
       'role': role,
+      'phoneNumber': phoneNumber,
+      'profilePicture': profilePicture,
+      'address': address,
     };
   }
 }
