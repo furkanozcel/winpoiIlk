@@ -54,7 +54,7 @@ class _RegisterPageState extends State<RegisterPage> {
             .set({
           'name': '',
           'email': _emailController.text.trim(),
-          'username': _emailController.text.trim().split('@')[0],
+          'username': '',
           'poiBalance': 0,
           'totalPrizeCount': 0,
           'totalGames': 0,

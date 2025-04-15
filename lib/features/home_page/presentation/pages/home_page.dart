@@ -23,12 +23,152 @@ class _HomePageState extends State<HomePage>
   Animation<double>? _fadeAnimation;
   late Timer _cleanupTimer;
   final _firestoreService = FirestoreService();
+  bool _isUsernameDialogShown = false;
 
   @override
   void initState() {
     super.initState();
     _setupAnimations();
     _setupCleanupTimer();
+    _checkAndShowUsernameDialog();
+  }
+
+  Future<void> _checkAndShowUsernameDialog() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+
+      final username = userDoc.data()?['username']?.toString();
+
+      // Kullanıcı dokümanı yoksa veya username alanı yoksa veya boşsa
+      if (!userDoc.exists || username == null || username.trim().isEmpty) {
+        if (!_isUsernameDialogShown) {
+          _isUsernameDialogShown = true;
+          _showUsernameDialog();
+        }
+      }
+    }
+  }
+
+  Future<void> _showUsernameDialog() async {
+    final usernameController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool isUsernameValid = true;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Kullanıcı Adı Oluştur'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Uygulamayı kullanmaya başlamak için bir kullanıcı adı oluşturmalısınız.',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: usernameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Kullanıcı Adı',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      isUsernameValid = true;
+                    });
+                  },
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Kullanıcı adı boş bırakılamaz';
+                    }
+                    if (value.trim().length < 3) {
+                      return 'Kullanıcı adı en az 3 karakter olmalıdır';
+                    }
+                    if (!RegExp(r'^[a-zA-Z0-9_]+$').hasMatch(value.trim())) {
+                      return 'Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir';
+                    }
+                    if (!isUsernameValid) {
+                      return 'Bu kullanıcı adı zaten kullanılıyor';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  final username = usernameController.text.trim();
+                  final user = FirebaseAuth.instance.currentUser;
+
+                  if (user != null) {
+                    try {
+                      // Önce kullanıcı adının özgün olup olmadığını kontrol et
+                      final usernameExists = await FirebaseFirestore.instance
+                          .collection('users')
+                          .where('username', isEqualTo: username)
+                          .get();
+
+                      if (usernameExists.docs.isNotEmpty) {
+                        setState(() {
+                          isUsernameValid = false;
+                        });
+                        formKey.currentState!.validate();
+                        return;
+                      }
+
+                      // Kullanıcı adı özgünse Firestore'a kaydet
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .set({
+                        'username': username,
+                        'email': user.email,
+                        'createdAt': FieldValue.serverTimestamp(),
+                      }, SetOptions(merge: true));
+
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text('Kullanıcı adı başarıyla oluşturuldu'),
+                            backgroundColor: Colors.green,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Hata oluştu: $e'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    }
+                  }
+                }
+              },
+              child: const Text('Oluştur'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _setupAnimations() {

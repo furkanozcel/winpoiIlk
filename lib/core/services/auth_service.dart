@@ -109,7 +109,7 @@ class AuthService {
               .set({
             'name': userCredential.user!.displayName ?? '',
             'email': userCredential.user!.email ?? '',
-            'username': userCredential.user!.email?.split('@')[0] ?? '',
+            'username': '',
             'poiBalance': 0,
             'totalPrizeCount': 0,
             'totalGames': 0,
