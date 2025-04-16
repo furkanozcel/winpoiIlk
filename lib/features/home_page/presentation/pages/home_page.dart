@@ -7,6 +7,7 @@ import 'package:winpoi/features/notifications/presentation/pages/notifications_p
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:winpoi/core/services/firestore_service.dart';
+import 'package:winpoi/features/home_page/presentation/pages/my_games_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,8 +16,8 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage>
-    with SingleTickerProviderStateMixin {
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  late TabController _tabController;
   int? expandedIndex;
   final ScrollController _scrollController = ScrollController();
   late AnimationController _fadeController;
@@ -28,6 +29,7 @@ class _HomePageState extends State<HomePage>
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _setupAnimations();
     _setupCleanupTimer();
     _checkAndShowUsernameDialog();
@@ -208,6 +210,62 @@ class _HomePageState extends State<HomePage>
     );
   }
 
+  Future<void> _joinCompetition(Competition competition) async {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('Kullanıcı oturumu bulunamadı');
+      }
+
+      // Kullanıcının bu yarışmaya daha önce katılıp katılmadığını kontrol et
+      final participationDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('participations')
+          .doc(competition.id)
+          .get();
+
+      if (participationDoc.exists) {
+        throw Exception('Bu yarışmaya zaten katıldınız');
+      }
+
+      // Yarışmaya katılımı kaydet - ilk hak kullanılmış olarak başlat
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('participations')
+          .doc(competition.id)
+          .set({
+        'competitionTitle': competition.title,
+        'prizeImage': competition.image,
+        'endTime': competition.endTime,
+        'remainingAttempts':
+            2, // Toplam 3 haktan 1'i kullanılmış olarak başlıyor
+        'lastPlayedAt':
+            FieldValue.serverTimestamp(), // İlk oyun zamanını kaydet
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+                'Oyun başlatılıyor... İlk hakkınızı kullandınız. Kalan hak: 2'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_fadeAnimation == null) return const SizedBox.shrink();
@@ -303,57 +361,149 @@ class _HomePageState extends State<HomePage>
             ),
           ),
         ],
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          indicatorWeight: 3,
+          tabs: const [
+            Tab(
+              child: Text(
+                'Oyunlar',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            Tab(
+              child: Text(
+                'Oyunlarım',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('competitions')
-            .orderBy('endTime', descending: false)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return _buildErrorState();
-          }
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildGamesTab(),
+          const MyGamesPage(),
+        ],
+      ),
+    );
+  }
 
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return _buildLoadingState();
-          }
+  Widget _buildGamesTab() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return const Center(
+        child: Text('Lütfen giriş yapın'),
+      );
+    }
 
-          final competitions = snapshot.data?.docs
-                  .map((doc) => Competition.fromFirestore(doc))
-                  .toList() ??
-              [];
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('participations')
+          .snapshots(),
+      builder: (context, participationsSnapshot) {
+        if (participationsSnapshot.hasError) {
+          return _buildErrorState();
+        }
 
-          if (competitions.isEmpty) {
-            return _buildEmptyState();
-          }
+        // Kullanıcının katıldığı yarışmaların ID'lerini al
+        final participatedCompetitionIds = participationsSnapshot.hasData
+            ? participationsSnapshot.data!.docs.map((doc) => doc.id).toSet()
+            : <String>{};
 
-          return ListView.builder(
-            controller: _scrollController,
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-            itemCount: competitions.length,
-            itemBuilder: (context, index) {
-              return AnimatedCompetitionCard(
-                competition: competitions[index],
-                isExpanded: expandedIndex == index,
-                onTap: () {
-                  setState(() {
-                    if (expandedIndex == index) {
-                      expandedIndex = null;
-                    } else {
-                      expandedIndex = index;
-                      Future.delayed(const Duration(milliseconds: 100), () {
-                        _scrollToSelectedContent(index);
-                      });
-                    }
-                  });
-                },
-                index: index,
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('competitions')
+              .orderBy('endTime', descending: false)
+              .snapshots(),
+          builder: (context, competitionsSnapshot) {
+            if (competitionsSnapshot.hasError) {
+              return _buildErrorState();
+            }
+
+            if (competitionsSnapshot.connectionState ==
+                ConnectionState.waiting) {
+              return _buildLoadingState();
+            }
+
+            // Kullanıcının katılmadığı yarışmaları filtrele
+            final competitions = competitionsSnapshot.data?.docs
+                    .where(
+                        (doc) => !participatedCompetitionIds.contains(doc.id))
+                    .map((doc) => Competition.fromFirestore(doc))
+                    .toList() ??
+                [];
+
+            if (competitions.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.emoji_events_outlined,
+                      size: 64,
+                      color: Colors.grey.shade400,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Katılabileceğiniz Yarışma Yok',
+                      style: TextStyle(
+                        color: Colors.grey.shade700,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Yeni yarışmalar için takipte kalın',
+                      style: TextStyle(
+                        color: Colors.grey.shade500,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
               );
-            },
-          );
-        },
-      ),
+            }
+
+            return ListView.builder(
+              controller: _scrollController,
+              physics: const BouncingScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+              itemCount: competitions.length,
+              itemBuilder: (context, index) {
+                return AnimatedCompetitionCard(
+                  competition: competitions[index],
+                  isExpanded: expandedIndex == index,
+                  onTap: () {
+                    setState(() {
+                      if (expandedIndex == index) {
+                        expandedIndex = null;
+                      } else {
+                        expandedIndex = index;
+                        Future.delayed(const Duration(milliseconds: 100), () {
+                          _scrollToSelectedContent(index);
+                        });
+                      }
+                    });
+                  },
+                  index: index,
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 
@@ -421,40 +571,9 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.emoji_events_outlined,
-            size: 64,
-            color: Colors.grey.shade400,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Henüz Yarışma Yok',
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Yakında yeni yarışmalar eklenecek',
-            style: TextStyle(
-              color: Colors.grey.shade500,
-              fontSize: 16,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
+    _tabController.dispose();
     _fadeController.dispose();
     _scrollController.dispose();
     _cleanupTimer.cancel();
@@ -673,6 +792,12 @@ class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard> {
                     child: ElevatedButton(
                       onPressed: () {
                         // Yarışmaya katılma işlemi
+                        if (context.findAncestorStateOfType<_HomePageState>() !=
+                            null) {
+                          context
+                              .findAncestorStateOfType<_HomePageState>()!
+                              ._joinCompetition(widget.competition);
+                        }
                       },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: const Color(0xFFFF6600),
