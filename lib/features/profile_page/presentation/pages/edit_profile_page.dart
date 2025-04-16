@@ -16,7 +16,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _currentPasswordController = TextEditingController();
+  final _newPasswordController = TextEditingController();
+  final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
 
   @override
@@ -67,7 +69,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         return AlertDialog(
           title: const Text('Şifrenizi Girin'),
           content: TextField(
-            controller: _passwordController,
+            controller: _currentPasswordController,
             obscureText: true,
             decoration: const InputDecoration(
               hintText: 'Mevcut şifreniz',
@@ -87,6 +89,149 @@ class _EditProfilePageState extends State<EditProfilePage> {
       },
     );
     return result ?? false;
+  }
+
+  Future<void> _showChangePasswordDialog() async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Şifre Değiştir'),
+          content: Form(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: _currentPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Mevcut Şifre',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Mevcut şifrenizi giriniz';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _newPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Yeni Şifre',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Yeni şifrenizi giriniz';
+                    }
+                    if (value.length < 6) {
+                      return 'Şifre en az 6 karakter olmalıdır';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: _confirmPasswordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Yeni Şifre (Tekrar)',
+                    border: OutlineInputBorder(),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Şifreyi tekrar giriniz';
+                    }
+                    if (value != _newPasswordController.text) {
+                      return 'Şifreler eşleşmiyor';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('İptal'),
+            ),
+            TextButton(
+              onPressed: () async {
+                if (_currentPasswordController.text.isEmpty ||
+                    _newPasswordController.text.isEmpty ||
+                    _confirmPasswordController.text.isEmpty) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Tüm alanları doldurunuz'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                if (_newPasswordController.text !=
+                    _confirmPasswordController.text) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Yeni şifreler eşleşmiyor'),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  return;
+                }
+
+                try {
+                  final user = FirebaseAuth.instance.currentUser;
+                  if (user == null) {
+                    throw Exception('Kullanıcı oturumu bulunamadı');
+                  }
+
+                  // Mevcut şifreyi doğrula
+                  final credential = EmailAuthProvider.credential(
+                    email: user.email!,
+                    password: _currentPasswordController.text,
+                  );
+                  await user.reauthenticateWithCredential(credential);
+
+                  // Yeni şifreyi güncelle
+                  await user.updatePassword(_newPasswordController.text);
+
+                  if (mounted) {
+                    Navigator.pop(context, true);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Şifre başarıyla güncellendi'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              child: const Text('Güncelle'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result == true) {
+      _currentPasswordController.clear();
+      _newPasswordController.clear();
+      _confirmPasswordController.clear();
+    }
   }
 
   Future<void> _updateProfile() async {
@@ -115,7 +260,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         try {
           final credential = EmailAuthProvider.credential(
             email: user.email!,
-            password: _passwordController.text,
+            password: _currentPasswordController.text,
           );
           await user.reauthenticateWithCredential(credential);
           await user.updateEmail(newEmail);
@@ -260,6 +405,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
                           }
                           return null;
                         },
+                      ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _showChangePasswordDialog,
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            side: const BorderSide(color: Color(0xFFFF6600)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          child: const Text(
+                            'Şifre Değiştir',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFF6600),
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: 24),
                       SizedBox(
