@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:winpoi/core/services/auth_service.dart';
+import 'package:provider/provider.dart';
+import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -12,18 +13,15 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _authService = AuthService();
-  bool _isLoading = false;
   bool _obscurePassword = true;
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
       try {
-        await _authService.signInWithEmail(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
+        await context.read<app_provider.AuthProvider>().signInWithEmail(
+              email: _emailController.text.trim(),
+              password: _passwordController.text.trim(),
+            );
         if (mounted) {
           Navigator.of(context).pushReplacementNamed('/home');
         }
@@ -46,18 +44,13 @@ class _LoginPageState extends State<LoginPage> {
             ),
           );
         }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
       }
     }
   }
 
   Future<void> _signInWithGoogle() async {
-    setState(() => _isLoading = true);
     try {
-      await _authService.signInWithGoogle();
+      await context.read<app_provider.AuthProvider>().signInWithGoogle();
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/home');
       }
@@ -69,10 +62,6 @@ class _LoginPageState extends State<LoginPage> {
             backgroundColor: Colors.red,
           ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }
@@ -129,9 +118,11 @@ class _LoginPageState extends State<LoginPage> {
 
                       setState(() => isLoading = true);
                       try {
-                        await _authService.sendPasswordResetEmail(
-                          email: emailController.text.trim(),
-                        );
+                        await context
+                            .read<app_provider.AuthProvider>()
+                            .sendPasswordResetEmail(
+                              email: emailController.text.trim(),
+                            );
                         if (mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -180,6 +171,8 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<app_provider.AuthProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
@@ -248,16 +241,15 @@ class _LoginPageState extends State<LoginPage> {
                         borderSide:
                             BorderSide(color: Theme.of(context).primaryColor),
                       ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      contentPadding: const EdgeInsets.all(16),
+                      prefixIcon: const Icon(Icons.email_outlined),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'E-posta gerekli';
+                      if (value == null || value.trim().isEmpty) {
+                        return 'E-posta adresi gerekli';
                       }
-                      if (!value.contains('@')) {
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                          .hasMatch(value)) {
                         return 'Geçerli bir e-posta adresi girin';
                       }
                       return null;
@@ -269,7 +261,7 @@ class _LoginPageState extends State<LoginPage> {
                     controller: _passwordController,
                     decoration: InputDecoration(
                       labelText: 'Şifre',
-                      hintText: '••••••••',
+                      hintText: '********',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(color: Colors.grey.shade300),
@@ -283,9 +275,7 @@ class _LoginPageState extends State<LoginPage> {
                         borderSide:
                             BorderSide(color: Theme.of(context).primaryColor),
                       ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      contentPadding: const EdgeInsets.all(16),
+                      prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -302,8 +292,11 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     obscureText: _obscurePassword,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return 'Şifre gerekli';
+                      }
+                      if (value.length < 6) {
+                        return 'Şifre en az 6 karakter olmalı';
                       }
                       return null;
                     },
@@ -315,92 +308,102 @@ class _LoginPageState extends State<LoginPage> {
                     child: TextButton(
                       onPressed: _resetPassword,
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.grey.shade700,
+                        foregroundColor: Theme.of(context).primaryColor,
                         padding: EdgeInsets.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      child: const Text('Şifremi Unuttum'),
+                      child: const Text(
+                        'Şifremi Unuttum',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Sign in button
+                  // Login button
                   ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
+                    onPressed: authProvider.isLoading ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: _isLoading
+                    child: authProvider.isLoading
                         ? const SizedBox(
-                            height: 20,
-                            width: 20,
+                            width: 24,
+                            height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Colors.white,
                             ),
                           )
                         : const Text(
-                            'GİRİŞ YAP',
+                            'Giriş Yap',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                   ),
-                  const SizedBox(height: 24),
-                  // Or sign in with
+                  const SizedBox(height: 20),
+                  // OR divider
                   Row(
                     children: [
-                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                      Expanded(
+                        child: Divider(
+                          color: Colors.grey.shade300,
+                          thickness: 1,
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'veya',
                           style: TextStyle(
                             color: Colors.grey.shade600,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                      Expanded(
+                        child: Divider(
+                          color: Colors.grey.shade300,
+                          thickness: 1,
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   // Google sign in button
-                  OutlinedButton(
-                    onPressed: _isLoading ? null : _signInWithGoogle,
+                  OutlinedButton.icon(
+                    onPressed:
+                        authProvider.isLoading ? null : _signInWithGoogle,
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
                       side: BorderSide(color: Colors.grey.shade300),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'lib/features/auth/assets/images/google_logo.png',
-                          height: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Google ile Giriş Yap',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
+                    icon: Image.asset(
+                      'lib/features/auth/assets/images/google_logo.png',
+                      height: 24,
+                    ),
+                    label: Text(
+                      'Google ile Giriş Yap',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade800,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
-                  // Don't have an account
+                  // Register text
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -408,7 +411,6 @@ class _LoginPageState extends State<LoginPage> {
                         'Hesabın yok mu?',
                         style: TextStyle(
                           color: Colors.grey.shade600,
-                          fontSize: 14,
                         ),
                       ),
                       TextButton(
@@ -416,14 +418,13 @@ class _LoginPageState extends State<LoginPage> {
                           Navigator.of(context).pushNamed('/register');
                         },
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                         ),
                         child: Text(
-                          'KAYIT OL',
+                          'Kayıt Ol',
                           style: TextStyle(
                             color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

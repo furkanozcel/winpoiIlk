@@ -1,8 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import 'package:winpoi/core/services/auth_service.dart';
-import 'package:winpoi/core/services/firestore_service.dart';
+import 'package:provider/provider.dart';
+import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
+import 'package:winpoi/core/providers/firestore_provider.dart';
 import 'package:winpoi/core/theme/app_theme.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,9 +22,6 @@ class _RegisterPageState extends State<RegisterPage> {
   final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
-  final _authService = AuthService();
-  final _firestoreService = FirestoreService();
-  bool _isLoading = false;
   bool _acceptedTerms = false;
 
   Future<void> _register() async {
@@ -38,29 +36,29 @@ class _RegisterPageState extends State<RegisterPage> {
     }
 
     if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
       try {
         // 1. Firebase Auth'a kullanıcı oluştur
         final userCredential =
-            await FirebaseAuth.instance.createUserWithEmailAndPassword(
-          email: _emailController.text.trim(),
-          password: _passwordController.text.trim(),
-        );
+            await context.read<app_provider.AuthProvider>().signUpWithEmail(
+                  email: _emailController.text.trim(),
+                  password: _passwordController.text.trim(),
+                );
 
         // 2. Firestore'a kullanıcı bilgilerini kaydet
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(userCredential.user!.uid)
-            .set({
-          'name': '',
-          'email': _emailController.text.trim(),
-          'username': '',
-          'poiBalance': 0,
-          'totalPrizeCount': 0,
-          'totalGames': 0,
-          'createdAt': FieldValue.serverTimestamp(),
-          'role': 'user', // Varsayılan kullanıcı rolü
-        });
+        final userId = FirebaseAuth.instance.currentUser!.uid;
+        await context.read<FirestoreProvider>().updateUserProfile(
+          userId: userId,
+          data: {
+            'name': '',
+            'email': _emailController.text.trim(),
+            'username': '',
+            'poiBalance': 0,
+            'totalPrizeCount': 0,
+            'totalGames': 0,
+            'createdAt': FieldValue.serverTimestamp(),
+            'role': 'user', // Varsayılan kullanıcı rolü
+          },
+        );
 
         // Kayıt başarılı olduğunda SharedPreferences'ı güncelle
         final prefs = await SharedPreferences.getInstance();
@@ -87,10 +85,6 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           );
         }
-      } finally {
-        if (mounted) {
-          setState(() => _isLoading = false);
-        }
       }
     }
   }
@@ -106,10 +100,9 @@ class _RegisterPageState extends State<RegisterPage> {
       return;
     }
 
-    setState(() => _isLoading = true);
     try {
       // Google ile oturum aç
-      final userCredential = await _authService.signInWithGoogle();
+      await context.read<app_provider.AuthProvider>().signInWithGoogle();
 
       // Kullanıcı zaten kaydoldu, SharedPreferences'ı güncelle
       final prefs = await SharedPreferences.getInstance();
@@ -153,42 +146,27 @@ class _RegisterPageState extends State<RegisterPage> {
           ),
         );
       }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
     }
-  }
-
-  void _showTermsOfService() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Kullanım Koşulları'),
-        content: const SingleChildScrollView(
-          child: Text(
-            'Bu uygulamayı kullanarak aşağıdaki koşulları kabul etmiş olursunuz:\n\n'
-            '1. Kişisel bilgileriniz güvenle saklanacaktır.\n'
-            '2. Uygulama içi yarışmalara katılım kurallarına uyacağınızı taahhüt edersiniz.\n'
-            '3. Uygulama üzerinden yapılan işlemlerden tamamen siz sorumlusunuz.\n'
-            '4. Hizmet koşullarımız ve gizlilik politikamızda değişiklik yapma hakkımız saklıdır.\n'
-            '5. Uygunsuz içerik paylaşımı veya kötüye kullanım durumlarında hesabınız askıya alınabilir.',
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Kapat'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<app_provider.AuthProvider>(context);
+
     return Scaffold(
       backgroundColor: Colors.white,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.black87),
+        title: const Text(
+          'Kayıt Ol',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -224,8 +202,8 @@ class _RegisterPageState extends State<RegisterPage> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
-                  // Create your account text
+                  const SizedBox(height: 24),
+                  // Sign up text
                   const Text(
                     'Hesap Oluştur',
                     style: TextStyle(
@@ -235,7 +213,7 @@ class _RegisterPageState extends State<RegisterPage> {
                     ),
                     textAlign: TextAlign.center,
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   // Email field
                   TextFormField(
                     controller: _emailController,
@@ -244,27 +222,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       hintText: 'ornek@email.com',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      contentPadding: const EdgeInsets.all(16),
+                      prefixIcon: const Icon(Icons.email_outlined),
                     ),
                     keyboardType: TextInputType.emailAddress,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'E-posta gerekli';
+                      if (value == null || value.trim().isEmpty) {
+                        return 'E-posta adresi gerekli';
                       }
-                      if (!value.contains('@')) {
+                      if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
+                          .hasMatch(value)) {
                         return 'Geçerli bir e-posta adresi girin';
                       }
                       return null;
@@ -276,23 +243,11 @@ class _RegisterPageState extends State<RegisterPage> {
                     controller: _passwordController,
                     decoration: InputDecoration(
                       labelText: 'Şifre',
-                      hintText: '••••••••',
+                      hintText: '********',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      contentPadding: const EdgeInsets.all(16),
+                      prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscurePassword
@@ -300,13 +255,16 @@ class _RegisterPageState extends State<RegisterPage> {
                               : Icons.visibility_off_outlined,
                           color: Colors.grey,
                         ),
-                        onPressed: () => setState(
-                            () => _obscurePassword = !_obscurePassword),
+                        onPressed: () {
+                          setState(() {
+                            _obscurePassword = !_obscurePassword;
+                          });
+                        },
                       ),
                     ),
                     obscureText: _obscurePassword,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
+                      if (value == null || value.trim().isEmpty) {
                         return 'Şifre gerekli';
                       }
                       if (value.length < 6) {
@@ -316,28 +274,16 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  // Confirm Password field
+                  // Confirm password field
                   TextFormField(
                     controller: _confirmPasswordController,
                     decoration: InputDecoration(
-                      labelText: 'Şifreyi Onayla',
-                      hintText: '••••••••',
+                      labelText: 'Şifre Tekrar',
+                      hintText: '********',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
                       ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey.shade300),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide:
-                            BorderSide(color: Theme.of(context).primaryColor),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
-                      contentPadding: const EdgeInsets.all(16),
+                      prefixIcon: const Icon(Icons.lock_outline),
                       suffixIcon: IconButton(
                         icon: Icon(
                           _obscureConfirmPassword
@@ -345,14 +291,17 @@ class _RegisterPageState extends State<RegisterPage> {
                               : Icons.visibility_off_outlined,
                           color: Colors.grey,
                         ),
-                        onPressed: () => setState(() =>
-                            _obscureConfirmPassword = !_obscureConfirmPassword),
+                        onPressed: () {
+                          setState(() {
+                            _obscureConfirmPassword = !_obscureConfirmPassword;
+                          });
+                        },
                       ),
                     ),
                     obscureText: _obscureConfirmPassword,
                     validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Şifre onayı gerekli';
+                      if (value == null || value.trim().isEmpty) {
+                        return 'Şifre tekrarı gerekli';
                       }
                       if (value != _passwordController.text) {
                         return 'Şifreler eşleşmiyor';
@@ -361,42 +310,55 @@ class _RegisterPageState extends State<RegisterPage> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  // Terms and Conditions
+                  // Terms and conditions
                   Row(
                     children: [
-                      SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: Checkbox(
-                          value: _acceptedTerms,
-                          onChanged: (value) {
-                            setState(() {
-                              _acceptedTerms = value ?? false;
-                            });
-                          },
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                        ),
+                      Checkbox(
+                        value: _acceptedTerms,
+                        onChanged: (value) {
+                          setState(() {
+                            _acceptedTerms = value ?? false;
+                          });
+                        },
+                        activeColor: Theme.of(context).primaryColor,
                       ),
-                      const SizedBox(width: 8),
                       Expanded(
                         child: RichText(
                           text: TextSpan(
+                            text: 'Kullanım Koşulları',
                             style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 14,
+                              color: Theme.of(context).primaryColor,
+                              fontWeight: FontWeight.bold,
                             ),
+                            recognizer: TapGestureRecognizer()
+                              ..onTap = () {
+                                // Navigate to terms & conditions
+                              },
                             children: [
-                              const TextSpan(text: 'Kullanım koşullarını '),
+                              const TextSpan(
+                                text: ' ve ',
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.normal,
+                                ),
+                              ),
                               TextSpan(
-                                text: 'okudum ve kabul ediyorum',
+                                text: 'Gizlilik Politikası',
                                 style: TextStyle(
                                   color: Theme.of(context).primaryColor,
-                                  fontWeight: FontWeight.w600,
+                                  fontWeight: FontWeight.bold,
                                 ),
                                 recognizer: TapGestureRecognizer()
-                                  ..onTap = _showTermsOfService,
+                                  ..onTap = () {
+                                    // Navigate to privacy policy
+                                  },
+                              ),
+                              const TextSpan(
+                                text: "'nı kabul ediyorum.",
+                                style: TextStyle(
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.normal,
+                                ),
                               ),
                             ],
                           ),
@@ -405,83 +367,85 @@ class _RegisterPageState extends State<RegisterPage> {
                     ],
                   ),
                   const SizedBox(height: 24),
-                  // Sign Up button
+                  // Sign up button
                   ElevatedButton(
-                    onPressed: _isLoading || !_acceptedTerms ? null : _register,
+                    onPressed: authProvider.isLoading ? null : _register,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: _isLoading
+                    child: authProvider.isLoading
                         ? const SizedBox(
-                            height: 20,
-                            width: 20,
+                            width: 24,
+                            height: 24,
                             child: CircularProgressIndicator(
                               strokeWidth: 2,
                               color: Colors.white,
                             ),
                           )
                         : const Text(
-                            'KAYIT OL',
+                            'Kayıt Ol',
                             style: TextStyle(
                               fontSize: 16,
-                              fontWeight: FontWeight.w600,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
                   ),
-                  const SizedBox(height: 24),
-                  // Or sign up with
+                  const SizedBox(height: 20),
+                  // OR divider
                   Row(
                     children: [
-                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                      Expanded(
+                        child: Divider(
+                          color: Colors.grey.shade300,
+                          thickness: 1,
+                        ),
+                      ),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: Text(
                           'veya',
                           style: TextStyle(
                             color: Colors.grey.shade600,
-                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                       ),
-                      Expanded(child: Divider(color: Colors.grey.shade300)),
+                      Expanded(
+                        child: Divider(
+                          color: Colors.grey.shade300,
+                          thickness: 1,
+                        ),
+                      ),
                     ],
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
                   // Google sign up button
-                  OutlinedButton(
-                    onPressed: _isLoading || !_acceptedTerms
-                        ? null
-                        : _signInWithGoogle,
+                  OutlinedButton.icon(
+                    onPressed:
+                        authProvider.isLoading ? null : _signInWithGoogle,
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
                       side: BorderSide(color: Colors.grey.shade300),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Image.asset(
-                          'lib/features/auth/assets/images/google_logo.png',
-                          height: 24,
-                        ),
-                        const SizedBox(width: 12),
-                        const Text(
-                          'Google ile Kayıt Ol',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.black87,
-                          ),
-                        ),
-                      ],
+                    icon: Image.asset(
+                      'lib/features/auth/assets/images/google_logo.png',
+                      height: 24,
+                    ),
+                    label: Text(
+                      'Google ile Devam Et',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey.shade800,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -490,10 +454,9 @@ class _RegisterPageState extends State<RegisterPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'Zaten hesabın var mı?',
+                        'Zaten bir hesabın var mı?',
                         style: TextStyle(
                           color: Colors.grey.shade600,
-                          fontSize: 14,
                         ),
                       ),
                       TextButton(
@@ -501,14 +464,13 @@ class _RegisterPageState extends State<RegisterPage> {
                           Navigator.of(context).pushReplacementNamed('/login');
                         },
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
                         ),
                         child: Text(
-                          'GİRİŞ YAP',
+                          'Giriş Yap',
                           style: TextStyle(
                             color: Theme.of(context).primaryColor,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),
@@ -521,13 +483,5 @@ class _RegisterPageState extends State<RegisterPage> {
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    super.dispose();
   }
 }

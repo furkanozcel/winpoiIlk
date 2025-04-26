@@ -1,12 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
+import 'package:winpoi/core/providers/firestore_provider.dart';
+import 'package:winpoi/core/providers/user_provider.dart';
 import 'package:winpoi/core/services/notification_service.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
 import 'package:winpoi/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
-import 'package:winpoi/core/services/firestore_service.dart';
 import 'package:winpoi/features/home_page/presentation/pages/my_games_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -23,7 +26,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late AnimationController _fadeController;
   Animation<double>? _fadeAnimation;
   late Timer _cleanupTimer;
-  final _firestoreService = FirestoreService();
   bool _isUsernameDialogShown = false;
 
   @override
@@ -32,21 +34,23 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _tabController = TabController(length: 2, vsync: this);
     _setupAnimations();
     _setupCleanupTimer();
-    _checkAndShowUsernameDialog();
+    // Build işlemi tamamlandıktan sonra username kontrolü yap
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowUsernameDialog();
+    });
   }
 
   Future<void> _checkAndShowUsernameDialog() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+    final authProvider =
+        Provider.of<app_provider.AuthProvider>(context, listen: false);
+    final user = authProvider.currentUser;
 
-      final username = userDoc.data()?['username']?.toString();
+    if (user != null) {
+      final userProvider = Provider.of<UserProvider>(context, listen: false);
+      await userProvider.loadUserData();
 
       // Kullanıcı dokümanı yoksa veya username alanı yoksa veya boşsa
-      if (!userDoc.exists || username == null || username.trim().isEmpty) {
+      if (!userProvider.isProfileComplete) {
         if (!_isUsernameDialogShown) {
           _isUsernameDialogShown = true;
           _showUsernameDialog();
@@ -114,33 +118,19 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
                   final username = usernameController.text.trim();
-                  final user = FirebaseAuth.instance.currentUser;
+                  final authProvider = Provider.of<app_provider.AuthProvider>(
+                      context,
+                      listen: false);
+                  final userProvider =
+                      Provider.of<UserProvider>(context, listen: false);
 
-                  if (user != null) {
+                  if (authProvider.currentUser != null) {
                     try {
-                      // Önce kullanıcı adının özgün olup olmadığını kontrol et
-                      final usernameExists = await FirebaseFirestore.instance
-                          .collection('users')
-                          .where('username', isEqualTo: username)
-                          .get();
-
-                      if (usernameExists.docs.isNotEmpty) {
-                        setState(() {
-                          isUsernameValid = false;
-                        });
-                        formKey.currentState!.validate();
-                        return;
-                      }
-
-                      // Kullanıcı adı özgünse Firestore'a kaydet
-                      await FirebaseFirestore.instance
-                          .collection('users')
-                          .doc(user.uid)
-                          .set({
+                      // UserProvider üzerinden güncelle
+                      await userProvider.updateUserData({
                         'username': username,
-                        'email': user.email,
                         'createdAt': FieldValue.serverTimestamp(),
-                      }, SetOptions(merge: true));
+                      });
 
                       if (mounted) {
                         Navigator.of(context).pop();
@@ -190,7 +180,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   void _setupCleanupTimer() {
     // Her 5 dakikada bir biten yarışmaları kontrol et ve sil
     _cleanupTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
-      _firestoreService.deleteExpiredCompetitions();
+      Provider.of<FirestoreProvider>(context, listen: false)
+          .deleteExpiredCompetitions();
     });
   }
 
@@ -212,38 +203,17 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   Future<void> _joinCompetition(Competition competition) async {
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
+      final authProvider =
+          Provider.of<app_provider.AuthProvider>(context, listen: false);
+      if (!authProvider.isLoggedIn) {
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
-      // Kullanıcının bu yarışmaya daha önce katılıp katılmadığını kontrol et
-      final participationDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('participations')
-          .doc(competition.id)
-          .get();
+      final firestoreProvider =
+          Provider.of<FirestoreProvider>(context, listen: false);
 
-      if (participationDoc.exists) {
-        throw Exception('Bu yarışmaya zaten katıldınız');
-      }
-
-      // Yarışmaya katılımı kaydet - ilk hak kullanılmış olarak başlat
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('participations')
-          .doc(competition.id)
-          .set({
-        'competitionTitle': competition.title,
-        'prizeImage': competition.image,
-        'endTime': competition.endTime,
-        'remainingAttempts':
-            2, // Toplam 3 haktan 1'i kullanılmış olarak başlıyor
-        'lastPlayedAt':
-            FieldValue.serverTimestamp(), // İlk oyun zamanını kaydet
-      });
+      // Yarışmaya katılım işlemini FirestoreProvider üzerinden yapalım
+      await firestoreProvider.joinCompetition(competition);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -268,302 +238,369 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    if (_fadeAnimation == null) return const SizedBox.shrink();
+    final firestoreProvider = Provider.of<FirestoreProvider>(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
         backgroundColor: const Color(0xFFFF6600),
-        title: FadeTransition(
-          opacity: _fadeAnimation!,
-          child: const Row(
-            children: [
-              Text(
-                'Win',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1,
-                ),
-              ),
-              Text(
-                'Poi',
-                style: TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w300,
-                  letterSpacing: 1,
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16),
-            child: FadeTransition(
-              opacity: _fadeAnimation!,
-              child: Stack(
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.notifications_outlined),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const NotificationsPage(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                  // Okunmamış bildirim sayısı için badge
-                  StreamBuilder<QuerySnapshot>(
-                    stream: FirebaseFirestore.instance
-                        .collection('users')
-                        .doc(FirebaseAuth.instance.currentUser?.uid)
-                        .collection('notifications')
-                        .where('isRead', isEqualTo: false)
-                        .snapshots(),
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-
-                      return Positioned(
-                        right: 0,
-                        top: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Text(
-                            snapshot.data!.docs.length.toString(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+        title: const Row(
+          children: [
+            Text(
+              'Win',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                letterSpacing: 1,
               ),
             ),
-          ),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorColor: Colors.white,
-          indicatorWeight: 3,
-          tabs: const [
-            Tab(
-              child: Text(
-                'Oyunlar',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            Tab(
-              child: Text(
-                'Oyunlarım',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+            Text(
+              'Poi',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.w300,
+                letterSpacing: 1,
               ),
             ),
           ],
         ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildGamesTab(),
-          const MyGamesPage(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildGamesTab() {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) {
-      return const Center(
-        child: Text('Lütfen giriş yapın'),
-      );
-    }
-
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('participations')
-          .snapshots(),
-      builder: (context, participationsSnapshot) {
-        if (participationsSnapshot.hasError) {
-          return _buildErrorState();
-        }
-
-        // Kullanıcının katıldığı yarışmaların ID'lerini al
-        final participatedCompetitionIds = participationsSnapshot.hasData
-            ? participationsSnapshot.data!.docs.map((doc) => doc.id).toSet()
-            : <String>{};
-
-        return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('competitions')
-              .orderBy('endTime', descending: false)
-              .snapshots(),
-          builder: (context, competitionsSnapshot) {
-            if (competitionsSnapshot.hasError) {
-              return _buildErrorState();
-            }
-
-            if (competitionsSnapshot.connectionState ==
-                ConnectionState.waiting) {
-              return _buildLoadingState();
-            }
-
-            // Kullanıcının katılmadığı yarışmaları filtrele
-            final competitions = competitionsSnapshot.data?.docs
-                    .where(
-                        (doc) => !participatedCompetitionIds.contains(doc.id))
-                    .map((doc) => Competition.fromFirestore(doc))
-                    .toList() ??
-                [];
-
-            if (competitions.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.emoji_events_outlined,
-                      size: 64,
-                      color: Colors.grey.shade400,
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'Katılabileceğiniz Yarışma Yok',
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Yeni yarışmalar için takipte kalın',
-                      style: TextStyle(
-                        color: Colors.grey.shade500,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ],
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsPage(),
                 ),
               );
-            }
-
-            return ListView.builder(
-              controller: _scrollController,
-              physics: const BouncingScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-              itemCount: competitions.length,
-              itemBuilder: (context, index) {
-                return AnimatedCompetitionCard(
-                  competition: competitions[index],
-                  isExpanded: expandedIndex == index,
-                  onTap: () {
-                    setState(() {
-                      if (expandedIndex == index) {
-                        expandedIndex = null;
-                      } else {
-                        expandedIndex = index;
-                        Future.delayed(const Duration(milliseconds: 100), () {
-                          _scrollToSelectedContent(index);
-                        });
-                      }
-                    });
-                  },
-                  index: index,
-                );
-              },
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildLoadingState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(
-            color: Color(0xFFFF6600),
-            strokeWidth: 3,
-          ),
-          const SizedBox(height: 24),
-          AnimatedBuilder(
-            animation: _fadeAnimation!,
-            builder: (context, child) {
-              return Opacity(
-                opacity: _fadeAnimation!.value,
-                child: child,
-              );
             },
-            child: Text(
-              'Yarışmalar Yükleniyor...',
-              style: TextStyle(
-                color: Colors.grey.shade600,
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildErrorState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      body: Column(
         children: [
-          Icon(
-            Icons.error_outline_rounded,
-            size: 64,
-            color: Colors.red.shade300,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Bir Hata Oluştu',
-            style: TextStyle(
-              color: Colors.grey.shade700,
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+          Container(
+            color: const Color(0xFFFF6600),
+            child: TabBar(
+              controller: _tabController,
+              indicatorColor: Colors.white,
+              indicatorWeight: 3,
+              labelColor: Colors.white,
+              unselectedLabelColor: Colors.white.withOpacity(0.7),
+              labelStyle: const TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+              tabs: const [
+                Tab(text: 'Yarışmalar'),
+                Tab(text: 'Oyunum'),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            'Lütfen daha sonra tekrar deneyin',
-            style: TextStyle(
-              color: Colors.grey.shade500,
-              fontSize: 16,
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                // Yarışmalar sekmesi
+                StreamBuilder<List<Competition>>(
+                  stream: firestoreProvider.getActiveCompetitions(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    }
+
+                    if (snapshot.hasError) {
+                      return Center(
+                        child: Text('Hata: ${snapshot.error}'),
+                      );
+                    }
+
+                    final competitions = snapshot.data ?? [];
+
+                    if (competitions.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.inbox_outlined,
+                              size: 120,
+                              color: Colors.grey.shade400,
+                            ),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Şu anda aktif yarışma bulunmuyor',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // Yarışmaları göster
+                    return ListView.builder(
+                      controller: _scrollController,
+                      padding: const EdgeInsets.all(16),
+                      itemCount: competitions.length,
+                      itemBuilder: (context, index) {
+                        final competition = competitions[index];
+                        final isExpanded = index == expandedIndex;
+
+                        return AnimatedSize(
+                          duration: const Duration(milliseconds: 300),
+                          child: Card(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            elevation: 4,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                // Yarışma resmi
+                                ClipRRect(
+                                  borderRadius: const BorderRadius.vertical(
+                                    top: Radius.circular(16),
+                                  ),
+                                  child: AspectRatio(
+                                    aspectRatio: 16 / 9,
+                                    child: Image.network(
+                                      competition.image,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder:
+                                          (context, child, loadingProgress) {
+                                        if (loadingProgress == null) {
+                                          return child;
+                                        }
+                                        return Center(
+                                          child: CircularProgressIndicator(
+                                            value: loadingProgress
+                                                        .expectedTotalBytes !=
+                                                    null
+                                                ? loadingProgress
+                                                        .cumulativeBytesLoaded /
+                                                    loadingProgress
+                                                        .expectedTotalBytes!
+                                                : null,
+                                          ),
+                                        );
+                                      },
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return Container(
+                                          color: Colors.grey.shade200,
+                                          child: const Center(
+                                            child: Icon(
+                                              Icons.error_outline,
+                                              color: Colors.grey,
+                                              size: 40,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                ),
+
+                                // Yarışma bilgileri
+                                Padding(
+                                  padding: const EdgeInsets.all(16),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Başlık ve geri sayım
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              competition.title,
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                          _buildCountdown(competition.endTime),
+                                        ],
+                                      ),
+                                      const SizedBox(height: 8),
+
+                                      // Açık/kapalı göstergesi ve genişletme butonu
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.green.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(
+                                                  Icons.check_circle,
+                                                  size: 14,
+                                                  color: Colors.green.shade700,
+                                                ),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  'Aktif',
+                                                  style: TextStyle(
+                                                    fontSize: 12,
+                                                    color:
+                                                        Colors.green.shade700,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          TextButton(
+                                            onPressed: () {
+                                              setState(() {
+                                                if (isExpanded) {
+                                                  expandedIndex = null;
+                                                } else {
+                                                  expandedIndex = index;
+                                                  _scrollToSelectedContent(
+                                                      index);
+                                                }
+                                              });
+                                            },
+                                            style: TextButton.styleFrom(
+                                              foregroundColor:
+                                                  const Color(0xFFFF6600),
+                                              padding: EdgeInsets.zero,
+                                              minimumSize: const Size(0, 0),
+                                              tapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  isExpanded
+                                                      ? 'Kapat'
+                                                      : 'Detaylar',
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                                Icon(
+                                                  isExpanded
+                                                      ? Icons
+                                                          .keyboard_arrow_up_rounded
+                                                      : Icons
+                                                          .keyboard_arrow_down_rounded,
+                                                  size: 24,
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+
+                                      // Genişletilmiş detay kısmı
+                                      if (isExpanded) ...[
+                                        const SizedBox(height: 16),
+                                        const Divider(),
+                                        const SizedBox(height: 16),
+                                        Text(
+                                          competition.description,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.black87,
+                                            height: 1.5,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 16),
+                                        Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.info_outline,
+                                              size: 16,
+                                              color: Colors.grey,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'Her yarışmada 3 hakkınız bulunur.',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.grey.shade600,
+                                                fontStyle: FontStyle.italic,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 24),
+                                        SizedBox(
+                                          width: double.infinity,
+                                          child: ElevatedButton(
+                                            onPressed:
+                                                firestoreProvider.isLoading
+                                                    ? null
+                                                    : () => _joinCompetition(
+                                                        competition),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  const Color(0xFFFF6600),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      vertical: 12),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                              ),
+                                            ),
+                                            child: firestoreProvider.isLoading
+                                                ? const SizedBox(
+                                                    width: 24,
+                                                    height: 24,
+                                                    child:
+                                                        CircularProgressIndicator(
+                                                      strokeWidth: 2,
+                                                      color: Colors.white,
+                                                    ),
+                                                  )
+                                                : const Text(
+                                                    'Yarışmaya Katıl',
+                                                    style: TextStyle(
+                                                      fontSize: 16,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                          ),
+                                        ),
+                                      ],
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+                // Oyunum sekmesi
+                const MyGamesPage(),
+              ],
             ),
           ),
         ],
@@ -579,248 +616,65 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     _cleanupTimer.cancel();
     super.dispose();
   }
-}
 
-class AnimatedCompetitionCard extends StatefulWidget {
-  final Competition competition;
-  final bool isExpanded;
-  final VoidCallback onTap;
-  final int index;
-
-  const AnimatedCompetitionCard({
-    super.key,
-    required this.competition,
-    required this.isExpanded,
-    required this.onTap,
-    required this.index,
-  });
-
-  @override
-  State<AnimatedCompetitionCard> createState() =>
-      _AnimatedCompetitionCardState();
-}
-
-class _AnimatedCompetitionCardState extends State<AnimatedCompetitionCard> {
-  late Timer _timer;
-  Duration _remainingTime = Duration.zero;
-  bool _isExpired = false;
-  final _firestoreService = FirestoreService();
-
-  @override
-  void initState() {
-    super.initState();
-    _updateRemainingTime();
-    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      _updateRemainingTime();
-    });
-  }
-
-  void _updateRemainingTime() {
+  // Geri sayım widget'ını oluştur
+  Widget _buildCountdown(DateTime endTime) {
     final now = DateTime.now();
-    final endTime = widget.competition.endTime;
     final difference = endTime.difference(now);
 
     if (difference.isNegative) {
-      _remainingTime = Duration.zero;
-      if (!_isExpired) {
-        _isExpired = true;
-        // Yarışma süresi bittiğinde sil
-        _firestoreService.deleteCompetition(widget.competition.id);
-      }
+      return const Text(
+        'Bitti',
+        style: TextStyle(
+          color: Colors.red,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+    }
+
+    final days = difference.inDays;
+    final hours = difference.inHours % 24;
+    final minutes = difference.inMinutes % 60;
+
+    String countdownText;
+    if (days > 0) {
+      countdownText = '$days gün $hours sa';
+    } else if (hours > 0) {
+      countdownText = '$hours sa $minutes dk';
     } else {
-      _remainingTime = difference;
+      countdownText = '$minutes dk';
     }
 
-    if (mounted) {
-      setState(() {});
-    }
-  }
-
-  String _formatDuration(Duration duration) {
-    String twoDigits(int n) => n.toString().padLeft(2, '0');
-    final hours = twoDigits(duration.inHours);
-    final minutes = twoDigits(duration.inMinutes.remainder(60));
-    final seconds = twoDigits(duration.inSeconds.remainder(60));
-    return '$hours:$minutes:$seconds';
-  }
-
-  @override
-  void dispose() {
-    _timer.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Süresi bitmiş yarışmaları gösterme
-    if (_isExpired) {
-      return const SizedBox.shrink();
-    }
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      margin: EdgeInsets.only(
-        bottom: 16,
-        top: widget.index == 0 ? 0 : 16,
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: 10,
+        vertical: 6,
       ),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: const Color(0xFFFF6600).withOpacity(0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: const Color(0xFFFF6600).withOpacity(0.3),
+        ),
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: widget.onTap,
-          borderRadius: BorderRadius.circular(16),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    // Ödül Resmi
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: Image.network(
-                        widget.competition.image,
-                        width: 80,
-                        height: 80,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 80,
-                            height: 80,
-                            color: Colors.grey.shade200,
-                            child: const Icon(
-                              Icons.image_not_supported_outlined,
-                              color: Colors.grey,
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.competition.title,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.competition.description,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                if (widget.isExpanded) ...[
-                  const SizedBox(height: 16),
-                  const Divider(),
-                  const SizedBox(height: 16),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Katılım Puanı',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            '${widget.competition.entryFee} Puan',
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            'Kalan Süre',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey.shade600,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            _formatDuration(_remainingTime),
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFF6600),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        // Yarışmaya katılma işlemi
-                        if (context.findAncestorStateOfType<_HomePageState>() !=
-                            null) {
-                          context
-                              .findAncestorStateOfType<_HomePageState>()!
-                              ._joinCompetition(widget.competition);
-                        }
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFFF6600),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Yarışmaya Katıl',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ],
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(
+            Icons.timer,
+            size: 14,
+            color: Color(0xFFFF6600),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            countdownText,
+            style: const TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFFFF6600),
             ),
           ),
-        ),
+        ],
       ),
     );
   }

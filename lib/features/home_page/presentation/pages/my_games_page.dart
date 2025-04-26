@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
+import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
 
 class CountdownTimer extends StatefulWidget {
   final DateTime endTime;
@@ -95,12 +98,11 @@ class _MyGamesPageState extends State<MyGamesPage> {
     });
   }
 
-  Future<void> _playGame(
-      BuildContext context, String gameId, int remainingAttempts) async {
+  Future<void> _playGame(String participationId, int remainingAttempts) async {
     if (remainingAttempts <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Bu yarışma için hakkınız kalmadı!'),
+          content: Text('Kalan oyun hakkınız bulunmuyor!'),
           backgroundColor: Colors.red,
         ),
       );
@@ -108,14 +110,20 @@ class _MyGamesPageState extends State<MyGamesPage> {
     }
 
     try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) return;
+      final authProvider =
+          Provider.of<app_provider.AuthProvider>(context, listen: false);
+      final user = authProvider.currentUser;
 
+      if (user == null) {
+        throw Exception('Kullanıcı oturumu bulunamadı');
+      }
+
+      // Kalan hak sayısını bir azalt
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .collection('participations')
-          .doc(gameId)
+          .doc(participationId)
           .update({
         'remainingAttempts': remainingAttempts - 1,
         'lastPlayedAt': FieldValue.serverTimestamp(),
@@ -148,11 +156,13 @@ class _MyGamesPageState extends State<MyGamesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<app_provider.AuthProvider>(context);
+
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseAuth.instance.currentUser != null
+      stream: authProvider.currentUser != null
           ? FirebaseFirestore.instance
               .collection('users')
-              .doc(FirebaseAuth.instance.currentUser!.uid)
+              .doc(authProvider.currentUser!.uid)
               .collection('participations')
               .snapshots()
           : const Stream.empty(),
@@ -202,11 +212,11 @@ class _MyGamesPageState extends State<MyGamesPage> {
         }
 
         // Yeni veri geldiğinde kalan süreleri güncelle
-        snapshot.data!.docs.forEach((doc) {
+        for (var doc in snapshot.data!.docs) {
           final data = doc.data() as Map<String, dynamic>;
           final endTime = (data['endTime'] as Timestamp).toDate();
           _remainingTimes[doc.id] = endTime.difference(DateTime.now());
-        });
+        }
 
         return ListView.builder(
           padding: const EdgeInsets.all(16),
@@ -311,11 +321,10 @@ class _MyGamesPageState extends State<MyGamesPage> {
                       SizedBox(
                         width: double.infinity,
                         child: ElevatedButton(
-                          onPressed: (remainingAttempts > 0 &&
-                                  !isCompetitionEnded)
-                              ? () =>
-                                  _playGame(context, game.id, remainingAttempts)
-                              : null,
+                          onPressed:
+                              (remainingAttempts > 0 && !isCompetitionEnded)
+                                  ? () => _playGame(game.id, remainingAttempts)
+                                  : null,
                           style: ElevatedButton.styleFrom(
                             backgroundColor:
                                 (remainingAttempts > 0 && !isCompetitionEnded)

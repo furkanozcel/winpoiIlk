@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:winpoi/core/navigation/navigator_page.dart';
+import 'package:winpoi/core/providers/provider_manager.dart';
 import 'package:winpoi/core/theme/app_theme.dart';
 import 'package:winpoi/features/admin/presentation/pages/competition_management_page.dart';
 import 'package:winpoi/features/auth/presentation/pages/login_page.dart';
@@ -9,6 +10,7 @@ import 'package:winpoi/features/onboarding/presentation/pages/onboarding_page.da
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 void main() async {
   // Widget binding'i başlat
@@ -38,17 +40,19 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'Winpoi',
-      theme: AppTheme.theme,
-      routes: {
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
-        '/home': (context) => const NavigatorPage(),
-        '/admin/competitions': (context) => const CompetitionManagementPage(),
-      },
-      home: showOnboarding ? const OnboardingPage() : const LoginPage(),
+    return ProviderManager(
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'Winpoi',
+        theme: AppTheme.theme,
+        routes: {
+          '/login': (context) => const LoginPage(),
+          '/register': (context) => const RegisterPage(),
+          '/home': (context) => const NavigatorPage(),
+          '/admin/competitions': (context) => const CompetitionManagementPage(),
+        },
+        home: showOnboarding ? const OnboardingPage() : const LoginPage(),
+      ),
     );
   }
 }
