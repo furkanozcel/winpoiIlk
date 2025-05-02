@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+// Renk paleti
+const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
+const Color secondaryColor = Color(0xFFE28B33); // Turuncu
+const Color accentColor = Color(0xFFB39DDB); // Soft Mor (isteğe bağlı)
+const Color textColor = Color(0xFF424242); // Koyu Gri
+
 class AgreementsPage extends StatefulWidget {
   const AgreementsPage({super.key});
 
@@ -13,10 +19,10 @@ class _AgreementsPageState extends State<AgreementsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.white,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: primaryColor,
         elevation: 0,
         title: TweenAnimationBuilder<double>(
           duration: const Duration(milliseconds: 300),
@@ -28,31 +34,24 @@ class _AgreementsPageState extends State<AgreementsPage> {
                 'Sözleşmeler',
                 style: TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                  fontSize: 24,
-                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 22,
+                  letterSpacing: 0.1,
+                  fontFamily: 'Poppins',
                 ),
               ),
             );
           },
         ),
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFF6600), Color(0xFFFF8533)],
-            ),
-          ),
-        ),
+        flexibleSpace: null,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
         child: Padding(
           padding: EdgeInsets.only(
             top: MediaQuery.of(context).padding.top + kToolbarHeight + 24,
-            left: 20,
-            right: 20,
+            left: 16,
+            right: 16,
             bottom: 24,
           ),
           child: Column(
@@ -64,7 +63,7 @@ class _AgreementsPageState extends State<AgreementsPage> {
                 delay: 100,
                 index: 0,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _buildAgreementCard(
                 title: 'Gizlilik Politikası',
                 icon: Icons.privacy_tip_outlined,
@@ -72,7 +71,7 @@ class _AgreementsPageState extends State<AgreementsPage> {
                 delay: 200,
                 index: 1,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _buildAgreementCard(
                 title: 'KVKK Aydınlatma Metni',
                 icon: Icons.security_outlined,
@@ -80,7 +79,7 @@ class _AgreementsPageState extends State<AgreementsPage> {
                 delay: 300,
                 index: 2,
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
               _buildAgreementCard(
                 title: 'Çerez Politikası',
                 icon: Icons.cookie_outlined,
@@ -112,13 +111,20 @@ class _AgreementsPageState extends State<AgreementsPage> {
             opacity: value,
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: LinearGradient(
+                  colors: [
+                    primaryColor.withOpacity(0.13),
+                    secondaryColor.withOpacity(0.10),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
+                    color: primaryColor.withOpacity(0.08),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
                   ),
                 ],
               ),
@@ -141,13 +147,19 @@ class _AgreementsPageState extends State<AgreementsPage> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color:
-                                      const Color(0xFFFF6600).withOpacity(0.1),
+                                  gradient: LinearGradient(
+                                    colors: [
+                                      primaryColor.withOpacity(0.18),
+                                      secondaryColor.withOpacity(0.13),
+                                    ],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                  ),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
                                 child: Icon(
                                   icon,
-                                  color: const Color(0xFFFF6600),
+                                  color: secondaryColor,
                                   size: 24,
                                 ),
                               ),
@@ -159,6 +171,8 @@ class _AgreementsPageState extends State<AgreementsPage> {
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                     letterSpacing: -0.5,
+                                    fontFamily: 'Poppins',
+                                    color: textColor,
                                   ),
                                 ),
                               ),
@@ -166,7 +180,7 @@ class _AgreementsPageState extends State<AgreementsPage> {
                                 _isExpanded[index]
                                     ? Icons.keyboard_arrow_up
                                     : Icons.keyboard_arrow_down,
-                                color: const Color(0xFFFF6600),
+                                color: secondaryColor,
                               ),
                             ],
                           ),
@@ -187,9 +201,10 @@ class _AgreementsPageState extends State<AgreementsPage> {
                               child: Text(
                                 content,
                                 style: TextStyle(
-                                  color: Colors.grey.shade700,
+                                  color: textColor.withOpacity(0.85),
                                   height: 1.5,
                                   fontSize: 15,
+                                  fontFamily: 'Poppins',
                                 ),
                               ),
                             ),

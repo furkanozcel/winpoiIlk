@@ -3,6 +3,11 @@ import 'package:winpoi/core/services/firestore_service.dart';
 import 'package:winpoi/core/services/notification_service.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
 
+// Renk paleti
+const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
+const Color secondaryColor = Color(0xFFE28B33); // Turuncu
+const Color textColor = Color(0xFF424242); // Koyu Gri
+
 class CompetitionManagementPage extends StatefulWidget {
   const CompetitionManagementPage({super.key});
 
@@ -82,8 +87,16 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Yarışma Yönetimi'),
-        backgroundColor: const Color(0xFFFF6600),
+        title: const Text(
+          'Yarışma Yönetimi',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 22,
+          ),
+        ),
+        backgroundColor: primaryColor,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -93,30 +106,20 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Başlık
-              TextFormField(
+              _buildGradientTextField(
                 controller: _titleController,
-                decoration: InputDecoration(
-                  labelText: 'Yarışma Başlığı',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.title),
-                ),
+                label: 'Yarışma Başlığı',
+                icon: Icons.title,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
               ),
               const SizedBox(height: 16),
 
               // Açıklama
-              TextFormField(
+              _buildGradientTextField(
                 controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Açıklama',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.description),
-                ),
+                label: 'Açıklama',
+                icon: Icons.description,
                 maxLines: 3,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
@@ -124,15 +127,10 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
               const SizedBox(height: 16),
 
               // Katılım Puanı
-              TextFormField(
+              _buildGradientTextField(
                 controller: _entryFeeController,
-                decoration: InputDecoration(
-                  labelText: 'Katılım Puanı',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.attach_money),
-                ),
+                label: 'Katılım Puanı',
+                icon: Icons.attach_money,
                 keyboardType: TextInputType.number,
                 validator: (value) {
                   if (value?.isEmpty ?? true) return 'Bu alan gerekli';
@@ -145,32 +143,22 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
               const SizedBox(height: 16),
 
               // Görsel URL
-              TextFormField(
+              _buildGradientTextField(
                 controller: _imageController,
-                decoration: InputDecoration(
-                  labelText: 'Görsel URL',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.image),
-                ),
+                label: 'Görsel URL',
+                icon: Icons.image,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
               ),
               const SizedBox(height: 16),
 
               // Süre (Saat)
-              TextFormField(
+              _buildGradientTextField(
                 controller: _durationController,
-                decoration: InputDecoration(
-                  labelText: 'Yarışma Süresi (Saat)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  prefixIcon: const Icon(Icons.timer),
-                  suffixText: 'saat',
-                ),
+                label: 'Yarışma Süresi (Saat)',
+                icon: Icons.timer,
                 keyboardType: TextInputType.number,
+                suffixText: 'saat',
                 validator: (value) {
                   if (value?.isEmpty ?? true) return 'Bu alan gerekli';
                   if (double.tryParse(value!) == null) {
@@ -188,7 +176,7 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
               ElevatedButton(
                 onPressed: _addCompetition,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFFF6600),
+                  backgroundColor: secondaryColor,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
@@ -204,6 +192,72 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
                 ),
               ),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildGradientTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    int maxLines = 1,
+    TextInputType? keyboardType,
+    String? suffixText,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      maxLines: maxLines,
+      keyboardType: keyboardType,
+      validator: validator,
+      style: const TextStyle(
+        fontFamily: 'Poppins',
+        fontSize: 15.5,
+        color: textColor,
+        fontWeight: FontWeight.w500,
+      ),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: TextStyle(
+          fontFamily: 'Poppins',
+          color: Colors.grey[600],
+          fontWeight: FontWeight.w500,
+          fontSize: 14,
+        ),
+        prefixIcon: Icon(icon, color: primaryColor, size: 22),
+        suffixText: suffixText,
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            width: 2,
+            style: BorderStyle.solid,
+            color: primaryColor.withOpacity(0.18),
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            width: 2.2,
+            style: BorderStyle.solid,
+            color: secondaryColor.withOpacity(0.7),
+          ),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(
+            width: 2,
+            style: BorderStyle.solid,
+            color: primaryColor.withOpacity(0.18),
           ),
         ),
       ),

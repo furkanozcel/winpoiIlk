@@ -143,4 +143,15 @@ class FirestoreService {
       throw Exception('Katılımcı sayısı güncellenirken hata oluştu: $e');
     }
   }
+
+  // Email alanını güncelle
+  Future<void> updateUserEmail(String userId, String email) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'email': email.trim().toLowerCase(),
+      });
+    } catch (e) {
+      throw Exception('Email güncellenirken hata oluştu: $e');
+    }
+  }
 }

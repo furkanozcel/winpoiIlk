@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
+const Color secondaryColor = Color(0xFFE28B33); // Turuncu
+const Color accentColor = Color(0xFFB39DDB); // Soft Mor
+const Color textColor = Color(0xFF424242); // Koyu Gri
+
 class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
 
@@ -9,7 +14,8 @@ class EditProfilePage extends StatefulWidget {
   State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
-class _EditProfilePageState extends State<EditProfilePage> {
+class _EditProfilePageState extends State<EditProfilePage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -21,9 +27,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _confirmPasswordController = TextEditingController();
   bool _isLoading = false;
 
+  late AnimationController _controller;
+  late Animation<double> _fade;
+  late Animation<double> _scale;
+
   @override
   void initState() {
     super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 500),
+    );
+    _fade = CurvedAnimation(parent: _controller, curve: Curves.easeInOut);
+    _scale = Tween<double>(begin: 0.97, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    );
+    _controller.forward();
     _loadUserData();
   }
 
@@ -38,11 +57,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
             .get();
         final userData = userDoc.data();
 
-        _nameController.text = userData?['name'] ?? '';
-        _usernameController.text = userData?['username'] ?? '';
-        _emailController.text = userData?['email'] ?? '';
-        _phoneController.text = userData?['phone'] ?? '';
-        _addressController.text = userData?['address'] ?? '';
+        if (userData != null) {
+          _nameController.text = userData['name'] ?? '';
+          _usernameController.text = userData['username'] ?? '';
+          _emailController.text = userData['email'] ?? '';
+          _phoneController.text = userData['phone'] ?? '';
+          _addressController.text = userData['address'] ?? '';
+        }
       }
     } catch (e) {
       _showErrorMessage('Veri yüklenirken hata oluştu: $e');
@@ -62,167 +83,184 @@ class _EditProfilePageState extends State<EditProfilePage> {
     }
   }
 
-  Future<bool> _showReauthDialog() async {
-    final result = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Şifrenizi Girin'),
-          content: TextField(
-            controller: _currentPasswordController,
-            obscureText: true,
-            decoration: const InputDecoration(
-              hintText: 'Mevcut şifreniz',
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('İptal'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Onayla'),
-            ),
-          ],
-        );
-      },
-    );
-    return result ?? false;
-  }
-
   Future<void> _showChangePasswordDialog() async {
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          title: const Text('Şifre Değiştir'),
-          content: Form(
+        builder: (context, setState) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextFormField(
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: primaryColor.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.lock_outline,
+                        color: primaryColor,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    const Text(
+                      'Şifre Değiştir',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                _buildTextField(
                   controller: _currentPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Mevcut Şifre',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Mevcut şifrenizi giriniz';
-                    }
-                    return null;
-                  },
+                  label: 'Mevcut Şifre',
+                  icon: Icons.lock_outline,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                _buildTextField(
                   controller: _newPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Yeni Şifre',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Yeni şifrenizi giriniz';
-                    }
-                    if (value.length < 6) {
-                      return 'Şifre en az 6 karakter olmalıdır';
-                    }
-                    return null;
-                  },
+                  label: 'Yeni Şifre',
+                  icon: Icons.lock_outline,
                 ),
                 const SizedBox(height: 16),
-                TextFormField(
+                _buildTextField(
                   controller: _confirmPasswordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Yeni Şifre (Tekrar)',
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Şifreyi tekrar giriniz';
-                    }
-                    if (value != _newPasswordController.text) {
-                      return 'Şifreler eşleşmiyor';
-                    }
-                    return null;
-                  },
+                  label: 'Yeni Şifre (Tekrar)',
+                  icon: Icons.lock_outline,
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: Text(
+                        'İptal',
+                        style: TextStyle(
+                          fontFamily: 'Poppins',
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [primaryColor, primaryColor.withOpacity(0.8)],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: primaryColor.withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          if (_currentPasswordController.text.isEmpty ||
+                              _newPasswordController.text.isEmpty ||
+                              _confirmPasswordController.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Tüm alanları doldurunuz'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          if (_newPasswordController.text !=
+                              _confirmPasswordController.text) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Yeni şifreler eşleşmiyor'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                            return;
+                          }
+
+                          try {
+                            final user = FirebaseAuth.instance.currentUser;
+                            if (user == null) {
+                              throw Exception('Kullanıcı oturumu bulunamadı');
+                            }
+
+                            final credential = EmailAuthProvider.credential(
+                              email: user.email!,
+                              password: _currentPasswordController.text,
+                            );
+                            await user.reauthenticateWithCredential(credential);
+                            await user
+                                .updatePassword(_newPasswordController.text);
+
+                            if (mounted) {
+                              Navigator.pop(context, true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Şifre başarıyla güncellendi'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Hata: ${e.toString()}'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Güncelle',
+                          style: TextStyle(
+                            fontFamily: 'Poppins',
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('İptal'),
-            ),
-            TextButton(
-              onPressed: () async {
-                if (_currentPasswordController.text.isEmpty ||
-                    _newPasswordController.text.isEmpty ||
-                    _confirmPasswordController.text.isEmpty) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Tüm alanları doldurunuz'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                if (_newPasswordController.text !=
-                    _confirmPasswordController.text) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Yeni şifreler eşleşmiyor'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                try {
-                  final user = FirebaseAuth.instance.currentUser;
-                  if (user == null) {
-                    throw Exception('Kullanıcı oturumu bulunamadı');
-                  }
-
-                  // Mevcut şifreyi doğrula
-                  final credential = EmailAuthProvider.credential(
-                    email: user.email!,
-                    password: _currentPasswordController.text,
-                  );
-                  await user.reauthenticateWithCredential(credential);
-
-                  // Yeni şifreyi güncelle
-                  await user.updatePassword(_newPasswordController.text);
-
-                  if (mounted) {
-                    Navigator.pop(context, true);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Şifre başarıyla güncellendi'),
-                        backgroundColor: Colors.green,
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Hata: ${e.toString()}'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                  }
-                }
-              },
-              child: const Text('Güncelle'),
-            ),
-          ],
         ),
       ),
     );
@@ -240,51 +278,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() => _isLoading = true);
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
-
-      final newEmail = _emailController.text.trim();
-      final newName = _nameController.text.trim();
-      final newUsername = _usernameController.text.trim();
-      final newPhone = _phoneController.text.trim();
-      final newAddress = _addressController.text.trim();
-
-      if (newEmail != user.email) {
-        final shouldProceed = await _showReauthDialog();
-        if (!shouldProceed) {
-          setState(() => _isLoading = false);
-          return;
-        }
-
-        try {
-          final credential = EmailAuthProvider.credential(
-            email: user.email!,
-            password: _currentPasswordController.text,
-          );
-          await user.reauthenticateWithCredential(credential);
-          await user.updateEmail(newEmail);
-        } catch (e) {
-          _showErrorMessage('Kimlik doğrulama hatası: $e');
-          setState(() => _isLoading = false);
-          return;
-        }
-      }
+      if (user == null) throw Exception('Kullanıcı oturumu bulunamadı');
 
       final userRef =
           FirebaseFirestore.instance.collection('users').doc(user.uid);
 
-      final userDoc = await userRef.get();
-      if (!userDoc.exists) {
-        throw Exception('Kullanıcı verisi bulunamadı');
-      }
-
+      // Tüm alanları güncelle
       await userRef.update({
-        'name': newName,
-        'username': newUsername,
-        'email': newEmail,
-        'phone': newPhone,
-        'address': newAddress,
+        'name': _nameController.text.trim(),
+        'username': _usernameController.text.trim(),
+        'email': _emailController.text.trim(),
+        'phone': _phoneController.text.trim(),
+        'address': _addressController.text.trim(),
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
@@ -305,165 +310,135 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    _nameController.dispose();
+    _usernameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    _addressController.dispose();
+    _currentPasswordController.dispose();
+    _newPasswordController.dispose();
+    _confirmPasswordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Profil Düzenle'),
-        backgroundColor: const Color(0xFFFF6600),
+        backgroundColor: primaryColor,
+        elevation: 0,
+        title: const Text(
+          'Profili Düzenle',
+          style: TextStyle(
+            fontFamily: 'Poppins',
+            fontWeight: FontWeight.w600,
+            fontSize: 22,
+            color: Colors.white,
+            letterSpacing: 0.2,
+          ),
+          textAlign: TextAlign.left,
+        ),
+        centerTitle: false,
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
+      body: FadeTransition(
+        opacity: _fade,
+        child: ScaleTransition(
+          scale: _scale,
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  primaryColor.withOpacity(0.15),
+                  Colors.white.withOpacity(0.95),
+                ],
+              ),
+            ),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
               child: Padding(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
                 child: Form(
                   key: _formKey,
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text(
-                        'Profil Bilgilerinizi Güncelleyin',
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C3E50),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
                       _buildTextField(
                         controller: _nameController,
                         label: 'Ad Soyad',
                         icon: Icons.person_outline,
-                        validator: (value) {
-                          if (value != null &&
-                              value.trim().isNotEmpty &&
-                              value.trim().length < 3) {
-                            return 'Ad Soyad en az 3 karakter olmalıdır';
-                          }
-                          return null;
-                        },
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _usernameController,
                         label: 'Kullanıcı Adı',
                         icon: Icons.account_circle_outlined,
-                        validator: (value) {
-                          if (value != null && value.trim().isNotEmpty) {
-                            if (value.trim().length < 3) {
-                              return 'Kullanıcı adı en az 3 karakter olmalıdır';
-                            }
-                            if (!RegExp(r'^[a-zA-Z0-9_]+$')
-                                .hasMatch(value.trim())) {
-                              return 'Kullanıcı adı sadece harf, rakam ve alt çizgi içerebilir';
-                            }
-                          }
-                          return null;
-                        },
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _emailController,
                         label: 'E-posta',
                         icon: Icons.email_outlined,
-                        validator: (value) {
-                          if (value == null || value.trim().isEmpty) {
-                            return 'E-posta adresi boş bırakılamaz';
-                          }
-                          if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                              .hasMatch(value.trim())) {
-                            return 'Geçerli bir e-posta adresi giriniz';
-                          }
-                          return null;
-                        },
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _phoneController,
                         label: 'Telefon',
                         icon: Icons.phone_outlined,
-                        validator: (value) {
-                          if (value != null &&
-                              value.trim().isNotEmpty &&
-                              !RegExp(r'^[0-9]{10}$').hasMatch(value.trim())) {
-                            return 'Geçerli bir telefon numarası giriniz (10 haneli)';
-                          }
-                          return null;
-                        },
+                        keyboardType: TextInputType.phone,
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _addressController,
                         label: 'Adres',
                         icon: Icons.location_on_outlined,
-                        maxLines: 3,
-                        validator: (value) {
-                          if (value != null &&
-                              value.trim().isNotEmpty &&
-                              value.trim().length < 10) {
-                            return 'Adres en az 10 karakter olmalıdır';
-                          }
-                          return null;
-                        },
                       ),
-                      const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton(
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: TextButton(
                           onPressed: _showChangePasswordDialog,
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            side: const BorderSide(color: Color(0xFFFF6600)),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 0, vertical: 12),
                           ),
-                          child: const Text(
+                          child: Text(
                             'Şifre Değiştir',
                             style: TextStyle(
+                              fontFamily: 'Poppins',
                               fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFFF6600),
+                              fontWeight: FontWeight.w600,
+                              color: secondaryColor,
+                              letterSpacing: 0.2,
+                              decoration: TextDecoration.underline,
+                              decorationColor: secondaryColor,
+                              decorationThickness: 1.5,
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 24),
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: _isLoading ? null : _updateProfile,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFFF6600),
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: _isLoading
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white),
-                                  ),
-                                )
-                              : const Text(
-                                  'Güncelle',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
+                      _buildGradientButton(
+                        onPressed: _isLoading ? null : _updateProfile,
+                        text: 'Kaydet',
+                        gradient: LinearGradient(
+                          colors: [primaryColor, primaryColor.withOpacity(0.8)],
                         ),
+                        isLoading: _isLoading,
                       ),
                     ],
                   ),
                 ),
               ),
             ),
+          ),
+        ),
+      ),
     );
   }
 
@@ -471,36 +446,126 @@ class _EditProfilePageState extends State<EditProfilePage> {
     required TextEditingController controller,
     required String label,
     required IconData icon,
-    String? Function(String?)? validator,
-    int maxLines = 1,
+    TextInputType? keyboardType,
   }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon, color: const Color(0xFFFF6600)),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            primaryColor.withOpacity(0.18),
+            secondaryColor.withOpacity(0.12)
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFFFF6600)),
-        ),
-        filled: true,
-        fillColor: Colors.white,
+        borderRadius: BorderRadius.circular(12),
       ),
-      validator: validator ??
-          (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Bu alan zorunludur';
-            }
-            return null;
-          },
-      maxLines: maxLines,
+      child: TextFormField(
+        controller: controller,
+        keyboardType: keyboardType,
+        style: const TextStyle(
+          fontFamily: 'Poppins',
+          fontSize: 16,
+          color: textColor,
+          fontWeight: FontWeight.w500,
+        ),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: TextStyle(
+            fontFamily: 'Poppins',
+            color: Colors.grey[600],
+            fontWeight: FontWeight.w500,
+            fontSize: 14,
+          ),
+          prefixIcon: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: primaryColor.withOpacity(0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: primaryColor, size: 22),
+          ),
+          filled: true,
+          fillColor: Colors.transparent,
+          contentPadding:
+              const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none,
+          ),
+          errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.redAccent, width: 1.5),
+          ),
+        ),
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return 'Bu alan boş bırakılamaz';
+          }
+          return null;
+        },
+      ),
+    );
+  }
+
+  Widget _buildGradientButton({
+    required VoidCallback? onPressed,
+    required String text,
+    required Gradient gradient,
+    bool isLoading = false,
+  }) {
+    return Container(
+      width: double.infinity,
+      height: 54,
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: gradient.colors.first.withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2.5,
+                ),
+              )
+            : Text(
+                text,
+                style: const TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 16,
+                  letterSpacing: 0.5,
+                  color: Colors.white,
+                ),
+              ),
+      ),
     );
   }
 }

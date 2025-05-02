@@ -73,6 +73,7 @@ flutter:
   assets:
     - lib/features/auth/assets/images/logo.jpg
     - lib/features/auth/assets/images/google_logo.png
+    - lib/features/auth/assets/images/logo2.jpg
     - assets/animations/
     - assets/images/
   #   - images/a_dot_ham.jpeg

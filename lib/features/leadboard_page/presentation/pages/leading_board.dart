@@ -5,6 +5,7 @@ import 'dart:math' as math;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:winpoi/core/providers/leaderboard_provider.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LeadingBoard extends StatefulWidget {
   const LeadingBoard({super.key});
@@ -16,37 +17,54 @@ class LeadingBoard extends StatefulWidget {
 class _LeadingBoardState extends State<LeadingBoard>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
-  late Animation<double> _opacityAnimation;
-  late Animation<Offset> _slideAnimation;
+  late Animation<double> _podiumScale;
+  late Animation<double> _podiumOpacity;
+  late Animation<Offset> _podiumSlide;
+  late Animation<double> _listOpacity;
+  late Animation<Offset> _listSlide;
+
+  // Renk sabitleri
+  static const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
+  static const Color secondaryColor = Color(0xFFE28B33); // Turuncu
+  static const Color accentColor = Color(0xFF8156A0); // Mor
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
+      duration: const Duration(milliseconds: 900),
       vsync: this,
-    )..forward();
-
-    _scaleAnimation = Tween<double>(begin: 0.8, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
 
-    _opacityAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    _podiumScale = Tween<double>(begin: 0.92, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
     );
-
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.2),
+    _podiumOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeIn),
+    );
+    _podiumSlide = Tween<Offset>(
+      begin: const Offset(0, -0.12),
       end: Offset.zero,
     ).animate(CurvedAnimation(
       parent: _controller,
       curve: Curves.easeOutCubic,
     ));
+    _listSlide = Tween<Offset>(
+      begin: const Offset(0, 0.10),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.3, 1.0, curve: Curves.easeOutCubic),
+    ));
+    _listOpacity = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+          parent: _controller,
+          curve: const Interval(0.3, 1.0, curve: Curves.easeIn)),
+    );
 
-    // Liderlik tablosunu yükle
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<LeaderboardProvider>().loadGlobalLeaderboard();
+      _controller.forward();
     });
   }
 
@@ -59,13 +77,13 @@ class _LeadingBoardState extends State<LeadingBoard>
   @override
   Widget build(BuildContext context) {
     final leaderboardProvider = Provider.of<LeaderboardProvider>(context);
-    const Color primaryColor = Color(0xFFFF6600);
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: primaryColor,
+        backgroundColor: Colors.transparent,
         title: const Row(
           children: [
             Text(
@@ -87,10 +105,6 @@ class _LeadingBoardState extends State<LeadingBoard>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => leaderboardProvider.loadGlobalLeaderboard(),
-          ),
           IconButton(
             icon: const Icon(Icons.info_outline_rounded),
             onPressed: () {
@@ -169,425 +183,310 @@ class _LeadingBoardState extends State<LeadingBoard>
                         ],
                       ),
                     )
-                  : _buildLeaderboard(
+                  : _buildAnimatedLeaderboard(
                       context, leaderboardProvider.leaderboardData),
     );
   }
 
-  Widget _buildLeaderboard(
+  Widget _buildAnimatedLeaderboard(
       BuildContext context, List<Map<String, dynamic>> users) {
-    return CustomScrollView(
-      physics: const BouncingScrollPhysics(),
-      slivers: [
-        SliverAppBar(
-          backgroundColor: const Color(0xFFFF6600),
-          expandedHeight: 320,
-          pinned: true,
-          flexibleSpace: FlexibleSpaceBar(
-            background: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    const Color(0xFFFF6600),
-                    const Color(0xFFFF6600).withOpacity(0.8),
-                    Colors.white,
-                  ],
-                ),
-              ),
-              child: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(8, 16, 8, 16),
-                  child: Column(
-                    children: [
-                      const Text(
-                        "Liderlik Tablosu",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        "En çok Poi'ye sahip ilk 3 kullanıcı",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                      Expanded(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            if (users.length > 1)
-                              Expanded(child: _buildTopUser(users[1], '2', 1)),
-                            if (users.isNotEmpty)
-                              Expanded(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(bottom: 16.0),
-                                  child: _buildTopUser(users[0], '1', 0),
-                                ),
-                              ),
-                            if (users.length > 2)
-                              Expanded(child: _buildTopUser(users[2], '3', 2)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+    final String currentUserEmail =
+        FirebaseAuth.instance.currentUser?.email?.trim().toLowerCase() ?? '';
+    final leaderboardProvider =
+        Provider.of<LeaderboardProvider>(context, listen: false);
+    final sortedUsers = List<Map<String, dynamic>>.from(users)
+      ..sort(
+          (a, b) => (b['poiBalance'] as num).compareTo(a['poiBalance'] as num));
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            primaryColor,
+            secondaryColor,
+          ],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            const SizedBox(height: 16),
+            const Text(
+              '01.03.2025 - 31.03.2025 tarihleri arasında geçerlidir.',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 13,
+                fontWeight: FontWeight.w400,
               ),
             ),
-          ),
-        ),
-        SliverToBoxAdapter(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              children: [
-                const Text(
-                  "Diğer Sıralamalar",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFF6600).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(
-                        Icons.people,
-                        size: 16,
-                        color: Color(0xFFFF6600),
+            const SizedBox(height: 36),
+            // Podium animasyonu
+            SlideTransition(
+              position: _podiumSlide,
+              child: ScaleTransition(
+                scale: _podiumScale,
+                child: FadeTransition(
+                  opacity: _podiumOpacity,
+                  child: SizedBox(
+                    height: 140,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 32.0,
                       ),
-                      SizedBox(width: 4),
-                      Text(
-                        "Tüm Kullanıcılar",
-                        style: TextStyle(
-                          color: Color(0xFFFF6600),
-                          fontWeight: FontWeight.w600,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        SliverPadding(
-          padding: const EdgeInsets.all(16),
-          sliver: SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                if (index < 3) return const SizedBox.shrink();
-                if (index >= users.length) return null;
-                return _buildOtherUser(users[index], index + 1);
-              },
-              childCount: users.length,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTopUser(Map<String, dynamic> userData, String rank, int index) {
-    final avatarUrl = userData['avatarUrl']?.toString();
-
-    return SlideTransition(
-      position: _slideAnimation,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Stack(
-                alignment: Alignment.topCenter,
-                children: [
-                  Container(
-                    width: rank == '1' ? 100 : 80,
-                    height: rank == '1' ? 100 : 80,
-                    decoration: BoxDecoration(
-                      color: rank == '1'
-                          ? Colors.amber
-                          : rank == '2'
-                              ? Colors.blueGrey[300]
-                              : Colors.brown[300],
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    padding: const EdgeInsets.all(3),
-                    child: ClipOval(
-                      child: avatarUrl != null && avatarUrl.isNotEmpty
-                          ? CachedNetworkImage(
-                              imageUrl: avatarUrl,
-                              fit: BoxFit.cover,
-                              placeholder: (context, url) => const Center(
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                ),
-                              ),
-                              errorWidget: (context, url, error) => Center(
-                                child: Icon(
-                                  Icons.person,
-                                  size: rank == '1' ? 50 : 40,
-                                  color: Colors.white,
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Icon(
-                                Icons.person,
-                                size: rank == '1' ? 50 : 40,
-                                color: Colors.white,
+                      child: Stack(
+                        children: [
+                          if (sortedUsers.length > 1)
+                            Align(
+                              alignment: Alignment.bottomLeft,
+                              child: _PodiumUserSimple(
+                                username:
+                                    sortedUsers[1]['username']?.toString() ??
+                                        '',
+                                point: sortedUsers[1]['poiBalance'].toString(),
+                                isMain: false,
+                                isSecondOrThird: true,
+                                maxBoxWidth: 100,
                               ),
                             ),
-                    ),
-                  ),
-                  Positioned(
-                    top: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: rank == '1'
-                            ? Colors.amber
-                            : rank == '2'
-                                ? Colors.blueGrey[300]
-                                : Colors.brown[300],
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.1),
-                            blurRadius: 4,
-                            spreadRadius: 1,
-                          ),
+                          if (sortedUsers.isNotEmpty)
+                            Align(
+                              alignment: Alignment.topCenter,
+                              child: _PodiumUserSimple(
+                                username:
+                                    sortedUsers[0]['username']?.toString() ??
+                                        '',
+                                point: sortedUsers[0]['poiBalance'].toString(),
+                                isMain: true,
+                                isSecondOrThird: false,
+                                maxBoxWidth: 100,
+                              ),
+                            ),
+                          if (sortedUsers.length > 2)
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: _PodiumUserSimple(
+                                username:
+                                    sortedUsers[2]['username']?.toString() ??
+                                        '',
+                                point: sortedUsers[2]['poiBalance'].toString(),
+                                isMain: false,
+                                isSecondOrThird: true,
+                                maxBoxWidth: 100,
+                              ),
+                            ),
                         ],
                       ),
-                      child: Text(
-                        rank,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Text(
-                userData['username']?.toString() ?? '',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: rank == '1' ? 16 : 14,
-                  color: Colors.white,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
-                      blurRadius: 4,
-                      spreadRadius: 1,
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.star_rounded,
-                      color: rank == '1'
-                          ? Colors.amber
-                          : rank == '2'
-                              ? Colors.blueGrey[300]
-                              : Colors.brown[300],
-                      size: 16,
-                    ),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${userData['poiBalance']}',
-                      style: TextStyle(
-                        color: rank == '1'
-                            ? Colors.amber
-                            : rank == '2'
-                                ? Colors.blueGrey[600]
-                                : Colors.brown[600],
-                        fontWeight: FontWeight.w600,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 16),
+              height: 1,
+              color: Colors.white.withOpacity(0.3),
+            ),
+            const SizedBox(height: 8),
+            // Liste animasyonu
+            Expanded(
+              child: SlideTransition(
+                position: _listSlide,
+                child: FadeTransition(
+                  opacity: _listOpacity,
+                  child: RefreshIndicator(
+                    color: primaryColor,
+                    backgroundColor: Colors.white,
+                    onRefresh: () async {
+                      await leaderboardProvider.loadGlobalLeaderboard();
+                    },
+                    child: ListView.builder(
+                      padding: const EdgeInsets.only(bottom: 120),
+                      itemCount: sortedUsers.length,
+                      itemBuilder: (context, index) {
+                        if (index < 3) return const SizedBox.shrink();
+                        final user = sortedUsers[index];
+                        final isCurrentUser = user['email'] == currentUserEmail;
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 2),
+                          decoration: isCurrentUser
+                              ? BoxDecoration(
+                                  color: Colors.amber[50],
+                                  borderRadius: BorderRadius.circular(12),
+                                )
+                              : null,
+                          child: ListTile(
+                            dense: true,
+                            leading: Text(
+                              (index + 1).toString(),
+                              style: TextStyle(
+                                color: isCurrentUser
+                                    ? Colors.grey[900]
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                            ),
+                            title: Text(
+                              user['username']?.toString() ?? '',
+                              style: TextStyle(
+                                color: isCurrentUser
+                                    ? Colors.grey[900]
+                                    : Colors.white,
+                                fontWeight: isCurrentUser
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                            ),
+                            trailing: Text(
+                              user['poiBalance'].toString(),
+                              style: TextStyle(
+                                color: isCurrentUser
+                                    ? Colors.grey[900]
+                                    : Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildOtherUser(Map<String, dynamic> userData, int rank) {
-    final avatarUrl = userData['avatarUrl']?.toString();
-    const Color primaryColor = Color(0xFFFF6600);
+class _PodiumUserSimple extends StatelessWidget {
+  final String username;
+  final String point;
+  final bool isMain;
+  final bool isSecondOrThird;
+  final double maxBoxWidth;
 
-    return SlideTransition(
-      position: _slideAnimation,
-      child: ScaleTransition(
-        scale: _scaleAnimation,
-        child: FadeTransition(
-          opacity: _opacityAnimation,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Card(
-              elevation: 2,
-              shadowColor: Colors.black.withOpacity(0.1),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
+  const _PodiumUserSimple({
+    required this.username,
+    required this.point,
+    required this.isMain,
+    this.isSecondOrThird = false,
+    this.maxBoxWidth = 100,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final double minBoxWidth = 70;
+    final double boxWidth = maxBoxWidth.clamp(minBoxWidth, maxBoxWidth);
+    final double fontSize = isMain
+        ? 20
+        : isSecondOrThird
+            ? 17
+            : 15;
+    final double pointFontSize = isMain
+        ? 16
+        : isSecondOrThird
+            ? 14
+            : 13;
+    return IntrinsicWidth(
+      child: ConstrainedBox(
+        constraints: BoxConstraints(minWidth: 70, maxWidth: 160),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 300),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMain
+                    ? 18
+                    : isSecondOrThird
+                        ? 14
+                        : 8,
+                vertical: isMain
+                    ? 8
+                    : isSecondOrThird
+                        ? 6
+                        : 4,
               ),
-              child: ListTile(
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                leading: Stack(
-                  alignment: Alignment.bottomRight,
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: primaryColor.withOpacity(0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: avatarUrl != null && avatarUrl.isNotEmpty
-                          ? ClipOval(
-                              child: CachedNetworkImage(
-                                imageUrl: avatarUrl,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) => const Center(
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                  ),
-                                ),
-                                errorWidget: (context, url, error) =>
-                                    const Center(
-                                  child: Icon(
-                                    Icons.person,
-                                    color: primaryColor,
-                                  ),
-                                ),
-                              ),
-                            )
-                          : const Center(
-                              child: Icon(
-                                Icons.person,
-                                color: primaryColor,
-                              ),
-                            ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: primaryColor,
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: Colors.white,
-                          width: 2,
+              decoration: BoxDecoration(
+                color: isMain
+                    ? Colors.white.withOpacity(0.18)
+                    : isSecondOrThird
+                        ? Colors.white.withOpacity(0.10)
+                        : Colors.transparent,
+                borderRadius: BorderRadius.circular(isMain
+                    ? 16
+                    : isSecondOrThird
+                        ? 12
+                        : 8),
+                boxShadow: isMain
+                    ? [
+                        BoxShadow(
+                          color: Colors.yellow.withOpacity(0.25),
+                          blurRadius: 24,
+                          spreadRadius: 2,
+                          offset: const Offset(0, 0),
                         ),
-                      ),
-                      child: Text(
-                        rank.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 10,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                title: Text(
-                  userData['username']?.toString() ?? 'Kullanıcı',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                trailing: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.star_rounded,
-                        color: primaryColor,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${userData['poiBalance']}',
-                        style: const TextStyle(
-                          color: primaryColor,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
+                      ]
+                    : [],
+              ),
+              child: Text(
+                username,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: isMain
+                      ? FontWeight.bold
+                      : isSecondOrThird
+                          ? FontWeight.w600
+                          : FontWeight.w500,
+                  fontSize: fontSize,
+                  letterSpacing: isMain ? 0.5 : 0.2,
+                  shadows: isMain
+                      ? [
+                          Shadow(
+                              color: Colors.black26,
+                              blurRadius: 6,
+                              offset: Offset(0, 2))
+                        ]
+                      : null,
                 ),
               ),
             ),
-          ),
+            const SizedBox(height: 6),
+            Text(
+              point,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: isMain
+                    ? FontWeight.bold
+                    : isSecondOrThird
+                        ? FontWeight.w600
+                        : FontWeight.normal,
+                fontSize: pointFontSize,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
         ),
       ),
     );
