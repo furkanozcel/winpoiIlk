@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+// Renk paleti
+const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
+const Color secondaryColor = Color(0xFFE28B33); // Turuncu
+const Color accentColor = Color(0xFFB39DDB); // Soft Mor (isteğe bağlı)
+const Color textColor = Color(0xFF424242); // Koyu Gri
+
 class AboutAppPage extends StatelessWidget {
   const AboutAppPage({super.key});
 
@@ -9,9 +15,8 @@ class AboutAppPage extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: Colors.white,
-      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: primaryColor,
         elevation: 0,
         title: TweenAnimationBuilder<double>(
           duration: const Duration(milliseconds: 300),
@@ -23,25 +28,16 @@ class AboutAppPage extends StatelessWidget {
                 'Uygulama Hakkında',
                 style: TextStyle(
                   color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 24,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 22,
+                  fontFamily: 'Poppins',
+                  letterSpacing: 0.1,
                 ),
               ),
             );
           },
         ),
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                const Color(0xFFFF6600),
-                const Color(0xFFFF6600).withOpacity(0.95),
-              ],
-            ),
-          ),
-        ),
+        flexibleSpace: null,
       ),
       body: SingleChildScrollView(
         physics: const BouncingScrollPhysics(),
@@ -49,26 +45,20 @@ class AboutAppPage extends StatelessWidget {
           children: [
             // Üst Kısım
             Container(
-              padding: EdgeInsets.only(
-                top: topPadding + kToolbarHeight + 20,
+              width: double.infinity,
+              padding: const EdgeInsets.only(
+                top: 20,
                 bottom: 32,
               ),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: [
-                    const Color(0xFFFF6600),
-                    const Color(0xFFFF6600).withOpacity(0.95),
+                    primaryColor,
+                    secondaryColor,
                   ],
                 ),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFFFF6600).withOpacity(0.15),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
               ),
               child: Center(
                 child: TweenAnimationBuilder(
@@ -81,53 +71,66 @@ class AboutAppPage extends StatelessWidget {
                         opacity: value,
                         child: Column(
                           children: [
-                            Container(
-                              width: 120,
-                              height: 120,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(30),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.08),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 8),
+                            RichText(
+                              text: const TextSpan(
+                                children: [
+                                  TextSpan(
+                                    text: 'Win',
+                                    style: TextStyle(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                      fontFamily: 'Poppins',
+                                      letterSpacing: -0.5,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black26,
+                                          blurRadius: 8,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text: 'Poi',
+                                    style: TextStyle(
+                                      fontSize: 36,
+                                      fontWeight: FontWeight.w400,
+                                      color: Colors.white,
+                                      fontFamily: 'Poppins',
+                                      letterSpacing: -0.5,
+                                      shadows: [
+                                        Shadow(
+                                          color: Colors.black26,
+                                          blurRadius: 8,
+                                          offset: Offset(0, 2),
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
-                              child: ClipRRect(
-                                borderRadius: BorderRadius.circular(25),
-                                child: Image.asset(
-                                  'lib/features/auth/assets/images/logo.jpg',
-                                  width: 70,
-                                  height: 70,
-                                  fit: BoxFit.contain,
-                                ),
-                              ),
                             ),
-                            const SizedBox(height: 20),
-                            const Text(
-                              'WinPoi',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 18),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
+                                horizontal: 22,
                                 vertical: 8,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
-                                borderRadius: BorderRadius.circular(20),
+                                color: Colors.white.withOpacity(0.22),
+                                borderRadius: BorderRadius.circular(22),
                                 border: Border.all(
-                                  color: Colors.white.withOpacity(0.3),
+                                  color: Colors.white.withOpacity(0.22),
                                   width: 1,
                                 ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withOpacity(0.06),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
                               child: const Text(
                                 'Versiyon 1.0.0',
@@ -135,6 +138,8 @@ class AboutAppPage extends StatelessWidget {
                                   color: Colors.white,
                                   fontWeight: FontWeight.w500,
                                   fontSize: 16,
+                                  fontFamily: 'Poppins',
+                                  letterSpacing: 0.1,
                                 ),
                               ),
                             ),
@@ -218,7 +223,7 @@ class AboutAppPage extends StatelessWidget {
     required int delay,
   }) {
     return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 800),
+      duration: const Duration(milliseconds: 800),
       tween: Tween(begin: 0, end: 1),
       curve: Curves.easeOutCubic,
       builder: (context, value, child) {
@@ -228,19 +233,27 @@ class AboutAppPage extends StatelessWidget {
             opacity: value,
             child: Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+              margin: const EdgeInsets.only(bottom: 10),
               decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
+                gradient: LinearGradient(
+                  colors: [
+                    Colors.white.withOpacity(0.96),
+                    primaryColor.withOpacity(0.10),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(22),
                 border: Border.all(
-                  color: const Color(0xFFFF6600).withOpacity(0.1),
-                  width: 1.5,
+                  color: primaryColor.withOpacity(0.10),
+                  width: 1.2,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    blurRadius: 15,
-                    offset: const Offset(0, 8),
+                    color: primaryColor.withOpacity(0.06),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
@@ -250,40 +263,45 @@ class AboutAppPage extends StatelessWidget {
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(12),
+                        padding: const EdgeInsets.all(11),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
-                              const Color(0xFFFF6600).withOpacity(0.1),
-                              const Color(0xFFFF6600).withOpacity(0.2),
+                              primaryColor.withOpacity(0.16),
+                              secondaryColor.withOpacity(0.10),
                             ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
                           ),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         child: Icon(
                           icon,
-                          color: const Color(0xFFFF6600),
-                          size: 26,
+                          color: secondaryColor.withOpacity(0.85),
+                          size: 24,
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Text(
                         title,
                         style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
                           letterSpacing: -0.5,
+                          fontFamily: 'Poppins',
+                          color: textColor,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 14),
                   Text(
                     content,
                     style: TextStyle(
-                      color: Colors.grey.shade700,
-                      height: 1.5,
-                      fontSize: 16,
+                      color: textColor.withOpacity(0.82),
+                      height: 1.55,
+                      fontSize: 15.5,
+                      fontFamily: 'Poppins',
                     ),
                   ),
                 ],
@@ -301,15 +319,15 @@ class AboutAppPage extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFF6600).withOpacity(0.1),
-            const Color(0xFFFF6600).withOpacity(0.05),
+            primaryColor.withOpacity(0.10),
+            secondaryColor.withOpacity(0.07),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: const Color(0xFFFF6600).withOpacity(0.2),
+          color: primaryColor.withOpacity(0.13),
           width: 1.5,
         ),
       ),
@@ -317,7 +335,7 @@ class AboutAppPage extends StatelessWidget {
         children: [
           ShaderMask(
             shaderCallback: (bounds) => const LinearGradient(
-              colors: [Color(0xFFFF6600), Color(0xFFFF8533)],
+              colors: [primaryColor, secondaryColor],
             ).createShader(bounds),
             child: const Text(
               'Bizi Takip Edin',
@@ -326,6 +344,7 @@ class AboutAppPage extends StatelessWidget {
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 letterSpacing: -0.5,
+                fontFamily: 'Poppins',
               ),
             ),
           ),
@@ -376,11 +395,18 @@ class AboutAppPage extends StatelessWidget {
                 vertical: 16,
               ),
               decoration: BoxDecoration(
-                color: Colors.white,
+                gradient: LinearGradient(
+                  colors: [
+                    primaryColor.withOpacity(0.10),
+                    secondaryColor.withOpacity(0.07),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: const Color(0xFFFF6600).withOpacity(0.15),
+                    color: primaryColor.withOpacity(0.10),
                     blurRadius: 10,
                     offset: const Offset(0, 5),
                   ),
@@ -390,16 +416,17 @@ class AboutAppPage extends StatelessWidget {
                 children: [
                   Icon(
                     icon,
-                    color: const Color(0xFFFF6600),
+                    color: secondaryColor,
                     size: 30,
                   ),
                   const SizedBox(height: 8),
                   Text(
                     label,
                     style: const TextStyle(
-                      color: Color(0xFFFF6600),
+                      color: secondaryColor,
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
+                      fontFamily: 'Poppins',
                     ),
                   ),
                 ],

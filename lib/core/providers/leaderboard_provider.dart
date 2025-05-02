@@ -16,7 +16,7 @@ class LeaderboardProvider extends ChangeNotifier {
     try {
       final QuerySnapshot snapshot = await FirebaseFirestore.instance
           .collection('users')
-          .orderBy('totalPrizeCount', descending: true)
+          .orderBy('poiBalance', descending: true)
           .limit(20)
           .get();
 
@@ -25,6 +25,7 @@ class LeaderboardProvider extends ChangeNotifier {
         return {
           'userId': doc.id,
           'username': data['username'] ?? 'Kullanıcı',
+          'email': data['email'] ?? '',
           'totalPrizeCount': data['totalPrizeCount'] ?? 0,
           'poiBalance': data['poiBalance'] ?? 0,
           'totalGames': data['totalGames'] ?? 0,

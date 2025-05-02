@@ -15,7 +15,15 @@ class ProfilePage extends StatefulWidget {
   State<ProfilePage> createState() => _ProfilePageState();
 }
 
-class _ProfilePageState extends State<ProfilePage> {
+class _ProfilePageState extends State<ProfilePage>
+    with TickerProviderStateMixin {
+  late AnimationController _headerController;
+  late AnimationController _menuController;
+  late Animation<double> _headerFade;
+  late Animation<double> _headerScale;
+  late Animation<double> _menuFade;
+  late Animation<double> _menuScale;
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +31,35 @@ class _ProfilePageState extends State<ProfilePage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<UserProvider>().loadUserData();
     });
+
+    _headerController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 450),
+    );
+    _menuController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 400),
+    );
+
+    _headerFade =
+        CurvedAnimation(parent: _headerController, curve: Curves.easeInOut);
+    _headerScale = Tween<double>(begin: 0.97, end: 1.0).animate(
+      CurvedAnimation(parent: _headerController, curve: Curves.easeOutBack),
+    );
+    _menuFade =
+        CurvedAnimation(parent: _menuController, curve: Curves.easeInOut);
+    _menuScale = Tween<double>(begin: 0.97, end: 1.0).animate(
+      CurvedAnimation(parent: _menuController, curve: Curves.easeOutBack),
+    );
+
+    _headerController.forward().then((_) => _menuController.forward());
+  }
+
+  @override
+  void dispose() {
+    _headerController.dispose();
+    _menuController.dispose();
+    super.dispose();
   }
 
   @override
@@ -30,12 +67,18 @@ class _ProfilePageState extends State<ProfilePage> {
     final userProvider = Provider.of<UserProvider>(context);
     final authProvider = Provider.of<app_provider.AuthProvider>(context);
 
+    // Tema renkleri
+    const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
+    const Color secondaryColor = Color(0xFFE28B33); // Turuncu
+    const Color backgroundColor = Color(0xFFF5F5F5); // Açık Gri
+    const Color textColor = Color(0xFF424242); // Koyu Gri
+
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFFFF6600),
-        title: const Row(
+        backgroundColor: primaryColor,
+        title: Row(
           children: [
             Text(
               'Win',
@@ -43,6 +86,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 1,
+                color: Colors.white,
               ),
             ),
             Text(
@@ -51,14 +95,14 @@ class _ProfilePageState extends State<ProfilePage> {
                 fontSize: 28,
                 fontWeight: FontWeight.w300,
                 letterSpacing: 1,
+                color: Colors.white,
               ),
             ),
           ],
         ),
       ),
       body: userProvider.isLoading
-          ? const Center(
-              child: CircularProgressIndicator(color: Color(0xFFFF6600)))
+          ? const Center(child: CircularProgressIndicator(color: primaryColor))
           : userProvider.error != null
               ? Center(
                   child: Column(
@@ -74,12 +118,16 @@ class _ProfilePageState extends State<ProfilePage> {
                         'Veri yüklenirken hata oluştu',
                         style: TextStyle(
                           fontSize: 16,
-                          color: Colors.grey.shade700,
+                          color: textColor,
                         ),
                       ),
                       const SizedBox(height: 8),
                       ElevatedButton(
                         onPressed: () => userProvider.loadUserData(),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
                         child: const Text('Tekrar Dene'),
                       ),
                     ],
@@ -89,23 +137,24 @@ class _ProfilePageState extends State<ProfilePage> {
                   physics: const BouncingScrollPhysics(),
                   child: Column(
                     children: [
-                      // Üst profil bölümü
-                      _buildProfileHeader(context, userProvider.userData),
-
-                      // Ana menü bölümü
-                      Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          children: [
-                            // İstatistikler
-                            _buildStatisticsRow(userProvider.userData),
-
-                            const SizedBox(height: 20),
-
-                            // Menü Listesi
-                            _buildMenuItems(
+                      FadeTransition(
+                        opacity: _headerFade,
+                        child: ScaleTransition(
+                          scale: _headerScale,
+                          child: _buildProfileHeaderWithStats(
+                              userProvider.userData),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      FadeTransition(
+                        opacity: _menuFade,
+                        child: ScaleTransition(
+                          scale: _menuScale,
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: _buildMenuItems(
                                 context, userProvider, authProvider),
-                          ],
+                          ),
                         ),
                       ),
                     ],
@@ -114,138 +163,214 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildProfileHeader(
-      BuildContext context, Map<String, dynamic>? userData) {
+  Widget _buildProfileHeaderWithStats(Map<String, dynamic>? userData) {
+    const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
+    const Color secondaryColor = Color(0xFFE28B33); // Turuncu
+    const Color textColor = Color(0xFF424242);
+
     return Container(
-      height: 180,
-      padding: const EdgeInsets.fromLTRB(16, 40, 16, 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFF6600),
-        boxShadow: [
-          BoxShadow(
-            color: const Color(0xFFFF6600).withOpacity(0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(16, 36, 16, 24),
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [primaryColor, secondaryColor],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            child: const CircleAvatar(
-              radius: 30,
-              backgroundColor: Colors.white,
-              child: Icon(
-                Icons.person,
-                color: Color(0xFFFF6600),
-                size: 32,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
           Text(
             userData?['username']?.toString() ??
                 userData?['name']?.toString() ??
                 'Kullanıcı',
             style: const TextStyle(
               color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.w500,
+              fontSize: 32,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.5,
             ),
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 32),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildSimpleStatCard(
+                icon: Icons.emoji_events,
+                value: '${userData?['totalPrizeCount'] ?? 0}',
+                title: 'Kazanılan\nÖdüller',
+                iconColor: Colors.white,
+                bgColor: Colors.white.withOpacity(0.12),
+                textColor: Colors.white,
+              ),
+              _buildSimpleStatCard(
+                icon: Icons.currency_lira,
+                value: '${userData?['poiBalance'] ?? 0}',
+                title: 'POI\nBakiyesi',
+                iconColor: Colors.white,
+                bgColor: Colors.white.withOpacity(0.12),
+                textColor: Colors.white,
+              ),
+              _buildSimpleStatCard(
+                icon: Icons.gamepad,
+                value: '${userData?['totalGames'] ?? 0}',
+                title: 'Toplam\nOyun',
+                iconColor: Colors.white,
+                bgColor: Colors.white.withOpacity(0.12),
+                textColor: Colors.white,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildStatisticsRow(Map<String, dynamic>? userData) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildSimpleStatCard(
-          icon: Icons.emoji_events,
-          value: '${userData?['totalPrizeCount'] ?? 0}',
-          title: 'Kazanılan\nÖdüller',
-        ),
-        _buildSimpleStatCard(
-          icon: Icons.currency_lira,
-          value: '${userData?['poiBalance'] ?? 0}',
-          title: 'POI\nBakiyesi',
-        ),
-        _buildSimpleStatCard(
-          icon: Icons.gamepad,
-          value: '${userData?['totalGames'] ?? 0}',
-          title: 'Toplam\nOyun',
-        ),
-      ],
+  Widget _buildMenuItems(BuildContext context, UserProvider userProvider,
+      app_provider.AuthProvider authProvider) {
+    const Color primaryColor = Color(0xFF5FC9BF);
+    const Color textColor = Color(0xFF424242);
+
+    final items = [
+      {
+        'icon': Icons.person_outline,
+        'title': 'Profil Bilgileri',
+        'onTap': () => Navigator.push(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => const ProfileDetailsPage()),
+            ),
+      },
+      {
+        'icon': Icons.history,
+        'title': 'Oyun Geçmişi',
+        'onTap': () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const GameHistoryPage()),
+            ),
+      },
+      {
+        'icon': Icons.info_outline,
+        'title': 'Uygulama Hakkında',
+        'onTap': () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AboutAppPage()),
+            ),
+      },
+      {
+        'icon': Icons.description_outlined,
+        'title': 'Sözleşmeler',
+        'onTap': () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const AgreementsPage()),
+            ),
+      },
+      {
+        'icon': Icons.support_agent,
+        'title': 'Destek',
+        'onTap': () {},
+      },
+      if (userProvider.userData?['role'] == 'admin')
+        {
+          'icon': Icons.admin_panel_settings,
+          'title': 'Yarışma Yönetimi',
+          'onTap': () => Navigator.pushNamed(context, '/admin/competitions'),
+        },
+      {
+        'icon': Icons.logout,
+        'title': 'Çıkış Yap',
+        'onTap': () => _showLogoutDialog(context, authProvider),
+        'iconColor': Colors.redAccent,
+      },
+    ];
+
+    return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: items.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final item = items[index];
+        return ListTile(
+          leading: Icon(
+            item['icon'] as IconData,
+            color: item['iconColor'] as Color? ?? primaryColor,
+          ),
+          title: Text(
+            item['title'] as String,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: textColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          trailing: const Icon(Icons.chevron_right_rounded, color: Colors.grey),
+          onTap: item['onTap'] as VoidCallback,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+          tileColor: Colors.white,
+          dense: true,
+        );
+      },
     );
   }
 
-  Widget _buildMenuItems(BuildContext context, UserProvider userProvider,
-      app_provider.AuthProvider authProvider) {
-    return Column(
-      children: [
-        _buildSimpleMenuItem(
-          icon: Icons.person_outline,
-          title: 'Profil Bilgileri',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ProfileDetailsPage(),
-            ),
-          ),
-        ),
-        _buildSimpleMenuItem(
-          icon: Icons.history,
-          title: 'Oyun Geçmişi',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const GameHistoryPage(),
-            ),
-          ),
-        ),
-        _buildSimpleMenuItem(
-          icon: Icons.info_outline,
-          title: 'Uygulama Hakkında',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AboutAppPage(),
-            ),
-          ),
-        ),
-        _buildSimpleMenuItem(
-          icon: Icons.description_outlined,
-          title: 'Sözleşmeler',
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const AgreementsPage(),
-            ),
-          ),
-        ),
-        _buildSimpleMenuItem(
-          icon: Icons.support_agent,
-          title: 'Destek',
-          onTap: () {},
-        ),
-        // Admin menüsü - sadece admin rolüne sahip kullanıcılar için
-        if (userProvider.userData?['role'] == 'admin') ...[
-          _buildSimpleMenuItem(
-            icon: Icons.admin_panel_settings,
-            title: 'Yarışma Yönetimi',
-            onTap: () => Navigator.pushNamed(context, '/admin/competitions'),
+  Widget _buildSimpleStatCard({
+    required IconData icon,
+    required String value,
+    required String title,
+    required Color iconColor,
+    required Color bgColor,
+    required Color textColor,
+  }) {
+    return Container(
+      width: 90,
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
-        _buildSimpleMenuItem(
-          icon: Icons.logout,
-          title: 'Çıkış Yap',
-          onTap: () => _showLogoutDialog(context, authProvider),
-        ),
-      ],
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: iconColor, size: 28),
+          const SizedBox(height: 8),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: textColor,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            title,
+            style: TextStyle(
+              fontSize: 12,
+              color: textColor.withOpacity(0.85),
+              fontWeight: FontWeight.w500,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
     );
   }
 
@@ -299,99 +424,5 @@ class _ProfilePageState extends State<ProfilePage> {
         }
       }
     }
-  }
-
-  Widget _buildSimpleStatCard({
-    required IconData icon,
-    required String value,
-    required String title,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 6,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: const Color(0xFFFF6600), size: 28),
-          const SizedBox(height: 8),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFFFF6600),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.grey.shade600,
-              fontWeight: FontWeight.w500,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSimpleMenuItem({
-    required IconData icon,
-    required String title,
-    required VoidCallback onTap,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        leading: Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFFFF6600).withOpacity(0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(icon, color: const Color(0xFFFF6600), size: 24),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
-        trailing: const Icon(
-          Icons.chevron_right_rounded,
-          size: 24,
-          color: Colors.grey,
-        ),
-        onTap: onTap,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-      ),
-    );
   }
 }
