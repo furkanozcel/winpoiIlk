@@ -23,19 +23,25 @@ void main() async {
   final prefs = await SharedPreferences.getInstance();
   final hasRegistered = prefs.getBool('hasRegistered') ?? false;
 
-  // Eğer kullanıcı kayıtlı değilse veya oturum açık değilse onboarding'i göster
-  final showOnboarding =
-      !hasRegistered || FirebaseAuth.instance.currentUser == null;
+  // Eğer kullanıcı kayıtlı değilse onboarding'i göster
+  // Eğer kullanıcı giriş yapmışsa HomePage'e yönlendir
+  final showOnboarding = !hasRegistered;
+  final isLoggedIn = FirebaseAuth.instance.currentUser != null;
 
-  runApp(MyApp(showOnboarding: showOnboarding));
+  runApp(MyApp(
+    showOnboarding: showOnboarding,
+    isLoggedIn: isLoggedIn,
+  ));
 }
 
 class MyApp extends StatelessWidget {
   final bool showOnboarding;
+  final bool isLoggedIn;
 
   const MyApp({
     super.key,
     required this.showOnboarding,
+    required this.isLoggedIn,
   });
 
   @override
@@ -51,7 +57,11 @@ class MyApp extends StatelessWidget {
           '/home': (context) => const NavigatorPage(),
           '/admin/competitions': (context) => const CompetitionManagementPage(),
         },
-        home: showOnboarding ? const OnboardingPage() : const LoginPage(),
+        home: showOnboarding
+            ? const OnboardingPage()
+            : isLoggedIn
+                ? const NavigatorPage()
+                : const LoginPage(),
       ),
     );
   }

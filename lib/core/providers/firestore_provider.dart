@@ -130,13 +130,34 @@ class FirestoreProvider extends ChangeNotifier {
   // Aktif yarışmaları getir
   Stream<List<Competition>> getActiveCompetitions() {
     final now = DateTime.now();
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      return Stream.value([]);
+    }
+
     return FirebaseFirestore.instance
         .collection('competitions')
-        .where('endTime', isGreaterThan: now)
+        .where('endTime',
+            isGreaterThan: now) // Sadece bitmemiş yarışmaları getir
         .orderBy('endTime')
         .snapshots()
-        .map((snapshot) {
-      return snapshot.docs
+        .asyncMap((competitionsSnapshot) async {
+      // Kullanıcının katıldığı yarışmaları al
+      final userParticipations = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('participations')
+          .get();
+
+      // Katıldığı yarışmaların ID'lerini bir set'e ekle
+      final joinedCompetitionIds = userParticipations.docs
+          .map((doc) => doc.data()['competitionId'] as String)
+          .toSet();
+
+      // Katılmadığı yarışmaları filtrele
+      return competitionsSnapshot.docs
+          .where((doc) => !joinedCompetitionIds.contains(doc.id))
           .map((doc) => Competition.fromFirestore(doc))
           .toList();
     });
