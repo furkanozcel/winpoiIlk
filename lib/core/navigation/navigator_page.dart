@@ -22,20 +22,20 @@ class _NavigatorPageState extends State<NavigatorPage>
   late Animation<double> _animation;
 
   final List<Widget> _pages = [
-    const LeadingBoard(),
     const HomePage(),
+    const LeadingBoard(),
     const ProfilePage(),
   ];
 
   // NavigationBar item bilgileri
   final List<_NavBarItemData> _navBarItems = const [
-    _NavBarItemData(icon: Icons.emoji_events_rounded, pageIndex: 0),
-    _NavBarItemData(icon: Icons.home_rounded, pageIndex: 1),
+    _NavBarItemData(icon: Icons.home_rounded, pageIndex: 0),
+    _NavBarItemData(icon: Icons.emoji_events_rounded, pageIndex: 1),
     _NavBarItemData(icon: Icons.person_rounded, pageIndex: 2),
   ];
 
   Color _getNavBarColor() {
-    if (_selectedIndex == 0) {
+    if (_selectedIndex == 1) {
       return secondaryColor; // Liderlik tablosu (turuncu)
     } else {
       return Colors.white; // Ana sayfa ve profil (beyaz)
