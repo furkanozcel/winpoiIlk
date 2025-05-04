@@ -22,7 +22,7 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _entryFeeController = TextEditingController();
+  final _poiCostController = TextEditingController();
   final _imageController = TextEditingController();
   final _durationController = TextEditingController();
 
@@ -39,7 +39,7 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
           id: '', // Firestore otomatik oluşturacak
           title: _titleController.text,
           description: _descriptionController.text,
-          entryFee: double.parse(_entryFeeController.text),
+          poiCost: int.parse(_poiCostController.text),
           endTime: endTime,
           image: _imageController.text,
         );
@@ -131,7 +131,7 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
   void _clearForm() {
     _titleController.clear();
     _descriptionController.clear();
-    _entryFeeController.clear();
+    _poiCostController.clear();
     _imageController.clear();
     _durationController.clear();
   }
@@ -282,14 +282,14 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
 
                   // Katılım Puanı
                   _buildGradientTextField(
-                    controller: _entryFeeController,
+                    controller: _poiCostController,
                     label: 'Katılım Puanı',
                     icon: Icons.attach_money,
                     keyboardType: TextInputType.number,
                     validator: (value) {
                       if (value?.isEmpty ?? true) return 'Bu alan gerekli';
-                      if (double.tryParse(value!) == null) {
-                        return 'Geçerli bir sayı girin';
+                      if (int.tryParse(value!) == null) {
+                        return 'Geçerli bir tam sayı girin';
                       }
                       return null;
                     },
@@ -424,7 +424,7 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
   void dispose() {
     _titleController.dispose();
     _descriptionController.dispose();
-    _entryFeeController.dispose();
+    _poiCostController.dispose();
     _imageController.dispose();
     _durationController.dispose();
     super.dispose();

@@ -26,7 +26,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
               .doc(authProvider.currentUser!.uid)
               .collection('participations')
               .snapshots()
-          : const Stream.empty(),
+          : null,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
@@ -36,11 +36,20 @@ class _MyGamesPageState extends State<MyGamesPage> {
 
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(
-            child: CircularProgressIndicator(),
+            child: Text(
+              'Oyunlarınız yükleniyor...',
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           );
         }
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+        if (!snapshot.hasData ||
+            snapshot.data == null ||
+            snapshot.data!.docs.isEmpty) {
           return Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -52,7 +61,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  'Henüz Bir Oyuna Katılmadınız',
+                  'Oynamakta olduğunuz oyun yoktur',
                   style: TextStyle(
                     color: Colors.grey.shade700,
                     fontSize: 20,
