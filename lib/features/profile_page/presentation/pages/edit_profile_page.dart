@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:provider/provider.dart';
+import 'package:winpoi/core/providers/user_provider.dart';
 
 const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
 const Color secondaryColor = Color(0xFFE28B33); // Turuncu
@@ -293,7 +295,10 @@ class _EditProfilePageState extends State<EditProfilePage>
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
+      // UserProvider'ı güncelle
       if (mounted) {
+        await context.read<UserProvider>().loadUserData();
+
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profil başarıyla güncellendi'),
@@ -453,7 +458,7 @@ class _EditProfilePageState extends State<EditProfilePage>
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            primaryColor.withOpacity(0.18),
+            primaryColor.withOpacity(0.15),
             secondaryColor.withOpacity(0.12)
           ],
           begin: Alignment.topLeft,
@@ -479,12 +484,25 @@ class _EditProfilePageState extends State<EditProfilePage>
             fontSize: 14,
           ),
           prefixIcon: Container(
-            padding: const EdgeInsets.all(10),
+            padding: const EdgeInsets.all(12),
+            margin:
+                const EdgeInsets.only(right: 12, left: 8, top: 8, bottom: 8),
             decoration: BoxDecoration(
-              color: primaryColor.withOpacity(0.08),
+              gradient: LinearGradient(
+                colors: [
+                  primaryColor.withOpacity(0.15),
+                  secondaryColor.withOpacity(0.12)
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(icon, color: primaryColor, size: 22),
+          ),
+          prefixIconConstraints: const BoxConstraints(
+            minWidth: 52,
+            minHeight: 52,
           ),
           filled: true,
           fillColor: Colors.transparent,

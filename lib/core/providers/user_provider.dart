@@ -10,7 +10,17 @@ class UserProvider extends ChangeNotifier {
   final app_provider.AuthProvider _authProvider;
 
   UserProvider({app_provider.AuthProvider? authProvider})
-      : _authProvider = authProvider ?? app_provider.AuthProvider();
+      : _authProvider = authProvider ?? app_provider.AuthProvider() {
+    // Constructor'da auth state değişikliklerini dinle
+    _authProvider.authStateChanges.listen((user) {
+      if (user != null) {
+        loadUserData();
+      } else {
+        _userData = null;
+        notifyListeners();
+      }
+    });
+  }
 
   Map<String, dynamic>? get userData => _userData;
   bool get isLoading => _isLoading;
@@ -41,6 +51,14 @@ class UserProvider extends ChangeNotifier {
 
       if (doc.exists) {
         _userData = doc.data();
+        // Eğer successPoints alanı yoksa, ekle
+        if (!_userData!.containsKey('successPoints')) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .update({'successPoints': 0});
+          _userData!['successPoints'] = 0;
+        }
         _error = null;
       } else {
         _userData = null;

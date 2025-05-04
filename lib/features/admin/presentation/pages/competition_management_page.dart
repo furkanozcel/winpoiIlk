@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:winpoi/core/services/firestore_service.dart';
 import 'package:winpoi/core/services/notification_service.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 // Renk paleti
 const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
@@ -75,6 +76,58 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
     );
   }
 
+  Future<void> _deleteCompetition(String competitionId) async {
+    try {
+      await _firestoreService.deleteCompetition(competitionId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Yarışma başarıyla silindi'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _showDeleteConfirmationDialog(
+      String competitionId, String title) async {
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Yarışmayı Sil'),
+        content:
+            Text('"$title" yarışmasını silmek istediğinizden emin misiniz?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('İptal'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true && mounted) {
+      await _deleteCompetition(competitionId);
+    }
+  }
+
   void _clearForm() {
     _titleController.clear();
     _descriptionController.clear();
@@ -100,99 +153,202 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Başlık
-              _buildGradientTextField(
-                controller: _titleController,
-                label: 'Yarışma Başlığı',
-                icon: Icons.title,
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
-              ),
-              const SizedBox(height: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Mevcut Yarışmalar Listesi
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('competitions')
+                  .where('endTime', isGreaterThan: Timestamp.now())
+                  .orderBy('endTime', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(child: Text('Bir hata oluştu'));
+                }
 
-              // Açıklama
-              _buildGradientTextField(
-                controller: _descriptionController,
-                label: 'Açıklama',
-                icon: Icons.description,
-                maxLines: 3,
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
-              ),
-              const SizedBox(height: 16),
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              // Katılım Puanı
-              _buildGradientTextField(
-                controller: _entryFeeController,
-                label: 'Katılım Puanı',
-                icon: Icons.attach_money,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Bu alan gerekli';
-                  if (double.tryParse(value!) == null) {
-                    return 'Geçerli bir sayı girin';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
+                final competitions = snapshot.data!.docs;
 
-              // Görsel URL
-              _buildGradientTextField(
-                controller: _imageController,
-                label: 'Görsel URL',
-                icon: Icons.image,
-                validator: (value) =>
-                    value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
-              ),
-              const SizedBox(height: 16),
+                if (competitions.isEmpty) {
+                  return const Center(
+                    child: Text('Aktif yarışma bulunmuyor'),
+                  );
+                }
 
-              // Süre (Saat)
-              _buildGradientTextField(
-                controller: _durationController,
-                label: 'Yarışma Süresi (Saat)',
-                icon: Icons.timer,
-                keyboardType: TextInputType.number,
-                suffixText: 'saat',
-                validator: (value) {
-                  if (value?.isEmpty ?? true) return 'Bu alan gerekli';
-                  if (double.tryParse(value!) == null) {
-                    return 'Geçerli bir sayı girin';
-                  }
-                  if (double.parse(value) <= 0) {
-                    return 'Süre 0\'dan büyük olmalı';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 24),
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Aktif Yarışmalar',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    ListView.builder(
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
+                      itemCount: competitions.length,
+                      itemBuilder: (context, index) {
+                        final competition =
+                            competitions[index].data() as Map<String, dynamic>;
+                        final competitionId = competitions[index].id;
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            title: Text(
+                              competition['title'] ?? '',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              competition['description'] ?? '',
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.delete_outline,
+                                  color: Colors.red),
+                              onPressed: () => _showDeleteConfirmationDialog(
+                                competitionId,
+                                competition['title'] ?? '',
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    const Divider(thickness: 1),
+                    const SizedBox(height: 24),
+                  ],
+                );
+              },
+            ),
 
-              // Yarışma Ekle Butonu
-              ElevatedButton(
-                onPressed: _addCompetition,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: secondaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            // Yarışma Ekleme Formu
+            const Text(
+              'Yeni Yarışma Ekle',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: textColor,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // Başlık
+                  _buildGradientTextField(
+                    controller: _titleController,
+                    label: 'Yarışma Başlığı',
+                    icon: Icons.title,
+                    validator: (value) =>
+                        value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
                   ),
-                ),
-                child: const Text(
-                  'Yarışma Ekle',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+                  const SizedBox(height: 16),
+
+                  // Açıklama
+                  _buildGradientTextField(
+                    controller: _descriptionController,
+                    label: 'Açıklama',
+                    icon: Icons.description,
+                    maxLines: 3,
+                    validator: (value) =>
+                        value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
                   ),
-                ),
+                  const SizedBox(height: 16),
+
+                  // Katılım Puanı
+                  _buildGradientTextField(
+                    controller: _entryFeeController,
+                    label: 'Katılım Puanı',
+                    icon: Icons.attach_money,
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) return 'Bu alan gerekli';
+                      if (double.tryParse(value!) == null) {
+                        return 'Geçerli bir sayı girin';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Görsel URL
+                  _buildGradientTextField(
+                    controller: _imageController,
+                    label: 'Görsel URL',
+                    icon: Icons.image,
+                    validator: (value) =>
+                        value?.isEmpty ?? true ? 'Bu alan gerekli' : null,
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Süre (Saat)
+                  _buildGradientTextField(
+                    controller: _durationController,
+                    label: 'Yarışma Süresi (Saat)',
+                    icon: Icons.timer,
+                    keyboardType: TextInputType.number,
+                    suffixText: 'saat',
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) return 'Bu alan gerekli';
+                      if (double.tryParse(value!) == null) {
+                        return 'Geçerli bir sayı girin';
+                      }
+                      if (double.parse(value) <= 0) {
+                        return 'Süre 0\'dan büyük olmalı';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Yarışma Ekle Butonu
+                  ElevatedButton(
+                    onPressed: _addCompetition,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: secondaryColor,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: const Text(
+                      'Yarışma Ekle',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

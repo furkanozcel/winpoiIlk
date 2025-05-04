@@ -4,7 +4,6 @@ import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
 import 'package:winpoi/core/providers/user_provider.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/about_app_page.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/agreements_page.dart';
-import 'package:winpoi/features/profile_page/presentation/pages/game_history_page.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/profile_details_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -185,19 +184,102 @@ class _ProfilePageState extends State<ProfilePage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text(
-            userData?['username']?.toString() ??
-                userData?['name']?.toString() ??
-                'Kullanıcı',
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    userData?['username']?.toString() ??
+                        userData?['name']?.toString() ??
+                        'Kullanıcı',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF8156A0),
+                        const Color(0xFF9B6BB7),
+                        const Color(0xFF8156A0),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: Colors.white.withOpacity(0.5),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF8156A0).withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                      BoxShadow(
+                        color: Colors.white.withOpacity(0.1),
+                        blurRadius: 4,
+                        offset: const Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        Icons.wallet,
+                        color: Colors.white.withOpacity(0.95),
+                        size: 20,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        '${userData?['poiBalance'] ?? 0}',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.95),
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.2),
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'POI',
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.95),
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black.withOpacity(0.2),
+                              offset: const Offset(0, 1),
+                              blurRadius: 2,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 32),
           Row(
@@ -212,9 +294,9 @@ class _ProfilePageState extends State<ProfilePage>
                 textColor: Colors.white,
               ),
               _buildSimpleStatCard(
-                icon: Icons.currency_lira,
-                value: '${userData?['poiBalance'] ?? 0}',
-                title: 'POI\nBakiyesi',
+                icon: Icons.workspace_premium,
+                value: '${userData?['successPoints'] ?? 0}',
+                title: 'Başarı\nPuanı',
                 iconColor: Colors.white,
                 bgColor: Colors.white.withOpacity(0.12),
                 textColor: Colors.white,
@@ -247,14 +329,6 @@ class _ProfilePageState extends State<ProfilePage>
               context,
               MaterialPageRoute(
                   builder: (context) => const ProfileDetailsPage()),
-            ),
-      },
-      {
-        'icon': Icons.history,
-        'title': 'Oyun Geçmişi',
-        'onTap': () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => const GameHistoryPage()),
             ),
       },
       {

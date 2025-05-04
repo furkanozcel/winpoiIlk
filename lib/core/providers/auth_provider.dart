@@ -19,6 +19,7 @@ class AuthProvider extends ChangeNotifier {
   User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _currentUser != null;
+  Stream<User?> get authStateChanges => _authService.authStateChanges;
 
   // Email/Password ile giriş
   Future<void> signInWithEmail({

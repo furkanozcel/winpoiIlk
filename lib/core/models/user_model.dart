@@ -8,6 +8,7 @@ class UserModel {
   final int poiBalance;
   final int totalPrizeCount;
   final int totalGames;
+  final int successPoints;
   final DateTime createdAt;
   final String role;
   final String? phoneNumber;
@@ -22,6 +23,7 @@ class UserModel {
     required this.poiBalance,
     required this.totalPrizeCount,
     required this.totalGames,
+    required this.successPoints,
     required this.createdAt,
     this.role = 'user',
     this.phoneNumber,
@@ -40,6 +42,7 @@ class UserModel {
       poiBalance: map['poiBalance'] ?? 0,
       totalPrizeCount: map['totalPrizeCount'] ?? 0,
       totalGames: map['totalGames'] ?? 0,
+      successPoints: map['successPoints'] ?? 0,
       createdAt: (map['createdAt'] as Timestamp).toDate(),
       role: map['role'] ?? 'user',
       phoneNumber: map['phoneNumber'],
@@ -56,6 +59,7 @@ class UserModel {
       'poiBalance': poiBalance,
       'totalPrizeCount': totalPrizeCount,
       'totalGames': totalGames,
+      'successPoints': successPoints,
       'createdAt': createdAt,
       'role': role,
       'phoneNumber': phoneNumber,
