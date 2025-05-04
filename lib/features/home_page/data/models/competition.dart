@@ -4,7 +4,6 @@ class Competition {
   final String id;
   final String title;
   final String description;
-  final double entryFee;
   final DateTime endTime;
   final String image;
   final int participantCount;
@@ -14,7 +13,6 @@ class Competition {
     required this.id,
     required this.title,
     required this.description,
-    required this.entryFee,
     required this.endTime,
     required this.image,
     this.participantCount = 0,
@@ -27,7 +25,6 @@ class Competition {
       id: doc.id,
       title: data['title'] ?? '',
       description: data['description'] ?? '',
-      entryFee: (data['entryFee'] ?? 0).toDouble(),
       endTime: (data['endTime'] as Timestamp).toDate(),
       image: data['image'] ?? '',
       participantCount: data['participantCount'] ?? 0,
@@ -39,7 +36,6 @@ class Competition {
     return {
       'title': title,
       'description': description,
-      'entryFee': entryFee,
       'endTime': Timestamp.fromDate(endTime),
       'image': image,
       'participantCount': participantCount,

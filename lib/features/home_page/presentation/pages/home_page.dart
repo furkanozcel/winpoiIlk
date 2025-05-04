@@ -493,7 +493,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
               dividerColor: Colors.transparent,
               tabs: const [
-                Tab(text: 'Yarışmalar'),
+                Tab(text: 'Oyunlar'),
                 Tab(text: 'Oyunlarım'),
               ],
             ),
@@ -1319,7 +1319,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                             height: 20),
                                                         // Açıklama
                                                         Text(
-                                                          '${competition.title} yarışmasına katılmak için ${competition.poiCost ?? 100} POI bakiyenizden düşülecektir.',
+                                                          '${competition.title} yarışmasına katılmak için ${competition.poiCost} POI bakiyenizden düşülecektir.',
                                                           textAlign:
                                                               TextAlign.center,
                                                           style: TextStyle(
