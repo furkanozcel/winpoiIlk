@@ -195,8 +195,8 @@ class _LeadingBoardState extends State<LeadingBoard>
     final leaderboardProvider =
         Provider.of<LeaderboardProvider>(context, listen: false);
     final sortedUsers = List<Map<String, dynamic>>.from(users)
-      ..sort(
-          (a, b) => (b['poiBalance'] as num).compareTo(a['poiBalance'] as num));
+      ..sort((a, b) =>
+          (b['successPoints'] as num).compareTo(a['successPoints'] as num));
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
@@ -244,7 +244,8 @@ class _LeadingBoardState extends State<LeadingBoard>
                                 username:
                                     sortedUsers[1]['username']?.toString() ??
                                         '',
-                                point: sortedUsers[1]['poiBalance'].toString(),
+                                point:
+                                    sortedUsers[1]['successPoints'].toString(),
                                 isMain: false,
                                 isSecondOrThird: true,
                                 maxBoxWidth: 100,
@@ -257,7 +258,8 @@ class _LeadingBoardState extends State<LeadingBoard>
                                 username:
                                     sortedUsers[0]['username']?.toString() ??
                                         '',
-                                point: sortedUsers[0]['poiBalance'].toString(),
+                                point:
+                                    sortedUsers[0]['successPoints'].toString(),
                                 isMain: true,
                                 isSecondOrThird: false,
                                 maxBoxWidth: 100,
@@ -270,7 +272,8 @@ class _LeadingBoardState extends State<LeadingBoard>
                                 username:
                                     sortedUsers[2]['username']?.toString() ??
                                         '',
-                                point: sortedUsers[2]['poiBalance'].toString(),
+                                point:
+                                    sortedUsers[2]['successPoints'].toString(),
                                 isMain: false,
                                 isSecondOrThird: true,
                                 maxBoxWidth: 100,
@@ -345,17 +348,30 @@ class _LeadingBoardState extends State<LeadingBoard>
                               overflow: TextOverflow.ellipsis,
                               textAlign: TextAlign.center,
                             ),
-                            trailing: Text(
-                              user['poiBalance'].toString(),
-                              style: TextStyle(
-                                color: isCurrentUser
-                                    ? Colors.grey[900]
-                                    : Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                            trailing: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  Icons.workspace_premium,
+                                  color: isCurrentUser
+                                      ? Colors.grey[900]
+                                      : Colors.white,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  user['successPoints'].toString(),
+                                  style: TextStyle(
+                                    color: isCurrentUser
+                                        ? Colors.grey[900]
+                                        : Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ],
                             ),
                           ),
                         );
@@ -470,21 +486,32 @@ class _PodiumUserSimple extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 6),
-            Text(
-              point,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: isMain
-                    ? FontWeight.bold
-                    : isSecondOrThird
-                        ? FontWeight.w600
-                        : FontWeight.normal,
-                fontSize: pointFontSize,
-                letterSpacing: 0.2,
-              ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.workspace_premium,
+                  color: Colors.white,
+                  size: pointFontSize + 2,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  point,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: isMain
+                        ? FontWeight.bold
+                        : isSecondOrThird
+                            ? FontWeight.w600
+                            : FontWeight.normal,
+                    fontSize: pointFontSize,
+                    letterSpacing: 0.2,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

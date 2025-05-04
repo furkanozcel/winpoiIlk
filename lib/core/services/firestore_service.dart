@@ -59,7 +59,22 @@ class FirestoreService {
   // Tek bir yarışmayı sil
   Future<void> deleteCompetition(String competitionId) async {
     try {
+      // 1. Yarışmayı sil
       await _competitionsRef.doc(competitionId).delete();
+
+      // 2. Tüm kullanıcıların participations alt koleksiyonlarından bu yarışmaya ait katılımları sil
+      final usersSnapshot = await _firestore.collection('users').get();
+      final batch = _firestore.batch();
+      for (final userDoc in usersSnapshot.docs) {
+        final participationsQuery = await userDoc.reference
+            .collection('participations')
+            .where('competitionId', isEqualTo: competitionId)
+            .get();
+        for (final participationDoc in participationsQuery.docs) {
+          batch.delete(participationDoc.reference);
+        }
+      }
+      await batch.commit();
     } catch (e) {
       throw Exception('Yarışma silinirken hata oluştu: $e');
     }

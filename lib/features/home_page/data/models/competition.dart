@@ -8,6 +8,7 @@ class Competition {
   final DateTime endTime;
   final String image;
   final int participantCount;
+  final int poiCost;
 
   Competition({
     required this.id,
@@ -17,6 +18,7 @@ class Competition {
     required this.endTime,
     required this.image,
     this.participantCount = 0,
+    this.poiCost = 100,
   });
 
   factory Competition.fromFirestore(DocumentSnapshot doc) {
@@ -29,6 +31,7 @@ class Competition {
       endTime: (data['endTime'] as Timestamp).toDate(),
       image: data['image'] ?? '',
       participantCount: data['participantCount'] ?? 0,
+      poiCost: data['poiCost'] ?? 100,
     );
   }
 
@@ -40,6 +43,7 @@ class Competition {
       'endTime': Timestamp.fromDate(endTime),
       'image': image,
       'participantCount': participantCount,
+      'poiCost': poiCost,
       'createdAt': FieldValue.serverTimestamp(),
     };
   }

@@ -51,53 +51,47 @@ class FirestoreProvider extends ChangeNotifier {
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
-      // Kullanıcının bu yarışmaya daha önce katılıp katılmadığını kontrol et
-      final participationDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('participations')
-          .doc(competition.id)
-          .get();
-
-      if (participationDoc.exists) {
-        throw Exception('Bu yarışmaya zaten katıldınız');
-      }
-
-      // Yarışmaya katılımı kaydet - ilk hak kullanılmış olarak başlat
-      await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .collection('participations')
-          .doc(competition.id)
-          .set({
-        'competitionId': competition.id,
-        'competitionTitle': competition.title,
-        'prizeImage': competition.image,
-        'endTime': competition.endTime,
-        'remainingAttempts':
-            2, // Toplam 3 haktan 1'i kullanılmış olarak başlıyor
-        'lastPlayedAt':
-            FieldValue.serverTimestamp(), // İlk oyun zamanını kaydet
-        'bestTime': null,
-      });
-
-      // Toplam oyun sayısını 1 artır
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      if (userDoc.exists) {
+      await FirebaseFirestore.instance.runTransaction((transaction) async {
+        final userRef =
+            FirebaseFirestore.instance.collection('users').doc(user.uid);
+        final userDoc = await transaction.get(userRef);
+        if (!userDoc.exists) {
+          throw Exception('Kullanıcı bulunamadı');
+        }
         final userData = userDoc.data() as Map<String, dynamic>;
-        final int totalGames = (userData['totalGames'] ?? 0) + 1;
+        final int currentPoi = userData['poiBalance'] ?? 0;
+        final int poiCost = competition.poiCost ?? 100;
+        if (currentPoi < poiCost) {
+          throw Exception('Yetersiz POI bakiyesi');
+        }
 
-        await FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .update({
-          'totalGames': totalGames,
+        // Katılım kontrolü
+        final participationRef =
+            userRef.collection('participations').doc(competition.id);
+        final participationDoc = await transaction.get(participationRef);
+        if (participationDoc.exists) {
+          throw Exception('Bu yarışmaya zaten katıldınız');
+        }
+
+        // POI düşümü
+        transaction.update(userRef, {'poiBalance': currentPoi - poiCost});
+
+        // Katılım kaydı
+        transaction.set(participationRef, {
+          'competitionId': competition.id,
+          'competitionTitle': competition.title,
+          'prizeImage': competition.image,
+          'endTime': competition.endTime,
+          'remainingAttempts': 2,
+          'lastPlayedAt': FieldValue.serverTimestamp(),
+          'bestTime': null,
+          'poiCost': poiCost,
         });
-      }
+
+        // Toplam oyun sayısını artır
+        final int totalGames = (userData['totalGames'] ?? 0) + 1;
+        transaction.update(userRef, {'totalGames': totalGames});
+      });
     } catch (e) {
       throw Exception(e.toString());
     } finally {

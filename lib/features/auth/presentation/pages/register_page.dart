@@ -60,6 +60,7 @@ class _RegisterPageState extends State<RegisterPage> {
             'poiBalance': 0,
             'totalPrizeCount': 0,
             'totalGames': 0,
+            'successPoints': 0,
             'createdAt': FieldValue.serverTimestamp(),
             'role': 'user', // Varsayılan kullanıcı rolü
           },
