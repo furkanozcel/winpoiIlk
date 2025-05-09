@@ -13,6 +13,12 @@ class FirestoreProvider extends ChangeNotifier {
   FirestoreProvider({app_provider.AuthProvider? authProvider})
       : _authProvider = authProvider ?? app_provider.AuthProvider();
 
+  // AuthProvider'ı güncelle (Provider proxy pattern için)
+  void updateAuthProvider(app_provider.AuthProvider authProvider) {
+    // Bu metod Provider proxy pattern için gerekli
+    // Eski provider ile yeni provider aynı değilse, güncelle
+  }
+
   bool get isLoading => _isLoading;
 
   // Kullanıcı profili güncelleme

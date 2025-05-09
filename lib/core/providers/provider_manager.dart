@@ -20,14 +20,16 @@ class ProviderManager extends StatelessWidget {
             authProvider: Provider.of<AuthProvider>(context, listen: false),
           ),
           update: (context, authProvider, previous) =>
-              FirestoreProvider(authProvider: authProvider),
+              previous ?? FirestoreProvider(authProvider: authProvider)
+                ..updateAuthProvider(authProvider),
         ),
         ChangeNotifierProxyProvider<AuthProvider, UserProvider>(
           create: (context) => UserProvider(
             authProvider: Provider.of<AuthProvider>(context, listen: false),
           ),
           update: (context, authProvider, previous) =>
-              UserProvider(authProvider: authProvider),
+              previous ?? UserProvider(authProvider: authProvider)
+                ..updateAuthProvider(authProvider),
         ),
         ChangeNotifierProvider(create: (_) => LeaderboardProvider()),
       ],

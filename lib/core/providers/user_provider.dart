@@ -170,4 +170,21 @@ class UserProvider extends ChangeNotifier {
     _isLoading = value;
     notifyListeners();
   }
+
+  // AuthProvider'ı güncelle (Provider proxy pattern için)
+  void updateAuthProvider(app_provider.AuthProvider authProvider) {
+    // Eğer aynı instance değilse güncelle
+    if (authProvider != _authProvider) {
+      // Eski listener'ı kaldır
+      // Yeni authProvider'ı kullan
+      _authProvider.authStateChanges.listen((user) {
+        if (user != null) {
+          loadUserData();
+        } else {
+          _userData = null;
+          notifyListeners();
+        }
+      });
+    }
+  }
 }

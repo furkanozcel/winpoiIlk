@@ -29,9 +29,11 @@ void main() async {
   final showOnboarding = !hasRegistered;
   final isLoggedIn = FirebaseAuth.instance.currentUser != null;
 
-  runApp(MyApp(
-    showOnboarding: showOnboarding,
-    isLoggedIn: isLoggedIn,
+  runApp(ProviderManager(
+    child: MyApp(
+      showOnboarding: showOnboarding,
+      isLoggedIn: isLoggedIn,
+    ),
   ));
 }
 
@@ -47,23 +49,21 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ProviderManager(
-      child: MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Winpoi',
-        theme: AppTheme.theme,
-        routes: {
-          '/login': (context) => const LoginPage(),
-          '/register': (context) => const RegisterPage(),
-          '/home': (context) => const NavigatorPage(),
-          '/admin/competitions': (context) => const CompetitionManagementPage(),
-        },
-        home: showOnboarding
-            ? const OnboardingPage()
-            : isLoggedIn
-                ? const NavigatorPage()
-                : const LoginPage(),
-      ),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'Winpoi',
+      theme: AppTheme.theme,
+      routes: {
+        '/login': (context) => const LoginPage(),
+        '/register': (context) => const RegisterPage(),
+        '/home': (context) => const NavigatorPage(),
+        '/admin/competitions': (context) => const CompetitionManagementPage(),
+      },
+      home: showOnboarding
+          ? const OnboardingPage()
+          : isLoggedIn
+              ? const NavigatorPage()
+              : const LoginPage(),
     );
   }
 }

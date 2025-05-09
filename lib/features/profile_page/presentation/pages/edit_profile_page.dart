@@ -111,7 +111,7 @@ class _EditProfilePageState extends State<EditProfilePage>
                         color: primaryColor.withOpacity(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.lock_outline,
                         color: primaryColor,
                         size: 24,
@@ -260,6 +260,52 @@ class _EditProfilePageState extends State<EditProfilePage>
                     ),
                   ],
                 ),
+                const SizedBox(height: 12),
+                Align(
+                  alignment: Alignment.center,
+                  child: TextButton(
+                    onPressed: () async {
+                      final user = FirebaseAuth.instance.currentUser;
+                      if (user != null && user.email != null) {
+                        try {
+                          Navigator.pop(context, false);
+                          await _showForgotPasswordDialog(user.email!);
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Hata: ${e.toString()}'),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content:
+                                Text('Kullanıcı e-posta bilgisi bulunamadı'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
+                    },
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                    ),
+                    child: Text(
+                      'Şifremi unuttum',
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        color: secondaryColor,
+                        fontWeight: FontWeight.w500,
+                        fontSize: 14,
+                        decoration: TextDecoration.underline,
+                        decorationColor: secondaryColor.withOpacity(0.7),
+                      ),
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
@@ -272,6 +318,159 @@ class _EditProfilePageState extends State<EditProfilePage>
       _newPasswordController.clear();
       _confirmPasswordController.clear();
     }
+  }
+
+  // Şifremi unuttum dialog'u
+  Future<void> _showForgotPasswordDialog(String email) async {
+    await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+        ),
+        title: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: secondaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.mail_outline,
+                color: secondaryColor,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Text(
+              'Şifre Sıfırlama',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
+                color: textColor,
+              ),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Şifre sıfırlama bağlantısı aşağıdaki e-posta adresine gönderilecektir:',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                fontSize: 14,
+                color: Colors.grey[700],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.email, color: primaryColor),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      email,
+                      style: TextStyle(
+                        fontFamily: 'Poppins',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Colors.grey[800],
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'İptal',
+              style: TextStyle(
+                fontFamily: 'Poppins',
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [secondaryColor, secondaryColor.withOpacity(0.8)],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: secondaryColor.withOpacity(0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: ElevatedButton(
+              onPressed: () async {
+                try {
+                  await FirebaseAuth.instance
+                      .sendPasswordResetEmail(email: email);
+                  if (mounted) {
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                            'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi'),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Hata: ${e.toString()}'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Gönder',
+                style: TextStyle(
+                  fontFamily: 'Poppins',
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _updateProfile() async {
@@ -295,22 +494,30 @@ class _EditProfilePageState extends State<EditProfilePage>
         'updatedAt': FieldValue.serverTimestamp(),
       });
 
-      // UserProvider'ı güncelle
+      // Provider kullanımını kaldıralım ve doğrudan işlemi tamamlayalım
       if (mounted) {
-        await context.read<UserProvider>().loadUserData();
-
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Profil başarıyla güncellendi'),
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+
+        // Navigator.pop() yerine daha güvenli bir şekilde çıkış
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            Navigator.of(context).pop();
+          }
+        });
       }
     } catch (e) {
-      _showErrorMessage('Güncelleme sırasında hata oluştu: $e');
+      if (mounted) {
+        _showErrorMessage('Güncelleme sırasında hata oluştu: $e');
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -412,7 +619,7 @@ class _EditProfilePageState extends State<EditProfilePage>
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 0, vertical: 12),
                           ),
-                          child: Text(
+                          child: const Text(
                             'Şifre Değiştir',
                             style: TextStyle(
                               fontFamily: 'Poppins',
