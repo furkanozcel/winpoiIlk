@@ -60,190 +60,192 @@ class _NotificationsPageState extends State<NotificationsPage> {
       ),
       body: userId == null
           ? const Center(child: Text('Lütfen giriş yapın'))
-          : StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance
-                  .collection('users')
-                  .doc(userId)
-                  .collection('notifications')
-                  .orderBy('timestamp', descending: true)
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return _buildErrorState();
-                }
+          : SafeArea(
+              child: StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('users')
+                    .doc(userId)
+                    .collection('notifications')
+                    .orderBy('timestamp', descending: true)
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return _buildErrorState();
+                  }
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return _buildLoadingState();
-                }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return _buildLoadingState();
+                  }
 
-                final notifications = snapshot.data?.docs ?? [];
+                  final notifications = snapshot.data?.docs ?? [];
 
-                if (notifications.isEmpty) {
-                  return _buildEmptyState();
-                }
+                  if (notifications.isEmpty) {
+                    return _buildEmptyState();
+                  }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: notifications.length,
-                  itemBuilder: (context, index) {
-                    final notification =
-                        notifications[index].data() as Map<String, dynamic>;
-                    final isRead = notification['isRead'] ?? false;
-                    final type = notification['type'] ?? '';
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: notifications.length,
+                    itemBuilder: (context, index) {
+                      final notification =
+                          notifications[index].data() as Map<String, dynamic>;
+                      final isRead = notification['isRead'] ?? false;
+                      final type = notification['type'] ?? '';
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: isRead
-                              ? [
-                                  Colors.white,
-                                  Colors.white,
-                                ]
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 12),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: isRead
+                                ? [
+                                    Colors.white,
+                                    Colors.white,
+                                  ]
+                                : [
+                                    const Color(0xFF5FC9BF).withOpacity(0.1),
+                                    const Color(0xFFE28B33).withOpacity(0.1),
+                                  ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isRead
+                                ? Colors.grey.withOpacity(0.2)
+                                : const Color(0xFF8156A0).withOpacity(0.3),
+                            width: 1,
+                          ),
+                          boxShadow: isRead
+                              ? []
                               : [
-                                  const Color(0xFF5FC9BF).withOpacity(0.1),
-                                  const Color(0xFFE28B33).withOpacity(0.1),
+                                  BoxShadow(
+                                    color: const Color(0xFF8156A0)
+                                        .withOpacity(0.1),
+                                    blurRadius: 8,
+                                    offset: const Offset(0, 4),
+                                  ),
                                 ],
                         ),
-                        borderRadius: BorderRadius.circular(16),
-                        border: Border.all(
-                          color: isRead
-                              ? Colors.grey.withOpacity(0.2)
-                              : const Color(0xFF8156A0).withOpacity(0.3),
-                          width: 1,
-                        ),
-                        boxShadow: isRead
-                            ? []
-                            : [
-                                BoxShadow(
-                                  color:
-                                      const Color(0xFF8156A0).withOpacity(0.1),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
-                      ),
-                      child: Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () async {
-                            await notifications[index].reference.update({
-                              'isRead': true,
-                            });
-                          },
-                          borderRadius: BorderRadius.circular(16),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        const Color(0xFF5FC9BF),
-                                        const Color(0xFFE28B33),
-                                      ],
-                                    ),
-                                    borderRadius: BorderRadius.circular(12),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: const Color(0xFFE28B33)
-                                            .withOpacity(0.2),
-                                        blurRadius: 8,
-                                        offset: const Offset(0, 4),
-                                      ),
-                                    ],
-                                  ),
-                                  child: Icon(
-                                    _getNotificationIcon(type),
-                                    color: Colors.white,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        notification['title'] ?? '',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: isRead
-                                              ? FontWeight.w500
-                                              : FontWeight.bold,
-                                          color: isRead
-                                              ? Colors.grey.shade700
-                                              : const Color(0xFF8156A0),
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        notification['message'] ?? '',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade600,
-                                          height: 1.4,
-                                        ),
-                                        maxLines: 2,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.access_time_rounded,
-                                            size: 14,
-                                            color: Colors.grey.shade500,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text(
-                                            DateFormat('dd MMM yyyy - HH:mm')
-                                                .format(
-                                              (notification['timestamp']
-                                                      as Timestamp)
-                                                  .toDate(),
-                                            ),
-                                            style: TextStyle(
-                                              color: Colors.grey.shade500,
-                                              fontSize: 12,
-                                            ),
-                                          ),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () async {
+                              await notifications[index].reference.update({
+                                'isRead': true,
+                              });
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Color(0xFF5FC9BF),
+                                          Color(0xFFE28B33),
                                         ],
                                       ),
-                                    ],
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFFE28B33)
+                                              .withOpacity(0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: Icon(
+                                      _getNotificationIcon(type),
+                                      color: Colors.white,
+                                      size: 20,
+                                    ),
                                   ),
-                                ),
-                                IconButton(
-                                  icon: Icon(
-                                    Icons.delete_outline_rounded,
-                                    color: Colors.grey.shade400,
-                                    size: 20,
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          notification['title'] ?? '',
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: isRead
+                                                ? FontWeight.w500
+                                                : FontWeight.bold,
+                                            color: isRead
+                                                ? Colors.grey.shade700
+                                                : const Color(0xFF8156A0),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Text(
+                                          notification['message'] ?? '',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey.shade600,
+                                            height: 1.4,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 8),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.access_time_rounded,
+                                              size: 14,
+                                              color: Colors.grey.shade500,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              DateFormat('dd MMM yyyy - HH:mm')
+                                                  .format(
+                                                (notification['timestamp']
+                                                        as Timestamp)
+                                                    .toDate(),
+                                              ),
+                                              style: TextStyle(
+                                                color: Colors.grey.shade500,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  onPressed: () async {
-                                    await notifications[index]
-                                        .reference
-                                        .delete();
-                                  },
-                                ),
-                              ],
+                                  IconButton(
+                                    icon: Icon(
+                                      Icons.delete_outline_rounded,
+                                      color: Colors.grey.shade400,
+                                      size: 20,
+                                    ),
+                                    onPressed: () async {
+                                      await notifications[index]
+                                          .reference
+                                          .delete();
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                    );
-                  },
-                );
-              },
+                      );
+                    },
+                  );
+                },
+              ),
             ),
     );
   }
@@ -307,8 +309,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
         children: [
           Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [

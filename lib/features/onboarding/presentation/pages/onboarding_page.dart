@@ -21,36 +21,44 @@ class _OnboardingPageState extends State<OnboardingPage>
 
   final List<OnboardingItem> _pages = [
     OnboardingItem(
-      title: "WinPoi Evreni 🎉",
+      title: "WinPoi'ye Hoş Geldin! 🎯",
       description:
-          "Yarışma dünyasına adım atmaya hazır mısın? Yeteneklerini konuştur ve harika ödüllerin sahibi ol!",
-      icon: Icons.celebration,
-      color: Color(0xFFFF6B6B),
-      secondaryColor: Color(0xFFFF8E8E),
+          "Gerçek dünya haritasında sanal ödülleri bulmanın heyecanına hazır ol! Bulmacanın ipuçlarını çöz, haritada gizli nesneleri bul ve labirentte ilerleyerek en iyi süreye ulaş.",
+      icon: Icons.location_on,
+      color: const Color(0xFFFF6B6B),
+      secondaryColor: const Color(0xFFFF8E8E),
     ),
     OnboardingItem(
-      title: "Ödüller Kazan 🏆",
+      title: "Herkes İçin Adil Yarış 🤝",
       description:
-          "İstediğin ödülü kazanmak için oyunlara katıl ve yeteneklerini göster. Sanal bir hazine avcısı olmaya hazır mısın?",
-      icon: Icons.emoji_events,
-      color: Color(0xFF4ECDC4),
-      secondaryColor: Color(0xFF7EDFD9),
+          "WinPoi'de ekstra ödeme yapanlar değil, gerçekten yetenekli olanlar kazanır! Burada yetenek ve strateji ön planda - cüzdan değil. Herkes için eşit, adil ve keyifli bir oyun deneyimi.",
+      icon: Icons.balance,
+      color: const Color(0xFF4ECDC4),
+      secondaryColor: const Color(0xFF7EDFD9),
     ),
     OnboardingItem(
-      title: "Arkadaşlarınla Yarış 🤝",
+      title: "Gerçek Ödülleri Keşfet 🎁",
       description:
-          "Arkadaşlarınla birlikte yarışmalara katıl, rekabet et ve eğlenceli vakit geçir. Başarılarını paylaş ve ilham ver!",
-      icon: Icons.groups,
-      color: Color(0xFFFFBE0B),
-      secondaryColor: Color(0xFFFFD44C),
+          "Elektronik cihazlardan konsol oyunlarına, ev aksesuarlarından hediye çeklerine kadar çeşitli gerçek ödülleri kazanma şansın var! Her yarışmanın birincisi, o yarışmaya özel ödülün sahibi oluyor.",
+      icon: Icons.card_giftcard,
+      color: const Color(0xFFFFBE0B),
+      secondaryColor: const Color(0xFFFFD44C),
     ),
     OnboardingItem(
-      title: "Hazır mısın? 🎮",
+      title: "Nas​ıl Oynanır? 🎮",
       description:
-          "Büyüleyici WinPoi evrenine adım at. Yeteneklerini keşfet ve ödülleri topla!",
+          "1) Yarışma seç ve katıl 2) Haritada nesneleri bulmak için ipuçlarını takip et 3) Labirentte ilerleyerek nesneleri topla 4) Süren kaydedilir, en hızlı olan kazanır! 3 deneme hakkını akıllıca kullan.",
+      icon: Icons.lightbulb_outline,
+      color: const Color(0xFF845EC2),
+      secondaryColor: const Color(0xFFB39CD0),
+    ),
+    OnboardingItem(
+      title: "Kazanmak Senin Elinde! 🚀",
+      description:
+          "Ekstra ödemeler olmadan, sadece yeteneğinle üst sıralara tırman. WinPoi'de rekabet adil, fırsat eşit, ödüller gerçek. Haydi, bu eşitlikçi macerada yerini al!",
       icon: Icons.play_circle_filled,
-      color: Color(0xFF845EC2),
-      secondaryColor: Color(0xFFB39CD0),
+      color: const Color(0xFF845EC2),
+      secondaryColor: const Color(0xFFB39CD0),
     ),
   ];
 
@@ -197,7 +205,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
+                    color: const Color(0xFF2C3E50),
                     letterSpacing: 0.5,
                     shadows: [
                       Shadow(

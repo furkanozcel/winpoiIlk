@@ -9,6 +9,7 @@ import 'package:winpoi/features/auth/presentation/pages/register_page.dart';
 import 'package:winpoi/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:async';
 import 'firebase_options.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -59,11 +60,77 @@ class MyApp extends StatelessWidget {
         '/home': (context) => const NavigatorPage(),
         '/admin/competitions': (context) => const CompetitionManagementPage(),
       },
-      home: showOnboarding
-          ? const OnboardingPage()
-          : isLoggedIn
-              ? const NavigatorPage()
-              : const LoginPage(),
+      home: SplashScreen(
+        showOnboarding: showOnboarding,
+        isLoggedIn: isLoggedIn,
+      ),
+    );
+  }
+}
+
+class SplashScreen extends StatefulWidget {
+  final bool showOnboarding;
+  final bool isLoggedIn;
+
+  const SplashScreen({
+    super.key,
+    required this.showOnboarding,
+    required this.isLoggedIn,
+  });
+
+  @override
+  State<SplashScreen> createState() => _SplashScreenState();
+}
+
+class _SplashScreenState extends State<SplashScreen> {
+  @override
+  void initState() {
+    super.initState();
+    Timer(const Duration(seconds: 2), () {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => widget.showOnboarding
+              ? const OnboardingPage()
+              : widget.isLoggedIn
+                  ? const NavigatorPage()
+                  : const LoginPage(),
+        ),
+      );
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Logo
+            Image.asset(
+              'lib/assets/images/app_icon.png',
+              width: 200,
+              height: 200,
+            ),
+            const SizedBox(height: 20),
+            // Uygulama adı
+            const Text(
+              'WinPoi',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.orange,
+              ),
+            ),
+            const SizedBox(height: 20),
+            // Yükleniyor göstergesi
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

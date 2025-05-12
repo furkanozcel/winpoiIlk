@@ -115,10 +115,10 @@ class _LoginPageState extends State<LoginPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(14),
                           borderSide:
-                              BorderSide(color: primaryColor, width: 1.2),
+                              const BorderSide(color: primaryColor, width: 1.2),
                         ),
-                        prefixIcon:
-                            Icon(Icons.email_outlined, color: primaryColor),
+                        prefixIcon: const Icon(Icons.email_outlined,
+                            color: primaryColor),
                         filled: true,
                         fillColor: Colors.grey[50],
                         contentPadding: const EdgeInsets.symmetric(
@@ -236,7 +236,7 @@ class _LoginPageState extends State<LoginPage> {
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
+          shaderCallback: (bounds) => const LinearGradient(
             colors: [
               primaryColor,
               secondaryColor,
@@ -270,26 +270,11 @@ class _LoginPageState extends State<LoginPage> {
                   // Logo
                   Align(
                     alignment: Alignment.topCenter,
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: primaryColor.withOpacity(0.15),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'lib/features/auth/assets/images/logo2.jpg',
-                        fit: BoxFit.contain,
-                      ),
+                    child: Image.asset(
+                      'lib/assets/images/app_icon.png',
+                      width: 160,
+                      height: 160,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -332,8 +317,8 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon:
-                            Icon(Icons.email_outlined, color: primaryColor),
+                        prefixIcon: const Icon(Icons.email_outlined,
+                            color: primaryColor),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 16),
                       ),
@@ -391,7 +376,7 @@ class _LoginPageState extends State<LoginPage> {
                           borderSide: BorderSide.none,
                         ),
                         prefixIcon:
-                            Icon(Icons.lock_outline, color: primaryColor),
+                            const Icon(Icons.lock_outline, color: primaryColor),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword

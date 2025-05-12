@@ -77,7 +77,7 @@ class _ProfilePageState extends State<ProfilePage>
       appBar: AppBar(
         elevation: 0,
         backgroundColor: primaryColor,
-        title: Row(
+        title: const Row(
           children: [
             Text(
               'Win',
@@ -100,65 +100,68 @@ class _ProfilePageState extends State<ProfilePage>
           ],
         ),
       ),
-      body: userProvider.isLoading
-          ? const Center(child: CircularProgressIndicator(color: primaryColor))
-          : userProvider.error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.error_outline_rounded,
-                        size: 48,
-                        color: Colors.red.shade300,
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'Veri yüklenirken hata oluştu',
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: textColor,
+      body: SafeArea(
+        child: userProvider.isLoading
+            ? const Center(
+                child: CircularProgressIndicator(color: primaryColor))
+            : userProvider.error != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 48,
+                          color: Colors.red.shade300,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      ElevatedButton(
-                        onPressed: () => userProvider.loadUserData(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: const Text('Tekrar Dene'),
-                      ),
-                    ],
-                  ),
-                )
-              : SingleChildScrollView(
-                  physics: const BouncingScrollPhysics(),
-                  child: Column(
-                    children: [
-                      FadeTransition(
-                        opacity: _headerFade,
-                        child: ScaleTransition(
-                          scale: _headerScale,
-                          child: _buildProfileHeaderWithStats(
-                              userProvider.userData),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      FadeTransition(
-                        opacity: _menuFade,
-                        child: ScaleTransition(
-                          scale: _menuScale,
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: _buildMenuItems(
-                                context, userProvider, authProvider),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Veri yüklenirken hata oluştu',
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: textColor,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: () => userProvider.loadUserData(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Tekrar Dene'),
+                        ),
+                      ],
+                    ),
+                  )
+                : SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    child: Column(
+                      children: [
+                        FadeTransition(
+                          opacity: _headerFade,
+                          child: ScaleTransition(
+                            scale: _headerScale,
+                            child: _buildProfileHeaderWithStats(
+                                userProvider.userData),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        FadeTransition(
+                          opacity: _menuFade,
+                          child: ScaleTransition(
+                            scale: _menuScale,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: _buildMenuItems(
+                                  context, userProvider, authProvider),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+      ),
     );
   }
 
@@ -208,11 +211,11 @@ class _ProfilePageState extends State<ProfilePage>
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    gradient: LinearGradient(
+                    gradient: const LinearGradient(
                       colors: [
-                        const Color(0xFF8156A0),
-                        const Color(0xFF9B6BB7),
-                        const Color(0xFF8156A0),
+                        Color(0xFF8156A0),
+                        Color(0xFF9B6BB7),
+                        Color(0xFF8156A0),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -380,7 +383,7 @@ class _ProfilePageState extends State<ProfilePage>
           ),
           title: Text(
             item['title'] as String,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: textColor,

@@ -167,7 +167,7 @@ class _RegisterPageState extends State<RegisterPage> {
         automaticallyImplyLeading: false,
         centerTitle: true,
         title: ShaderMask(
-          shaderCallback: (bounds) => LinearGradient(
+          shaderCallback: (bounds) => const LinearGradient(
             colors: [
               primaryColor,
               secondaryColor,
@@ -200,26 +200,11 @@ class _RegisterPageState extends State<RegisterPage> {
                   const SizedBox(height: 4),
                   // Logo
                   Center(
-                    child: Container(
-                      width: 140,
-                      height: 140,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(30),
-                        boxShadow: [
-                          BoxShadow(
-                            color: primaryColor.withOpacity(0.15),
-                            blurRadius: 20,
-                            spreadRadius: 5,
-                            offset: const Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Image.asset(
-                        'lib/features/auth/assets/images/logo2.jpg',
-                        fit: BoxFit.contain,
-                      ),
+                    child: Image.asset(
+                      'lib/assets/images/app_icon.png',
+                      width: 160,
+                      height: 160,
+                      fit: BoxFit.contain,
                     ),
                   ),
                   const SizedBox(height: 32),
@@ -262,8 +247,8 @@ class _RegisterPageState extends State<RegisterPage> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon:
-                            Icon(Icons.email_outlined, color: primaryColor),
+                        prefixIcon: const Icon(Icons.email_outlined,
+                            color: primaryColor),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 16),
                       ),
@@ -321,7 +306,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           borderSide: BorderSide.none,
                         ),
                         prefixIcon:
-                            Icon(Icons.lock_outline, color: primaryColor),
+                            const Icon(Icons.lock_outline, color: primaryColor),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -391,7 +376,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           borderSide: BorderSide.none,
                         ),
                         prefixIcon:
-                            Icon(Icons.lock_outline, color: primaryColor),
+                            const Icon(Icons.lock_outline, color: primaryColor),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureConfirmPassword
@@ -438,7 +423,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         child: RichText(
                           text: TextSpan(
                             text: 'Kullanım Koşulları',
-                            style: TextStyle(
+                            style: const TextStyle(
                               color: secondaryColor,
                               fontWeight: FontWeight.bold,
                             ),
@@ -456,7 +441,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               ),
                               TextSpan(
                                 text: 'Gizlilik Politikası',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: secondaryColor,
                                   fontWeight: FontWeight.bold,
                                 ),

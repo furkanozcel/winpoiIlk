@@ -57,6 +57,8 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^4.0.0
+  flutter_native_splash: ^2.3.10
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -75,8 +77,8 @@ flutter:
     - lib/features/auth/assets/images/
     - lib/features/auth/assets/images/google_logo.png
     - lib/features/auth/assets/images/logo2.jpg
-    - assets/animations/
-    - assets/images/
+    - lib/assets/animations/
+    - lib/assets/images/app_icon.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -104,3 +106,40 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+# Flutter Launcher Icons configuration
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "lib/assets/images/app_icon.png"
+  adaptive_icon_background: "#F5F5F5" # Açık gri arka plan
+  adaptive_icon_foreground: "lib/assets/images/app_icon.png"
+  min_sdk_android: 21
+  remove_alpha_ios: true
+  # İkon boyutu ayarları
+  android_adaptive_icon_padding: false # Otomatik padding'i kapatıyoruz
+  adaptive_icon_foreground_scale_factor: 0.75 # İkon boyutunu %75 oranına düşürüyoruz (0.85'ten)
+  image_path_android: "lib/assets/images/app_icon.png"
+  image_path_ios: "lib/assets/images/app_icon.png"
+  ios_content_mode: center # iOS'ta içeriği merkezde gösteriyoruz
+  web:
+    generate: true
+    image_path: "lib/assets/images/app_icon.png"
+    background_color: "#F5F5F5"
+    theme_color: "#F5F5F5"
+    icon_size: 192
+  windows:
+    generate: true
+    image_path: "lib/assets/images/app_icon.png"
+    icon_size: 48
+
+# Flutter Native Splash configuration
+flutter_native_splash:
+  color: "#FFFFFF"
+  image: lib/assets/images/app_icon.png
+  android: true
+  ios: true
+  web: true
+  android_12:
+    image: lib/assets/images/app_icon.png
+    icon_background_color: "#FFFFFF"
