@@ -110,23 +110,44 @@ class _SplashScreenState extends State<SplashScreen> {
             // Logo
             Image.asset(
               'lib/assets/images/app_icon.png',
-              width: 200,
-              height: 200,
+              width: 250,
+              height: 250,
             ),
             const SizedBox(height: 20),
             // Uygulama adı
-            const Text(
-              'WinPoi',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.orange,
+            ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0xFF4ECDC4), // Turkuaz
+                  Color(0xFFFF6B6B), // Turuncu
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ).createShader(bounds),
+              child: const Text(
+                'WinPoi',
+                style: TextStyle(
+                  fontSize: 32,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
               ),
             ),
             const SizedBox(height: 20),
             // Yükleniyor göstergesi
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange),
+            SizedBox(
+              width: 40,
+              height: 40,
+              child: CircularProgressIndicator(
+                strokeWidth: 3,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Color.lerp(
+                    const Color(0xFF4ECDC4),
+                    const Color(0xFFFF6B6B),
+                    0.5,
+                  )!,
+                ),
+              ),
             ),
           ],
         ),
