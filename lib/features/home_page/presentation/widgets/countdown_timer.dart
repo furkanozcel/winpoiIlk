@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 
-class CountdownTimer extends StatelessWidget {
+class CountdownTimer extends StatefulWidget {
   final DateTime endTime;
   final bool isCompetitionEnded;
   final Color? color;
@@ -14,23 +14,57 @@ class CountdownTimer extends StatelessWidget {
   });
 
   @override
+  State<CountdownTimer> createState() => _CountdownTimerState();
+}
+
+class _CountdownTimerState extends State<CountdownTimer> {
+  late Timer _timer;
+  late Duration _remainingTime;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTime();
+    _startTimer();
+  }
+
+  void _startTimer() {
+    final now = DateTime.now();
+    final secondsToNextMinute = 60 - now.second;
+    // İlk tick: bir sonraki dakika başında
+    _timer = Timer(Duration(seconds: secondsToNextMinute), () {
+      _updateTime();
+      // Sonraki tickler: her dakika başında
+      _timer = Timer.periodic(const Duration(minutes: 1), (timer) {
+        _updateTime();
+      });
+    });
+  }
+
+  void _updateTime() {
+    setState(() {
+      _remainingTime = widget.endTime.difference(DateTime.now());
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return StreamBuilder(
-      stream: Stream.periodic(const Duration(seconds: 1)),
-      builder: (context, snapshot) {
-        final remainingTime = endTime.difference(DateTime.now());
-        return Text(
-          isCompetitionEnded
-              ? 'Oyun Sona Erdi'
-              : _formatDuration(remainingTime),
-          style: TextStyle(
-            color: isCompetitionEnded
-                ? Colors.grey
-                : (color ?? const Color(0xFF5FC9BF)),
-            fontWeight: FontWeight.bold,
-          ),
-        );
-      },
+    return Text(
+      widget.isCompetitionEnded
+          ? 'Oyun Sona Erdi'
+          : _formatDuration(_remainingTime),
+      style: TextStyle(
+        color: widget.isCompetitionEnded
+            ? Colors.grey
+            : (widget.color ?? const Color(0xFF5FC9BF)),
+        fontWeight: FontWeight.bold,
+      ),
     );
   }
 
@@ -38,7 +72,6 @@ class CountdownTimer extends StatelessWidget {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     final hours = twoDigits(duration.inHours.abs());
     final minutes = twoDigits(duration.inMinutes.remainder(60).abs());
-    final seconds = twoDigits(duration.inSeconds.remainder(60).abs());
-    return '$hours:$minutes:$seconds';
+    return '$hours:$minutes';
   }
 }

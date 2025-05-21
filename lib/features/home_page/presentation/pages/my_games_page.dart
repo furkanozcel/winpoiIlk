@@ -242,47 +242,119 @@ class _MyGamesPageState extends State<MyGamesPage> {
                           ),
                           const SizedBox(height: 20),
                           if (isCompetitionEnded)
-                            Container(
-                              width: double.infinity,
-                              decoration: BoxDecoration(
-                                gradient: const LinearGradient(
-                                  begin: Alignment.centerLeft,
-                                  end: Alignment.centerRight,
-                                  colors: [
-                                    Color(0xFF8156A0),
-                                    Color(0xFF8156A0),
-                                  ],
-                                ),
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: const Color(0xFF8156A0)
-                                        .withOpacity(0.2),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                        colors: [
+                                          Color(0xFF8156A0),
+                                          Color(0xFF8156A0),
+                                        ],
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF8156A0)
+                                              .withOpacity(0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
+                                    ),
+                                    child: ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 14),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                      ),
+                                      child: const Text(
+                                        'Sonucu Göster',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                ],
-                              ),
-                              child: ElevatedButton(
-                                onPressed: () {},
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.transparent,
-                                  shadowColor: Colors.transparent,
-                                  padding:
-                                      const EdgeInsets.symmetric(vertical: 14),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20),
+                                          ),
+                                          title: Row(
+                                            children: [
+                                              Icon(Icons.map_rounded,
+                                                  color: Color(0xFF5FC9BF),
+                                                  size: 28),
+                                              const SizedBox(width: 8),
+                                              const Text('Haritayı Gör'),
+                                            ],
+                                          ),
+                                          content: Column(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.map_rounded,
+                                                  size: 80,
+                                                  color: Color(0xFF5FC9BF)),
+                                              const SizedBox(height: 16),
+                                              const Text(
+                                                'Bu yarışmanın oynandığı harita burada gösterilecek. (Şu an temsili harita)',
+                                                textAlign: TextAlign.center,
+                                                style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Colors.black87),
+                                              ),
+                                            ],
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: const Text('Kapat'),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                    icon: const Icon(Icons.map_rounded,
+                                        color: Color(0xFF5FC9BF)),
+                                    label: const Text(
+                                      'Haritayı Gör',
+                                      style: TextStyle(
+                                        color: Color(0xFF5FC9BF),
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(
+                                          color: Color(0xFF5FC9BF), width: 1.5),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                    ),
                                   ),
                                 ),
-                                child: const Text(
-                                  'Sonucu Göster',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ),
+                              ],
                             )
                           else
                             Row(
