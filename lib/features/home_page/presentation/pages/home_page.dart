@@ -570,12 +570,201 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(24),
                               ),
-                              child: const Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  // Competition image, timer, etc.
-                                  // ... The rest of the competition card UI ...
-                                ],
+                              child: Padding(
+                                padding: const EdgeInsets.all(0),
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
+                                  children: [
+                                    // Ödül resmi
+                                    ClipRRect(
+                                      borderRadius: const BorderRadius.only(
+                                        topLeft: Radius.circular(24),
+                                        topRight: Radius.circular(24),
+                                      ),
+                                      child: Container(
+                                        height: 170,
+                                        width: double.infinity,
+                                        decoration: const BoxDecoration(
+                                          gradient: LinearGradient(
+                                            begin: Alignment.topCenter,
+                                            end: Alignment.bottomCenter,
+                                            colors: [
+                                              Color(0xFFF7F7F7),
+                                              Color(0xFFEDEDED),
+                                            ],
+                                          ),
+                                        ),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12, vertical: 8),
+                                          child: ColorFiltered(
+                                            colorFilter: ColorFilter.mode(
+                                              Colors.white.withOpacity(0.25),
+                                              BlendMode.lighten,
+                                            ),
+                                            child: Image.network(
+                                              competition.image,
+                                              fit: BoxFit.contain,
+                                              height: 150,
+                                              width: double.infinity,
+                                              alignment: Alignment.center,
+                                              errorBuilder: (context, error,
+                                                      stackTrace) =>
+                                                  Container(
+                                                color: Colors.grey.shade200,
+                                                child: const Icon(
+                                                    Icons.broken_image,
+                                                    size: 60,
+                                                    color: Colors.grey),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 12),
+                                      child: Row(
+                                        children: [
+                                          // Süre
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFE6F7F6),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.timer,
+                                                    size: 18,
+                                                    color: Color(0xFF5FC9BF)),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  _getCountdownText(
+                                                      competition.endTime),
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    color: Color(0xFF5FC9BF),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          // Ödül adı
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 10, vertical: 6),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFFFF3E6),
+                                              borderRadius:
+                                                  BorderRadius.circular(16),
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                const Icon(Icons.card_giftcard,
+                                                    size: 18,
+                                                    color: Color(0xFFE28B33)),
+                                                const SizedBox(width: 4),
+                                                Text(
+                                                  competition.title,
+                                                  style: const TextStyle(
+                                                    fontSize: 14,
+                                                    color: Color(0xFFE28B33),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          const Spacer(),
+                                          // İncele butonu
+                                          TextButton(
+                                            onPressed: () {
+                                              Navigator.push(
+                                                context,
+                                                MaterialPageRoute(
+                                                  builder: (context) =>
+                                                      CompetitionDetailPage(
+                                                          competition:
+                                                              competition),
+                                                ),
+                                              );
+                                            },
+                                            style: TextButton.styleFrom(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 12,
+                                                      vertical: 0),
+                                              minimumSize: Size.zero,
+                                              tapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
+                                            ),
+                                            child: const Text(
+                                              'İncele',
+                                              style: TextStyle(
+                                                fontSize: 14,
+                                                color: Color(0xFF5FC9BF),
+                                                fontWeight: FontWeight.w600,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          16, 0, 16, 16),
+                                      child: SizedBox(
+                                        width: double.infinity,
+                                        height: 44,
+                                        child: DecoratedBox(
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(0xFF5FC9BF),
+                                                Color(0xFFE28B33)
+                                              ],
+                                              begin: Alignment.centerLeft,
+                                              end: Alignment.centerRight,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(16),
+                                          ),
+                                          child: ElevatedButton(
+                                            onPressed: () =>
+                                                _joinCompetition(competition),
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              shadowColor: Colors.transparent,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(16),
+                                              ),
+                                              padding: EdgeInsets.zero,
+                                              elevation: 0,
+                                            ),
+                                            child: const Text(
+                                              'Oyna',
+                                              style: TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );
