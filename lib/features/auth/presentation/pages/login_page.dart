@@ -16,9 +16,9 @@ class _LoginPageState extends State<LoginPage> {
   bool _obscurePassword = true;
 
   // Renk sabitleri
-  static const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
-  static const Color secondaryColor = Color(0xFFE28B33); // Turuncu
-  static const Color accentColor = Color(0xFF8156A0); // Mor
+  static const Color primaryColor = Color(0xFF4ECDC4); // Turkuaz
+  static const Color secondaryColor = Color(0xFF845EC2); // Mor
+  static const Color accentColor = Color(0xFF7EDFD9); // Açık turkuaz
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
@@ -117,8 +117,15 @@ class _LoginPageState extends State<LoginPage> {
                           borderSide:
                               const BorderSide(color: primaryColor, width: 1.2),
                         ),
-                        prefixIcon: const Icon(Icons.email_outlined,
-                            color: primaryColor),
+                        prefixIcon: ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [primaryColor, secondaryColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: const Icon(Icons.email_outlined,
+                              color: Colors.white),
+                        ),
                         filled: true,
                         fillColor: Colors.grey[50],
                         contentPadding: const EdgeInsets.symmetric(
@@ -129,78 +136,98 @@ class _LoginPageState extends State<LoginPage> {
                     const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () async {
-                                if (emailController.text.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                          'Lütfen e-posta adresinizi girin'),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                  return;
-                                }
-                                setState(() => isLoading = true);
-                                try {
-                                  await context
-                                      .read<app_provider.AuthProvider>()
-                                      .sendPasswordResetEmail(
-                                        email: emailController.text.trim(),
-                                      );
-                                  if (mounted) {
-                                    Navigator.pop(context);
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            colors: [
+                              primaryColor,
+                              secondaryColor,
+                            ],
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: primaryColor.withOpacity(0.3),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () async {
+                                  if (emailController.text.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
                                         content: Text(
-                                          'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
-                                        ),
-                                        backgroundColor: Colors.green,
-                                      ),
-                                    );
-                                  }
-                                } catch (e) {
-                                  if (mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text('Hata: $e'),
+                                            'Lütfen e-posta adresinizi girin'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
+                                    return;
                                   }
-                                } finally {
-                                  if (mounted) {
-                                    setState(() => isLoading = false);
+                                  setState(() => isLoading = true);
+                                  try {
+                                    await context
+                                        .read<app_provider.AuthProvider>()
+                                        .sendPasswordResetEmail(
+                                          email: emailController.text.trim(),
+                                        );
+                                    if (mounted) {
+                                      Navigator.pop(context);
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        const SnackBar(
+                                          content: Text(
+                                            'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
+                                          ),
+                                          backgroundColor: Colors.green,
+                                        ),
+                                      );
+                                    }
+                                  } catch (e) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
+                                        SnackBar(
+                                          content: Text('Hata: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => isLoading = false);
+                                    }
                                   }
-                                }
-                              },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                                },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: const EdgeInsets.symmetric(vertical: 14),
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          elevation: 0,
+                          child: isLoading
+                              ? const SizedBox(
+                                  height: 20,
+                                  width: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : const Text(
+                                  'Gönder',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: Colors.white,
+                                  ),
+                                ),
                         ),
-                        child: isLoading
-                            ? const SizedBox(
-                                height: 20,
-                                width: 20,
-                                child: CircularProgressIndicator(
-                                  strokeWidth: 2,
-                                  color: Colors.white,
-                                ),
-                              )
-                            : const Text(
-                                'Gönder',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 16,
-                                  color: Colors.white,
-                                ),
-                              ),
                       ),
                     ),
                   ],
@@ -317,8 +344,15 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon: const Icon(Icons.email_outlined,
-                            color: primaryColor),
+                        prefixIcon: ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [primaryColor, secondaryColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: const Icon(Icons.email_outlined,
+                              color: Colors.white),
+                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 16),
                       ),
@@ -375,8 +409,15 @@ class _LoginPageState extends State<LoginPage> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon:
-                            const Icon(Icons.lock_outline, color: primaryColor),
+                        prefixIcon: ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [primaryColor, secondaryColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: const Icon(Icons.lock_outline,
+                              color: Colors.white),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -423,6 +464,7 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: TextDecoration.underline,
                           decorationColor: Color(0xFFE28B33),
                           decorationThickness: 1.5,
+                          color: Color(0xFFE28B33),
                         ),
                       ),
                     ),
@@ -435,7 +477,7 @@ class _LoginPageState extends State<LoginPage> {
                       gradient: LinearGradient(
                         colors: [
                           primaryColor,
-                          primaryColor.withOpacity(0.8),
+                          secondaryColor,
                         ],
                       ),
                       boxShadow: [
@@ -582,6 +624,7 @@ class _LoginPageState extends State<LoginPage> {
                             decoration: TextDecoration.underline,
                             decorationColor: Color(0xFFE28B33),
                             decorationThickness: 1.5,
+                            color: Color(0xFFE28B33),
                           ),
                         ),
                       ),

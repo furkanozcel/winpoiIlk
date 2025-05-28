@@ -38,96 +38,75 @@ class LogoutDialog extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
       ),
       elevation: 0,
-      backgroundColor: Colors.transparent,
+      backgroundColor: Colors.white,
       child: Container(
         padding: const EdgeInsets.all(24),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFF4ECDC4),
-              Color(0xFFFF6B6B),
-            ],
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF4ECDC4).withOpacity(0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // İkon
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.red.withOpacity(0.1),
                 shape: BoxShape.circle,
               ),
               child: const Icon(
                 Icons.logout_rounded,
                 size: 32,
-                color: Colors.white,
+                color: Colors.red,
               ),
             ),
             const SizedBox(height: 20),
-            // Başlık
             const Text(
               'Çıkış Yapmak İstiyor musunuz?',
               style: TextStyle(
                 fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
+                fontFamily: 'Poppins',
               ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 12),
-            // Açıklama
-            const Text(
+            const SizedBox(height: 8),
+            Text(
               'Çıkış yaptıktan sonra tekrar giriş yapmanız gerekecektir.',
               style: TextStyle(
-                fontSize: 16,
-                color: Colors.white,
+                fontSize: 14,
+                color: Colors.grey[600],
+                fontFamily: 'Poppins',
               ),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            // Butonlar
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                // İptal Butonu
                 TextButton(
                   onPressed: () => Navigator.of(context).pop(),
                   style: TextButton.styleFrom(
-                    backgroundColor: Colors.white.withOpacity(0.2),
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 12,
                     ),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
+                      side: BorderSide(color: Colors.grey[300]!),
                     ),
                   ),
-                  child: const Text(
+                  child: Text(
                     'İptal',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: Colors.grey[700],
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
+                      fontFamily: 'Poppins',
                     ),
                   ),
                 ),
-                // Çıkış Yap Butonu
-                TextButton(
+                ElevatedButton(
                   onPressed: () => _handleLogout(context),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.white,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
                     padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 12,
@@ -135,13 +114,15 @@ class LogoutDialog extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
+                    elevation: 0,
                   ),
                   child: const Text(
                     'Çıkış Yap',
                     style: TextStyle(
-                      color: Color(0xFFFF6B6B),
+                      color: Colors.white,
                       fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w600,
+                      fontFamily: 'Poppins',
                     ),
                   ),
                 ),

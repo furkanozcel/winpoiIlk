@@ -13,204 +13,212 @@ class AboutAppPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final topPadding = MediaQuery.of(context).padding.top;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        title: TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 300),
-          tween: Tween(begin: 0, end: 1),
-          builder: (context, value, child) {
-            return Opacity(
-              opacity: value,
-              child: const Text(
-                'Uygulama Hakkında',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 22,
-                  fontFamily: 'Poppins',
-                  letterSpacing: 0.1,
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! > 0) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: primaryColor,
+          elevation: 0,
+          title: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 300),
+            tween: Tween(begin: 0, end: 1),
+            builder: (context, value, child) {
+              return Opacity(
+                opacity: value,
+                child: const Text(
+                  'Uygulama Hakkında',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 22,
+                    fontFamily: 'Poppins',
+                    letterSpacing: 0.1,
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
+          flexibleSpace: null,
         ),
-        flexibleSpace: null,
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Column(
-          children: [
-            // Üst Kısım
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.only(
-                top: 20,
-                bottom: 32,
-              ),
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    primaryColor,
-                    secondaryColor,
-                  ],
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Column(
+            children: [
+              // Üst Kısım
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(
+                  top: 20,
+                  bottom: 32,
                 ),
-              ),
-              child: Center(
-                child: TweenAnimationBuilder(
-                  duration: const Duration(milliseconds: 400),
-                  tween: Tween<double>(begin: 0, end: 1),
-                  builder: (context, double value, child) {
-                    return Transform.scale(
-                      scale: 0.8 + (0.2 * value),
-                      child: Opacity(
-                        opacity: value,
-                        child: Column(
-                          children: [
-                            RichText(
-                              text: const TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: 'Win',
-                                    style: TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                      fontFamily: 'Poppins',
-                                      letterSpacing: -0.5,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black26,
-                                          blurRadius: 8,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  TextSpan(
-                                    text: 'Poi',
-                                    style: TextStyle(
-                                      fontSize: 36,
-                                      fontWeight: FontWeight.w400,
-                                      color: Colors.white,
-                                      fontFamily: 'Poppins',
-                                      letterSpacing: -0.5,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black26,
-                                          blurRadius: 8,
-                                          offset: Offset(0, 2),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(height: 18),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 22,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.22),
-                                borderRadius: BorderRadius.circular(22),
-                                border: Border.all(
-                                  color: Colors.white.withOpacity(0.22),
-                                  width: 1,
-                                ),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.06),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: const Text(
-                                'Versiyon 1.0.0',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w500,
-                                  fontSize: 16,
-                                  fontFamily: 'Poppins',
-                                  letterSpacing: 0.1,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      primaryColor,
+                      secondaryColor,
+                    ],
+                  ),
                 ),
-              ),
-            ),
-
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                children: [
-                  TweenAnimationBuilder<double>(
-                    duration: const Duration(milliseconds: 800),
-                    tween: Tween(begin: 0, end: 1),
-                    builder: (context, value, child) {
-                      return Transform.translate(
-                        offset: Offset(0, 30 * (1 - value)),
+                child: Center(
+                  child: TweenAnimationBuilder(
+                    duration: const Duration(milliseconds: 400),
+                    tween: Tween<double>(begin: 0, end: 1),
+                    builder: (context, double value, child) {
+                      return Transform.scale(
+                        scale: 0.8 + (0.2 * value),
                         child: Opacity(
                           opacity: value,
-                          child: _buildSocialMediaLinks(),
+                          child: Column(
+                            children: [
+                              RichText(
+                                text: const TextSpan(
+                                  children: [
+                                    TextSpan(
+                                      text: 'Win',
+                                      style: TextStyle(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.white,
+                                        fontFamily: 'Poppins',
+                                        letterSpacing: -0.5,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black26,
+                                            blurRadius: 8,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: 'Poi',
+                                      style: TextStyle(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.w400,
+                                        color: Colors.white,
+                                        fontFamily: 'Poppins',
+                                        letterSpacing: -0.5,
+                                        shadows: [
+                                          Shadow(
+                                            color: Colors.black26,
+                                            blurRadius: 8,
+                                            offset: Offset(0, 2),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 18),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 22,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withOpacity(0.22),
+                                  borderRadius: BorderRadius.circular(22),
+                                  border: Border.all(
+                                    color: Colors.white.withOpacity(0.22),
+                                    width: 1,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withOpacity(0.06),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                child: const Text(
+                                  'Versiyon 1.0.0',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16,
+                                    fontFamily: 'Poppins',
+                                    letterSpacing: 0.1,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 24),
-                  _buildInfoSectionWithAnimation(
-                    icon: Icons.info_outline,
-                    title: 'WinPoi Nedir?',
-                    content:
-                        'WinPoi, kullanıcıların eğlenceli yarışmalara katılarak ödüller kazanabildiği bir platformdur. Yarışmalara katılın, POI kazanın ve harika ödüllerin sahibi olun!',
-                    delay: 200,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoSectionWithAnimation(
-                    icon: Icons.emoji_events_outlined,
-                    title: 'Yarışma Kuralları',
-                    content:
-                        '''• Her yarışmaya katılım için minimum POI gereklidir
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  children: [
+                    TweenAnimationBuilder<double>(
+                      duration: const Duration(milliseconds: 800),
+                      tween: Tween(begin: 0, end: 1),
+                      builder: (context, value, child) {
+                        return Transform.translate(
+                          offset: Offset(0, 30 * (1 - value)),
+                          child: Opacity(
+                            opacity: value,
+                            child: _buildSocialMediaLinks(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(height: 24),
+                    _buildInfoSectionWithAnimation(
+                      icon: Icons.info_outline,
+                      title: 'WinPoi Nedir?',
+                      content:
+                          'WinPoi, kullanıcıların eğlenceli yarışmalara katılarak ödüller kazanabildiği bir platformdur. Yarışmalara katılın, POI kazanın ve harika ödüllerin sahibi olun!',
+                      delay: 200,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoSectionWithAnimation(
+                      icon: Icons.emoji_events_outlined,
+                      title: 'Yarışma Kuralları',
+                      content:
+                          '''• Her yarışmaya katılım için minimum POI gereklidir
 • Yarışmalar belirli zaman dilimlerinde gerçekleşir
 • Her yarışmanın kendine özgü kuralları vardır
 • Haksız rekabet oluşturacak davranışlar yasaktır
 • Kazananlar sistem tarafından otomatik belirlenir''',
-                    delay: 400,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoSectionWithAnimation(
-                    icon: Icons.currency_exchange_outlined,
-                    title: 'POI Sistemi',
-                    content: '''• POI'ler yarışmalara katılarak kazanılır
+                      delay: 400,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoSectionWithAnimation(
+                      icon: Icons.currency_exchange_outlined,
+                      title: 'POI Sistemi',
+                      content: '''• POI'ler yarışmalara katılarak kazanılır
 • Kazanılan POI'ler ödül alımında kullanılabilir
 • POI transferi yapılamaz
 • Minimum çekim limiti 1000 POI'dir
 • POI'ler 1 yıl içinde kullanılmalıdır''',
-                    delay: 600,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoSectionWithAnimation(
-                    icon: Icons.contact_support_outlined,
-                    title: 'İletişim',
-                    content: 'E-posta: support@winpoi.com\nWeb: www.winpoi.com',
-                    delay: 800,
-                  ),
-                ],
+                      delay: 600,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInfoSectionWithAnimation(
+                      icon: Icons.contact_support_outlined,
+                      title: 'İletişim',
+                      content:
+                          'E-posta: support@winpoi.com\nWeb: www.winpoi.com',
+                      delay: 800,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -353,9 +361,9 @@ class AboutAppPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildSocialButton(
-                icon: Icons.facebook,
+                icon: Icons.camera_alt,
                 onTap: () {},
-                label: 'Facebook',
+                label: 'Instagram',
               ),
               const SizedBox(width: 16),
               _buildSocialButton(

@@ -6,6 +6,13 @@ import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
 import 'package:winpoi/features/home_page/presentation/widgets/countdown_timer.dart';
+import 'package:winpoi/features/home_page/data/models/competition.dart';
+
+enum GameStatus {
+  active,
+  completed,
+  expired,
+}
 
 class MyGamesPage extends StatefulWidget {
   const MyGamesPage({super.key});
@@ -147,14 +154,14 @@ class _MyGamesPageState extends State<MyGamesPage> {
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFFE6F7F6),
-                          Color(0xFFF8F9FA),
+                          Color(0xFFD4F4F1), // Daha belirgin Soft Turkuaz
+                          Color(0xFFE6D4F4), // Daha belirgin Soft Mor
                         ],
                       ),
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF5FC9BF).withOpacity(0.15),
+                          color: const Color(0xFF4ECDC4).withOpacity(0.2),
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -245,46 +252,25 @@ class _MyGamesPageState extends State<MyGamesPage> {
                             Row(
                               children: [
                                 Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight,
-                                        colors: [
-                                          Color(0xFF8156A0),
-                                          Color(0xFF8156A0),
-                                        ],
+                                  child: OutlinedButton.icon(
+                                    onPressed: () {},
+                                    icon: const Icon(Icons.leaderboard_rounded,
+                                        color: Color(0xFF5FC9BF)),
+                                    label: const Text(
+                                      'Sonucu Göster',
+                                      style: TextStyle(
+                                        color: Color(0xFF5FC9BF),
+                                        fontWeight: FontWeight.w600,
                                       ),
-                                      borderRadius: BorderRadius.circular(12),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF8156A0)
-                                              .withOpacity(0.2),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
                                     ),
-                                    child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.transparent,
-                                        shadowColor: Colors.transparent,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 14),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
+                                    style: OutlinedButton.styleFrom(
+                                      side: const BorderSide(
+                                          color: Color(0xFF5FC9BF), width: 1.5),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                      child: const Text(
-                                        'Sonucu Göster',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
                                     ),
                                   ),
                                 ),
@@ -359,8 +345,8 @@ class _MyGamesPageState extends State<MyGamesPage> {
                           else
                             Row(
                               children: [
-                                Expanded(
-                                  flex: 2,
+                                SizedBox(
+                                  width: 160, // Daha küçük genişlik
                                   child: ElevatedButton(
                                     onPressed: () {},
                                     style: ElevatedButton.styleFrom(
@@ -384,7 +370,6 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                 ),
                                 const SizedBox(width: 12),
                                 Expanded(
-                                  flex: 3,
                                   child: Container(
                                     decoration: BoxDecoration(
                                       gradient: remainingAttempts > 0
@@ -392,23 +377,23 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                               begin: Alignment.centerLeft,
                                               end: Alignment.centerRight,
                                               colors: [
-                                                Color(0xFF5FC9BF),
-                                                Color(0xFFE28B33),
+                                                Color(0xFF4ECDC4), // Turkuaz
+                                                Color(0xFFE28B33), // Turuncu
                                               ],
                                             )
                                           : const LinearGradient(
                                               begin: Alignment.centerLeft,
                                               end: Alignment.centerRight,
                                               colors: [
-                                                Color(0xFFCCCCCC),
-                                                Color(0xFF999999),
+                                                Color(0xFFCCCCCC), // Açık Gri
+                                                Color(0xFF999999), // Koyu Gri
                                               ],
                                             ),
                                       borderRadius: BorderRadius.circular(12),
                                       boxShadow: remainingAttempts > 0
                                           ? [
                                               BoxShadow(
-                                                color: const Color(0xFF5FC9BF)
+                                                color: const Color(0xFF4ECDC4)
                                                     .withOpacity(0.2),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 4),
@@ -523,5 +508,243 @@ class _MyGamesPageState extends State<MyGamesPage> {
         );
       }
     }
+  }
+
+  Widget _buildGameCard(Map<String, dynamic> game) {
+    final competition = game['competition'] as Competition;
+    final participation = game['participation'] as Map<String, dynamic>;
+    final remainingAttempts = participation['remainingAttempts'] ?? 0;
+    final endTime = (participation['endTime'] as Timestamp).toDate();
+    final isActive = endTime.isAfter(DateTime.now());
+    final status = _getGameStatus(endTime, remainingAttempts);
+
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Colors.white,
+              Colors.white.withOpacity(0.95),
+            ],
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Oyun Resmi ve Durum Etiketi
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(20)),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Image.network(
+                      competition.image,
+                      fit: BoxFit.cover,
+                      loadingBuilder: (context, child, loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Container(
+                          color: Colors.grey.shade200,
+                          child: Center(
+                            child: CircularProgressIndicator(
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                              color: const Color(0xFF4ECDC4),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                // Durum Etiketi
+                Positioned(
+                  top: 12,
+                  right: 12,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(status).withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Text(
+                      _getStatusText(status),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Oyun Başlığı
+                  Text(
+                    competition.title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2D3436),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Bilgi Satırları
+                  _buildInfoRow(
+                    Icons.timer_outlined,
+                    'Kalan Süre',
+                    _getCountdownText(endTime),
+                    const Color(0xFF4ECDC4),
+                  ),
+                  const SizedBox(height: 8),
+                  _buildInfoRow(
+                    Icons.games_outlined,
+                    'Kalan Hak',
+                    '$remainingAttempts',
+                    const Color(0xFF845EC2),
+                  ),
+                  const SizedBox(height: 16),
+                  // Devam Et Butonu
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: isActive ? () => _continueGame(game) : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isActive
+                            ? const Color(0xFF4ECDC4)
+                            : Colors.grey.shade300,
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: Text(
+                        isActive ? 'Devam Et' : 'Süresi Doldu',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: isActive ? Colors.white : Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value, Color color) {
+    return Row(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, color: color, size: 20),
+        ),
+        const SizedBox(width: 12),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const Spacer(),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _getStatusText(GameStatus status) {
+    switch (status) {
+      case GameStatus.active:
+        return 'Aktif';
+      case GameStatus.completed:
+        return 'Tamamlandı';
+      case GameStatus.expired:
+        return 'Süresi Doldu';
+    }
+  }
+
+  Color _getStatusColor(GameStatus status) {
+    switch (status) {
+      case GameStatus.active:
+        return const Color(0xFF4ECDC4);
+      case GameStatus.completed:
+        return const Color(0xFF845EC2);
+      case GameStatus.expired:
+        return Colors.grey.shade600;
+    }
+  }
+
+  GameStatus _getGameStatus(DateTime endTime, int remainingAttempts) {
+    if (!endTime.isAfter(DateTime.now())) {
+      return GameStatus.expired;
+    }
+    if (remainingAttempts <= 0) {
+      return GameStatus.completed;
+    }
+    return GameStatus.active;
+  }
+
+  String _getCountdownText(DateTime endTime) {
+    final now = DateTime.now();
+    final difference = endTime.difference(now);
+
+    if (difference.isNegative) {
+      return 'Süresi Doldu';
+    }
+
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    final hours = twoDigits(difference.inHours);
+    final minutes = twoDigits(difference.inMinutes.remainder(60));
+    final seconds = twoDigits(difference.inSeconds.remainder(60));
+
+    return '$hours:$minutes:$seconds';
+  }
+
+  void _continueGame(Map<String, dynamic> game) {
+    // Oyunu devam ettirme mantığı
+    final competition = game['competition'] as Competition;
+    // TODO: Oyun sayfasına yönlendirme
   }
 }

@@ -537,113 +537,118 @@ class _EditProfilePageState extends State<EditProfilePage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        title: const Text(
-          'Profili Düzenle',
-          style: TextStyle(
-            fontFamily: 'Poppins',
-            fontWeight: FontWeight.w600,
-            fontSize: 22,
-            color: Colors.white,
-            letterSpacing: 0.2,
-          ),
-          textAlign: TextAlign.left,
-        ),
-        centerTitle: false,
-        iconTheme: const IconThemeData(color: Colors.white),
-      ),
-      body: FadeTransition(
-        opacity: _fade,
-        child: ScaleTransition(
-          scale: _scale,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  primaryColor.withOpacity(0.15),
-                  Colors.white.withOpacity(0.95),
-                ],
-              ),
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! > 0) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: primaryColor,
+          elevation: 0,
+          title: const Text(
+            'Profili Düzenle',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontWeight: FontWeight.w600,
+              fontSize: 22,
+              color: Colors.white,
+              letterSpacing: 0.2,
             ),
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildTextField(
-                        controller: _nameController,
-                        label: 'Ad Soyad',
-                        icon: Icons.person_outline,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _usernameController,
-                        label: 'Kullanıcı Adı',
-                        icon: Icons.account_circle_outlined,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _emailController,
-                        label: 'E-posta',
-                        icon: Icons.email_outlined,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _phoneController,
-                        label: 'Telefon',
-                        icon: Icons.phone_outlined,
-                        keyboardType: TextInputType.phone,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextField(
-                        controller: _addressController,
-                        label: 'Adres',
-                        icon: Icons.location_on_outlined,
-                      ),
-                      const SizedBox(height: 8),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: TextButton(
-                          onPressed: _showChangePasswordDialog,
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 0, vertical: 12),
-                          ),
-                          child: const Text(
-                            'Şifre Değiştir',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: secondaryColor,
-                              letterSpacing: 0.2,
-                              decoration: TextDecoration.underline,
-                              decorationColor: secondaryColor,
-                              decorationThickness: 1.5,
+            textAlign: TextAlign.left,
+          ),
+          centerTitle: false,
+          iconTheme: const IconThemeData(color: Colors.white),
+        ),
+        body: FadeTransition(
+          opacity: _fade,
+          child: ScaleTransition(
+            scale: _scale,
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white,
+              ),
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildTextField(
+                          controller: _nameController,
+                          label: 'Ad Soyad',
+                          icon: Icons.person_outline,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _usernameController,
+                          label: 'Kullanıcı Adı',
+                          icon: Icons.account_circle_outlined,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _emailController,
+                          label: 'E-posta',
+                          icon: Icons.email_outlined,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _phoneController,
+                          label: 'Telefon',
+                          icon: Icons.phone_outlined,
+                          keyboardType: TextInputType.phone,
+                        ),
+                        const SizedBox(height: 16),
+                        _buildTextField(
+                          controller: _addressController,
+                          label: 'Adres',
+                          icon: Icons.location_on_outlined,
+                        ),
+                        const SizedBox(height: 8),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: TextButton(
+                            onPressed: _showChangePasswordDialog,
+                            style: TextButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 0, vertical: 12),
+                            ),
+                            child: const Text(
+                              'Şifre Değiştir',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: secondaryColor,
+                                letterSpacing: 0.2,
+                                decoration: TextDecoration.underline,
+                                decorationColor: secondaryColor,
+                                decorationThickness: 1.5,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                      _buildGradientButton(
-                        onPressed: _isLoading ? null : _updateProfile,
-                        text: 'Kaydet',
-                        gradient: LinearGradient(
-                          colors: [primaryColor, primaryColor.withOpacity(0.8)],
+                        const SizedBox(height: 24),
+                        _buildGradientButton(
+                          onPressed: _isLoading ? null : _updateProfile,
+                          text: 'Kaydet',
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFF4ECDC4), // Turkuaz
+                              Color(0xFF845EC2), // Mor
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          isLoading: _isLoading,
                         ),
-                        isLoading: _isLoading,
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
