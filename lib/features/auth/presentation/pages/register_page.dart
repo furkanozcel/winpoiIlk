@@ -25,9 +25,9 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _acceptedTerms = false;
 
   // Renk sabitleri
-  static const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
-  static const Color secondaryColor = Color(0xFFE28B33); // Turuncu
-  static const Color accentColor = Color(0xFF8156A0); // Mor
+  static const Color primaryColor = Color(0xFF4ECDC4); // Turkuaz
+  static const Color secondaryColor = Color(0xFF845EC2); // Mor
+  static const Color accentColor = Color(0xFF7EDFD9); // Açık turkuaz
 
   Future<void> _register() async {
     if (!_acceptedTerms) {
@@ -247,8 +247,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon: const Icon(Icons.email_outlined,
-                            color: primaryColor),
+                        prefixIcon: ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [primaryColor, secondaryColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: const Icon(Icons.email_outlined,
+                              color: Colors.white),
+                        ),
                         contentPadding: const EdgeInsets.symmetric(
                             horizontal: 16, vertical: 16),
                       ),
@@ -305,8 +312,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon:
-                            const Icon(Icons.lock_outline, color: primaryColor),
+                        prefixIcon: ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [primaryColor, secondaryColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: const Icon(Icons.lock_outline,
+                              color: Colors.white),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscurePassword
@@ -375,8 +389,15 @@ class _RegisterPageState extends State<RegisterPage> {
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide.none,
                         ),
-                        prefixIcon:
-                            const Icon(Icons.lock_outline, color: primaryColor),
+                        prefixIcon: ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [primaryColor, secondaryColor],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ).createShader(bounds),
+                          child: const Icon(Icons.lock_outline,
+                              color: Colors.white),
+                        ),
                         suffixIcon: IconButton(
                           icon: Icon(
                             _obscureConfirmPassword
@@ -417,14 +438,14 @@ class _RegisterPageState extends State<RegisterPage> {
                             _acceptedTerms = value ?? false;
                           });
                         },
-                        activeColor: primaryColor,
+                        activeColor: const Color(0xFFE28B33),
                       ),
                       Expanded(
                         child: RichText(
                           text: TextSpan(
                             text: 'Kullanım Koşulları',
                             style: const TextStyle(
-                              color: secondaryColor,
+                              color: Color(0xFFE28B33),
                               fontWeight: FontWeight.bold,
                             ),
                             recognizer: TapGestureRecognizer()
@@ -442,7 +463,7 @@ class _RegisterPageState extends State<RegisterPage> {
                               TextSpan(
                                 text: 'Gizlilik Politikası',
                                 style: const TextStyle(
-                                  color: secondaryColor,
+                                  color: Color(0xFFE28B33),
                                   fontWeight: FontWeight.bold,
                                 ),
                                 recognizer: TapGestureRecognizer()
@@ -471,7 +492,7 @@ class _RegisterPageState extends State<RegisterPage> {
                       gradient: LinearGradient(
                         colors: [
                           primaryColor,
-                          primaryColor.withOpacity(0.8),
+                          secondaryColor,
                         ],
                       ),
                       boxShadow: [
@@ -618,6 +639,7 @@ class _RegisterPageState extends State<RegisterPage> {
                             decoration: TextDecoration.underline,
                             decorationColor: Color(0xFFE28B33),
                             decorationThickness: 1.5,
+                            color: Color(0xFFE28B33),
                           ),
                         ),
                       ),

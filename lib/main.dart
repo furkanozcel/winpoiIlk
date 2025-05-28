@@ -110,10 +110,10 @@ class _SplashScreenState extends State<SplashScreen> {
             // Logo
             Image.asset(
               'lib/assets/images/app_icon.png',
-              width: 250,
-              height: 250,
+              width: 350,
+              height: 350,
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
             // Uygulama adı
             ShaderMask(
               shaderCallback: (bounds) => const LinearGradient(
@@ -121,19 +121,33 @@ class _SplashScreenState extends State<SplashScreen> {
                   Color(0xFF4ECDC4), // Turkuaz
                   Color(0xFFFF6B6B), // Turuncu
                 ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ).createShader(bounds),
-              child: const Text(
-                'WinPoi',
-                style: TextStyle(
-                  fontSize: 32,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
+              child: RichText(
+                text: const TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'WIN',
+                      style: TextStyle(
+                        fontSize: 42,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                    TextSpan(
+                      text: 'POI',
+                      style: TextStyle(
+                        fontSize: 42,
+                        fontWeight: FontWeight.w300,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 15),
             // Yükleniyor göstergesi
             SizedBox(
               width: 40,
@@ -141,11 +155,7 @@ class _SplashScreenState extends State<SplashScreen> {
               child: CircularProgressIndicator(
                 strokeWidth: 3,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  Color.lerp(
-                    const Color(0xFF4ECDC4),
-                    const Color(0xFFFF6B6B),
-                    0.5,
-                  )!,
+                  const Color(0xFF4ECDC4), // Turkuaz renk
                 ),
               ),
             ),

@@ -104,58 +104,67 @@ class _ProfileDetailsPageState extends State<ProfileDetailsPage>
           const SizedBox(width: 8),
         ],
       ),
-      body: StreamBuilder<DocumentSnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('users')
-            .doc(FirebaseAuth.instance.currentUser?.uid)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          if (details.primaryVelocity! > 0) {
+            Navigator.pop(context);
           }
+        },
+        child: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('users')
+              .doc(FirebaseAuth.instance.currentUser?.uid)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          final userData = snapshot.data!.data() as Map<String, dynamic>? ?? {};
+            final userData =
+                snapshot.data!.data() as Map<String, dynamic>? ?? {};
 
-          return SafeArea(
-            child: SingleChildScrollView(
-              physics: const BouncingScrollPhysics(),
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
-                child: Column(
-                  children: [
-                    _buildInfoItem(
-                      icon: Icons.person_outline,
-                      label: 'Ad Soyad',
-                      value: userData['name']?.toString() ?? 'Belirtilmemiş',
-                    ),
-                    _buildInfoItem(
-                      icon: Icons.account_circle_outlined,
-                      label: 'Kullanıcı Adı',
-                      value:
-                          userData['username']?.toString() ?? 'Belirtilmemiş',
-                    ),
-                    _buildInfoItem(
-                      icon: Icons.email_outlined,
-                      label: 'E-posta',
-                      value: userData['email']?.toString() ?? 'Belirtilmemiş',
-                    ),
-                    _buildInfoItem(
-                      icon: Icons.phone_outlined,
-                      label: 'Telefon',
-                      value: userData['phone']?.toString() ?? 'Belirtilmemiş',
-                    ),
-                    _buildInfoItem(
-                      icon: Icons.location_on_outlined,
-                      label: 'Adres',
-                      value: userData['address']?.toString() ?? 'Belirtilmemiş',
-                    ),
-                  ],
+            return SafeArea(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+                  child: Column(
+                    children: [
+                      _buildInfoItem(
+                        icon: Icons.person_outline,
+                        label: 'Ad Soyad',
+                        value: userData['name']?.toString() ?? 'Belirtilmemiş',
+                      ),
+                      _buildInfoItem(
+                        icon: Icons.account_circle_outlined,
+                        label: 'Kullanıcı Adı',
+                        value:
+                            userData['username']?.toString() ?? 'Belirtilmemiş',
+                      ),
+                      _buildInfoItem(
+                        icon: Icons.email_outlined,
+                        label: 'E-posta',
+                        value: userData['email']?.toString() ?? 'Belirtilmemiş',
+                      ),
+                      _buildInfoItem(
+                        icon: Icons.phone_outlined,
+                        label: 'Telefon',
+                        value: userData['phone']?.toString() ?? 'Belirtilmemiş',
+                      ),
+                      _buildInfoItem(
+                        icon: Icons.location_on_outlined,
+                        label: 'Adres',
+                        value:
+                            userData['address']?.toString() ?? 'Belirtilmemiş',
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }

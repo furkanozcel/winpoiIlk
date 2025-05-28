@@ -18,76 +18,83 @@ class _AgreementsPageState extends State<AgreementsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: primaryColor,
-        elevation: 0,
-        title: TweenAnimationBuilder<double>(
-          duration: const Duration(milliseconds: 300),
-          tween: Tween(begin: 0, end: 1),
-          builder: (context, value, child) {
-            return Opacity(
-              opacity: value,
-              child: const Text(
-                'Sözleşmeler',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 22,
-                  letterSpacing: 0.1,
-                  fontFamily: 'Poppins',
+    return GestureDetector(
+      onHorizontalDragEnd: (details) {
+        if (details.primaryVelocity! > 0) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        extendBodyBehindAppBar: true,
+        appBar: AppBar(
+          backgroundColor: primaryColor,
+          elevation: 0,
+          title: TweenAnimationBuilder<double>(
+            duration: const Duration(milliseconds: 300),
+            tween: Tween(begin: 0, end: 1),
+            builder: (context, value, child) {
+              return Opacity(
+                opacity: value,
+                child: const Text(
+                  'Sözleşmeler',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 22,
+                    letterSpacing: 0.1,
+                    fontFamily: 'Poppins',
+                  ),
                 ),
-              ),
-            );
-          },
-        ),
-        flexibleSpace: null,
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).padding.top + kToolbarHeight + 24,
-            left: 16,
-            right: 16,
-            bottom: 24,
+              );
+            },
           ),
-          child: Column(
-            children: [
-              _buildAgreementCard(
-                title: 'Kullanıcı Sözleşmesi',
-                icon: Icons.description_outlined,
-                content: _userAgreementText,
-                delay: 100,
-                index: 0,
-              ),
-              const SizedBox(height: 20),
-              _buildAgreementCard(
-                title: 'Gizlilik Politikası',
-                icon: Icons.privacy_tip_outlined,
-                content: _privacyPolicyText,
-                delay: 200,
-                index: 1,
-              ),
-              const SizedBox(height: 20),
-              _buildAgreementCard(
-                title: 'KVKK Aydınlatma Metni',
-                icon: Icons.security_outlined,
-                content: _kvkkText,
-                delay: 300,
-                index: 2,
-              ),
-              const SizedBox(height: 20),
-              _buildAgreementCard(
-                title: 'Çerez Politikası',
-                icon: Icons.cookie_outlined,
-                content: _cookiePolicyText,
-                delay: 400,
-                index: 3,
-              ),
-            ],
+          flexibleSpace: null,
+        ),
+        body: SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + kToolbarHeight + 24,
+              left: 16,
+              right: 16,
+              bottom: 24,
+            ),
+            child: Column(
+              children: [
+                _buildAgreementCard(
+                  title: 'Kullanıcı Sözleşmesi',
+                  icon: Icons.description_outlined,
+                  content: _userAgreementText,
+                  delay: 100,
+                  index: 0,
+                ),
+                const SizedBox(height: 20),
+                _buildAgreementCard(
+                  title: 'Gizlilik Politikası',
+                  icon: Icons.privacy_tip_outlined,
+                  content: _privacyPolicyText,
+                  delay: 200,
+                  index: 1,
+                ),
+                const SizedBox(height: 20),
+                _buildAgreementCard(
+                  title: 'KVKK Aydınlatma Metni',
+                  icon: Icons.security_outlined,
+                  content: _kvkkText,
+                  delay: 300,
+                  index: 2,
+                ),
+                const SizedBox(height: 20),
+                _buildAgreementCard(
+                  title: 'Çerez Politikası',
+                  icon: Icons.cookie_outlined,
+                  content: _cookiePolicyText,
+                  delay: 400,
+                  index: 3,
+                ),
+              ],
+            ),
           ),
         ),
       ),

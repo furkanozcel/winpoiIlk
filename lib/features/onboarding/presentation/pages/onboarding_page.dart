@@ -25,16 +25,16 @@ class _OnboardingPageState extends State<OnboardingPage>
       description:
           "Gerçek dünya haritalarında ödül bulmaya hazır mısın? Yeteneklerini kullan, stratejini yap, Ödülü en hızlı şekilde bul ve kazan!",
       icon: Icons.celebration,
-      color: const Color(0xFFFF6B6B),
-      secondaryColor: const Color(0xFFFF8E8E),
+      color: const Color(0xFF4ECDC4),
+      secondaryColor: const Color(0xFF7EDFD9),
     ),
     OnboardingItem(
       title: "Adil Oyun Deneyimi 🤝",
       description:
           "WinPoi'de ekstra ödeme yapanlar değil, gerçekten yetenekli olanlar kazanır! Burada yetenek ve strateji ön planda - cüzdan değil. Herkes için eşit, adil ve keyifli bir oyun deneyimi.",
       icon: Icons.balance,
-      color: const Color(0xFF4ECDC4),
-      secondaryColor: const Color(0xFF7EDFD9),
+      color: const Color(0xFFFF6B6B),
+      secondaryColor: const Color(0xFFFF8E8E),
     ),
     OnboardingItem(
       title: "Ödülleri Keşfet 🎁",
@@ -58,7 +58,7 @@ class _OnboardingPageState extends State<OnboardingPage>
           "Ekstra ödemeler olmadan, sadece yeteneğinle üst sıralara tırman. WinPoi'de rekabet adil, fırsat eşit, ödüller gerçek. Haydi, bu eşitlikçi macerada yerini al!",
       icon: Icons.emoji_events,
       color: const Color(0xFF4ECDC4),
-      secondaryColor: const Color(0xFFFF6B6B),
+      secondaryColor: const Color(0xFF845EC2),
     ),
   ];
 
