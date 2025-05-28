@@ -5,6 +5,7 @@ import 'package:winpoi/core/providers/user_provider.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/about_app_page.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/agreements_page.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/profile_details_page.dart';
+import 'package:winpoi/features/profile_page/presentation/widgets/logout_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -455,23 +456,7 @@ class _ProfilePageState extends State<ProfilePage>
       BuildContext context, app_provider.AuthProvider authProvider) async {
     final result = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Çıkış Yap'),
-        content: const Text('Çıkış yapmak istediğinizden emin misiniz?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('İptal'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
-            child: const Text('Çıkış Yap'),
-          ),
-        ],
-      ),
+      builder: (context) => const LogoutDialog(),
     );
 
     if (result == true && mounted) {
