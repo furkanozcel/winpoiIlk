@@ -3,6 +3,8 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:io' show Platform;
+import '../errors/app_exception.dart';
+import '../errors/error_handler.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -27,8 +29,10 @@ class AuthService {
         email: email,
         password: password,
       );
+    } on FirebaseAuthException catch (e) {
+      throw AuthException.fromFirebaseCode(e.code, e.message);
     } catch (e) {
-      throw Exception('Kayıt olma hatası: $e');
+      throw ErrorHandler.handleError(e);
     }
   }
 
@@ -42,8 +46,10 @@ class AuthService {
         email: email,
         password: password,
       );
+    } on FirebaseAuthException catch (e) {
+      throw AuthException.fromFirebaseCode(e.code, e.message);
     } catch (e) {
-      throw Exception('Giriş yapma hatası: $e');
+      throw ErrorHandler.handleError(e);
     }
   }
 
@@ -60,7 +66,10 @@ class AuthService {
 
       if (googleUser == null) {
         print("Google Sign-In iptal edildi: Kullanıcı işlemi iptal etti");
-        throw Exception('Google oturum açma işlemi iptal edildi');
+        throw const AuthException(
+          message: 'Google oturum açma işlemi iptal edildi',
+          code: 'sign_in_canceled',
+        );
       }
 
       try {
@@ -86,7 +95,10 @@ class AuthService {
 
         // Her iki token da null ise hata fırlat
         if (googleAuth.accessToken == null && googleAuth.idToken == null) {
-          throw Exception('Google kimlik bilgileri alınamadı');
+          throw const AuthException(
+            message: 'Google kimlik bilgileri alınamadı',
+            code: 'invalid-credential',
+          );
         }
 
         // Google kimlik bilgilerini Firebase'e gönder
@@ -103,33 +115,47 @@ class AuthService {
         // Kullanıcı veritabanında var mı kontrol et, yoksa oluştur
         if (userCredential.additionalUserInfo?.isNewUser ?? false) {
           print("Yeni kullanıcı Firestore'a kaydediliyor...");
-          await FirebaseFirestore.instance
-              .collection('users')
-              .doc(userCredential.user!.uid)
-              .set({
-            'name': userCredential.user!.displayName ?? '',
-            'email': userCredential.user!.email ?? '',
-            'username': '',
-            'poiBalance': 0,
-            'totalPrizeCount': 0,
-            'totalGames': 0,
-            'successPoints': 0,
-            'createdAt': FieldValue.serverTimestamp(),
-            'role': 'user',
-          });
+          await _createUserDocument(userCredential.user!);
           print("Kullanıcı Firestore'a kaydedildi");
         } else {
           print("Mevcut kullanıcı, Firestore kaydı gerekmiyor");
         }
 
         return userCredential;
-      } catch (authError) {
-        print('Google authentication error: $authError');
-        throw Exception('Google kimlik doğrulama hatası: $authError');
+      } on FirebaseAuthException catch (e) {
+        print('Google authentication error: $e');
+        throw AuthException.fromFirebaseCode(e.code, e.message);
+      } catch (e) {
+        print('Google authentication error: $e');
+        throw ErrorHandler.handleError(e);
       }
     } catch (e) {
+      if (e is AuthException) {
+        rethrow;
+      }
       print('Google sign-in error: $e');
-      throw Exception('Google ile giriş hatası: $e');
+      throw ErrorHandler.handleError(e);
+    }
+  }
+
+  // Kullanıcı dokümanı oluştur
+  Future<void> _createUserDocument(User user) async {
+    try {
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
+        'name': user.displayName ?? '',
+        'email': user.email ?? '',
+        'username': '',
+        'poiBalance': 0,
+        'totalPrizeCount': 0,
+        'totalGames': 0,
+        'successPoints': 0,
+        'createdAt': FieldValue.serverTimestamp(),
+        'role': 'user',
+      });
+    } on FirebaseException catch (e) {
+      throw DatabaseException.fromFirestoreCode(e.code, e.message);
+    } catch (e) {
+      throw ErrorHandler.handleError(e);
     }
   }
 
@@ -138,8 +164,10 @@ class AuthService {
     try {
       await _googleSignIn.signOut(); // Google oturumunu kapat
       await _auth.signOut();
+    } on FirebaseAuthException catch (e) {
+      throw AuthException.fromFirebaseCode(e.code, e.message);
     } catch (e) {
-      throw Exception('Çıkış yapma hatası: $e');
+      throw ErrorHandler.handleError(e);
     }
   }
 
@@ -147,8 +175,10 @@ class AuthService {
   Future<void> sendPasswordResetEmail({required String email}) async {
     try {
       await _auth.sendPasswordResetEmail(email: email);
+    } on FirebaseAuthException catch (e) {
+      throw AuthException.fromFirebaseCode(e.code, e.message);
     } catch (e) {
-      throw Exception('Şifre sıfırlama e-postası gönderme hatası: $e');
+      throw ErrorHandler.handleError(e);
     }
   }
 }

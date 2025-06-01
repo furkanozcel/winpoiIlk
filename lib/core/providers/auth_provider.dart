@@ -1,11 +1,13 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:winpoi/core/services/auth_service.dart';
+import '../errors/async_error_handler.dart';
+import '../errors/app_exception.dart';
+import '../errors/error_handler.dart';
 
-class AuthProvider extends ChangeNotifier {
+class AuthProvider extends ChangeNotifier with AsyncErrorHandlerMixin {
   final AuthService _authService = AuthService();
   User? _currentUser;
-  bool _isLoading = false;
 
   AuthProvider() {
     // Otomatik olarak mevcut kullanıcıyı ve auth state değişikliklerini dinle
@@ -17,74 +19,76 @@ class AuthProvider extends ChangeNotifier {
   }
 
   User? get currentUser => _currentUser;
-  bool get isLoading => _isLoading;
   bool get isLoggedIn => _currentUser != null;
   Stream<User?> get authStateChanges => _authService.authStateChanges;
 
   // Email/Password ile giriş
-  Future<void> signInWithEmail({
+  Future<UserCredential?> signInWithEmail({
     required String email,
     required String password,
   }) async {
-    _setLoading(true);
-    try {
-      await _authService.signInWithEmail(
+    return await runAsync<UserCredential>(() async {
+      return await _authService.signInWithEmail(
         email: email,
         password: password,
       );
-    } finally {
-      _setLoading(false);
-    }
+    });
   }
 
   // Google ile giriş
-  Future<void> signInWithGoogle() async {
-    _setLoading(true);
-    try {
-      await _authService.signInWithGoogle();
-    } finally {
-      _setLoading(false);
-    }
+  Future<UserCredential?> signInWithGoogle() async {
+    return await runAsync<UserCredential>(() async {
+      return await _authService.signInWithGoogle();
+    });
   }
 
   // Email/Password ile kayıt
-  Future<void> signUpWithEmail({
+  Future<UserCredential?> signUpWithEmail({
     required String email,
     required String password,
   }) async {
-    _setLoading(true);
-    try {
-      await _authService.signUpWithEmail(
+    return await runAsync<UserCredential>(() async {
+      return await _authService.signUpWithEmail(
         email: email,
         password: password,
       );
-    } finally {
-      _setLoading(false);
-    }
+    });
   }
 
   // Çıkış yap
   Future<void> signOut() async {
-    _setLoading(true);
-    try {
+    await runAsync<void>(() async {
       await _authService.signOut();
-    } finally {
-      _setLoading(false);
-    }
+    });
   }
 
   // Şifre sıfırlama
   Future<void> sendPasswordResetEmail({required String email}) async {
-    _setLoading(true);
-    try {
+    await runAsync<void>(() async {
       await _authService.sendPasswordResetEmail(email: email);
-    } finally {
-      _setLoading(false);
-    }
+    });
   }
 
-  void _setLoading(bool value) {
-    _isLoading = value;
-    notifyListeners();
+  // Hata durumunda kullanıcı dostu mesaj al
+  String? getErrorMessage() {
+    if (hasError) {
+      return ErrorHandler.getUserFriendlyMessage(error!);
+    }
+    return null;
+  }
+
+  // Retry mekanizması ile giriş
+  Future<UserCredential?> signInWithEmailRetry({
+    required String email,
+    required String password,
+    int maxRetries = 2,
+  }) async {
+    return await runAsyncWithRetry<UserCredential>(
+      () => _authService.signInWithEmail(
+        email: email,
+        password: password,
+      ),
+      maxRetries: maxRetries,
+    );
   }
 }

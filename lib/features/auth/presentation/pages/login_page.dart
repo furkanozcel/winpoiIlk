@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
+import '../../../../core/errors/error_widgets.dart';
+import '../../../../core/errors/app_exception.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -22,52 +24,45 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      try {
-        await context.read<app_provider.AuthProvider>().signInWithEmail(
-              email: _emailController.text.trim(),
-              password: _passwordController.text.trim(),
-            );
-        if (mounted) {
-          Navigator.of(context).pushReplacementNamed('/home');
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Expanded(child: Text('Giriş hatası: $e')),
-                ],
-              ),
-              backgroundColor: Colors.red.shade400,
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-          );
-        }
+      final authProvider = context.read<app_provider.AuthProvider>();
+      final result = await authProvider.signInWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text.trim(),
+      );
+
+      if (result != null && mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      } else if (authProvider.hasError && mounted) {
+        ErrorSnackBar.show(
+          context,
+          authProvider.error!,
+          onRetry: () => _retryLogin(),
+        );
       }
     }
   }
 
+  Future<void> _retryLogin() async {
+    final authProvider = context.read<app_provider.AuthProvider>();
+    final result = await authProvider.signInWithEmailRetry(
+      email: _emailController.text.trim(),
+      password: _passwordController.text.trim(),
+      maxRetries: 2,
+    );
+
+    if (result != null && mounted) {
+      Navigator.of(context).pushReplacementNamed('/home');
+    }
+  }
+
   Future<void> _signInWithGoogle() async {
-    try {
-      await context.read<app_provider.AuthProvider>().signInWithGoogle();
-      if (mounted) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Google ile giriş hatası: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+    final authProvider = context.read<app_provider.AuthProvider>();
+    final result = await authProvider.signInWithGoogle();
+
+    if (result != null && mounted) {
+      Navigator.of(context).pushReplacementNamed('/home');
+    } else if (authProvider.hasError && mounted) {
+      ErrorSnackBar.show(context, authProvider.error!);
     }
   }
 
@@ -139,7 +134,7 @@ class _LoginPageState extends State<LoginPage> {
                       child: Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          gradient: LinearGradient(
+                          gradient: const LinearGradient(
                             colors: [
                               primaryColor,
                               secondaryColor,
@@ -158,22 +153,32 @@ class _LoginPageState extends State<LoginPage> {
                               ? null
                               : () async {
                                   if (emailController.text.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text(
-                                            'Lütfen e-posta adresinizi girin'),
-                                        backgroundColor: Colors.red,
+                                    ErrorSnackBar.show(
+                                      context,
+                                      const ValidationException(
+                                        message:
+                                            'Lütfen e-posta adresinizi girin',
+                                        code: 'email_required',
                                       ),
                                     );
                                     return;
                                   }
                                   setState(() => isLoading = true);
-                                  try {
-                                    await context
-                                        .read<app_provider.AuthProvider>()
-                                        .sendPasswordResetEmail(
-                                          email: emailController.text.trim(),
-                                        );
+
+                                  final authProvider =
+                                      context.read<app_provider.AuthProvider>();
+                                  await authProvider.sendPasswordResetEmail(
+                                    email: emailController.text.trim(),
+                                  );
+
+                                  setState(() => isLoading = false);
+
+                                  if (authProvider.hasError) {
+                                    if (mounted) {
+                                      ErrorSnackBar.show(
+                                          context, authProvider.error!);
+                                    }
+                                  } else {
                                     if (mounted) {
                                       Navigator.pop(context);
                                       ScaffoldMessenger.of(context)
@@ -185,20 +190,6 @@ class _LoginPageState extends State<LoginPage> {
                                           backgroundColor: Colors.green,
                                         ),
                                       );
-                                    }
-                                  } catch (e) {
-                                    if (mounted) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
-                                        SnackBar(
-                                          content: Text('Hata: $e'),
-                                          backgroundColor: Colors.red,
-                                        ),
-                                      );
-                                    }
-                                  } finally {
-                                    if (mounted) {
-                                      setState(() => isLoading = false);
                                     }
                                   }
                                 },
@@ -474,7 +465,7 @@ class _LoginPageState extends State<LoginPage> {
                   Container(
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(12),
-                      gradient: LinearGradient(
+                      gradient: const LinearGradient(
                         colors: [
                           primaryColor,
                           secondaryColor,

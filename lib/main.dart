@@ -13,10 +13,14 @@ import 'dart:async';
 import 'firebase_options.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'core/errors/async_error_handler.dart';
 
 void main() async {
   // Widget binding'i başlat
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Global error handling'i başlat
+  GlobalErrorHandler.initialize();
 
   // Firebase ve SharedPreferences'ı başlat
   await Firebase.initializeApp(
@@ -149,13 +153,13 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             const SizedBox(height: 15),
             // Yükleniyor göstergesi
-            SizedBox(
+            const SizedBox(
               width: 40,
               height: 40,
               child: CircularProgressIndicator(
                 strokeWidth: 3,
                 valueColor: AlwaysStoppedAnimation<Color>(
-                  const Color(0xFF4ECDC4), // Turkuaz renk
+                  Color(0xFF4ECDC4), // Turkuaz renk
                 ),
               ),
             ),
