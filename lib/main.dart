@@ -1,18 +1,19 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:winpoi/core/navigation/navigator_page.dart';
 import 'package:winpoi/core/providers/provider_manager.dart';
+import 'package:winpoi/core/services/firebase_notification_service.dart';
 import 'package:winpoi/core/theme/app_theme.dart';
 import 'package:winpoi/features/admin/presentation/pages/competition_management_page.dart';
 import 'package:winpoi/features/auth/presentation/pages/login_page.dart';
 import 'package:winpoi/features/auth/presentation/pages/register_page.dart';
 import 'package:winpoi/features/onboarding/presentation/pages/onboarding_page.dart';
+import 'package:winpoi/features/settings/presentation/pages/notification_settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'firebase_options.dart';
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'core/errors/async_error_handler.dart';
 
 void main() async {
@@ -22,10 +23,15 @@ void main() async {
   // Global error handling'i başlat
   GlobalErrorHandler.initialize();
 
-  // Firebase ve SharedPreferences'ı başlat
+  // Firebase'i başlat
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  // Firebase Cloud Messaging background handler'ını ayarla
+  FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+
+  // SharedPreferences'ı başlat
   final prefs = await SharedPreferences.getInstance();
   final hasRegistered = prefs.getBool('hasRegistered') ?? false;
 
@@ -63,6 +69,7 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/home': (context) => const NavigatorPage(),
         '/admin/competitions': (context) => const CompetitionManagementPage(),
+        '/notification-settings': (context) => const NotificationSettingsPage(),
       },
       home: SplashScreen(
         showOnboarding: showOnboarding,

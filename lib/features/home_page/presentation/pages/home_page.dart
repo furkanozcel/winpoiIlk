@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
 import 'package:winpoi/core/providers/firestore_provider.dart';
 import 'package:winpoi/core/providers/user_provider.dart';
-import 'package:winpoi/core/services/notification_service.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
 import 'package:winpoi/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';

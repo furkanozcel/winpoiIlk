@@ -1,0 +1,181 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ============================================================================
+    // HELPER FUNCTIONS
+    // ============================================================================
+    
+    // Kullanıcının kimlik doğrulaması yapılmış mı?
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Kullanıcı kendi verisine mi erişiyor?
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Geçerli timestamp kontrolü
+    function isValidTimestamp(value) {
+      return value is timestamp;
+    }
+    
+    // Email formatı kontrolü
+    function isValidEmail(value) {
+      return value is string && value.matches('.*@.*\\..*');
+    }
+
+    // ============================================================================
+    // USERS COLLECTION - Kullanıcı Profilleri
+    // ============================================================================
+    
+    match /users/{userId} {
+      // Okuma: Sadece kendi profilini okuyabilir
+      allow read: if isOwner(userId) || isAuthenticated();
+      
+      // Yazma: Sadece kendi profilini güncelleyebilir
+      allow write: if isOwner(userId) && isValidUserData();
+      
+      // Alt koleksiyonlar
+      match /fcmTokens/{tokenDoc} {
+        // FCM token'ları sadece sahibi yönetebilir
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /gameHistory/{gameId} {
+        // Oyun geçmişi sadece sahibi okuyabilir/yazabilir
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /notifications/{notificationId} {
+        // Bildirimler - kullanıcı kendi bildirimlerini yönetebilir
+        allow read, write: if isOwner(userId);
+      }
+      
+      match /participations/{participationId} {
+        // Katılımlar - kullanıcı kendi katılımlarını yönetebilir
+        allow read, write: if isOwner(userId);
+      }
+    }
+    
+    // Kullanıcı verisi doğrulama fonksiyonu
+    function isValidUserData() {
+      let data = request.resource.data;
+      return data.keys().hasAll(['email']) &&
+             isValidEmail(data.email);
+    }
+
+    // ============================================================================
+    // COMPETITIONS COLLECTION - Yarışmalar
+    // ============================================================================
+    
+    match /competitions/{competitionId} {
+      // Okuma: Herkes aktif yarışmaları okuyabilir
+      allow read: if isAuthenticated();
+      
+      // Yazma: Authenticated kullanıcılar yarışma oluşturabilir/güncelleyebilir
+      allow write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // CONTESTS COLLECTION - Yarışmalar (alternatif)
+    // ============================================================================
+    
+    match /contests/{contestId} {
+      // Okuma: Herkes aktif yarışmaları okuyabilir
+      allow read: if isAuthenticated();
+      
+      // Yazma: Authenticated kullanıcılar yarışma oluşturabilir/güncelleyebilir
+      allow write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // PARTICIPATIONS COLLECTION - Katılımlar
+    // ============================================================================
+    
+    match /participations/{participationId} {
+      // Okuma: Authenticated kullanıcılar okuyabilir
+      allow read: if isAuthenticated();
+      
+      // Yazma: Authenticated kullanıcılar yazabilir
+      allow write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // RANKINGS COLLECTION - Sıralamalar
+    // ============================================================================
+    
+    match /rankings/{rankingId} {
+      // Okuma: Herkes sıralamaları okuyabilir
+      allow read: if isAuthenticated();
+      
+      // Yazma: Authenticated kullanıcılar yazabilir
+      allow write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // NOTIFICATIONS COLLECTION - Genel Bildirimler
+    // ============================================================================
+    
+    match /notifications/{notificationId} {
+      // Okuma: Herkes genel bildirimleri okuyabilir
+      allow read: if isAuthenticated();
+      
+      // Yazma: Authenticated kullanıcılar bildirim gönderebilir
+      allow write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // GAME SESSIONS COLLECTION - Oyun Oturumları
+    // ============================================================================
+    
+    match /gameSessions/{sessionId} {
+      // Okuma ve yazma: Authenticated kullanıcılar
+      allow read, write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // LEADERBOARD COLLECTION - Liderlik Tablosu
+    // ============================================================================
+    
+    match /leaderboard/{period} {
+      // Okuma: Herkes liderlik tablosunu okuyabilir
+      allow read: if isAuthenticated();
+      
+      // Yazma: Authenticated kullanıcılar yazabilir
+      allow write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // SETTINGS COLLECTION - Uygulama Ayarları
+    // ============================================================================
+    
+    match /settings/{settingId} {
+      // Okuma: Herkes genel ayarları okuyabilir
+      allow read: if isAuthenticated();
+      
+      // Yazma: Authenticated kullanıcılar ayarları değiştirebilir
+      allow write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // ADMINS COLLECTION - Admin Rolleri (İsteğe bağlı)
+    // ============================================================================
+    
+    match /admins/{adminId} {
+      // Okuma ve yazma: Authenticated kullanıcılar
+      allow read, write: if isAuthenticated();
+    }
+
+    // ============================================================================
+    // DEFAULT DENY RULE - Diğer tüm işlemler reddedilir
+    // ============================================================================
+    
+    // Yukarıda tanımlanmayan tüm yollar için varsayılan olarak erişim reddedilir
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 

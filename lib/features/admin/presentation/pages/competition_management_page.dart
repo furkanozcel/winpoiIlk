@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:winpoi/core/services/firestore_service.dart';
-import 'package:winpoi/core/services/notification_service.dart';
+import 'package:winpoi/core/providers/firestore_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:winpoi/features/home_page/data/models/competition.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -26,8 +27,15 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
   final _imageController = TextEditingController();
   final _durationController = TextEditingController();
 
+  bool _isLoading = false;
+  final bool _isDeleting = false;
+
   Future<void> _addCompetition() async {
     if (_formKey.currentState!.validate()) {
+      setState(() {
+        _isLoading = true;
+      });
+
       try {
         // Saat cinsinden süreyi al
         final durationInHours = double.parse(_durationController.text);
@@ -49,8 +57,15 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('Yarışma başarıyla eklendi'),
+              content: Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.white),
+                  SizedBox(width: 8),
+                  Text('Yarışma başarıyla eklendi'),
+                ],
+              ),
               backgroundColor: Colors.green,
+              duration: Duration(seconds: 3),
             ),
           );
           _clearForm();
@@ -59,21 +74,36 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text('Hata: $e'),
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text('Hata: $e')),
+                ],
+              ),
               backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
             ),
           );
+        }
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+          });
         }
       }
     }
 
-    // Bildirim gönder
-    final notificationService = NotificationService();
-    await notificationService.sendNotificationToAllUsers(
-      title: "Yeni Yarışma!",
-      message: "${_titleController.text} yarışması başladı!",
-      type: "competition",
-    );
+    // Bildirim gönder (FCM topic kullanarak)
+    try {
+      // Firebase Console üzerinden "contests" topic'ine notification gönderilebilir
+      // Şimdilik sadece console'a log yazalım
+      print('Yeni yarışma oluşturuldu: ${_titleController.text}');
+      // TODO: FCM API kullanarak topic notification gönder
+    } catch (e) {
+      print('Bildirim gönderilirken hata: $e');
+    }
   }
 
   Future<void> _deleteCompetition(String competitionId) async {
@@ -82,20 +112,57 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Yarışma başarıyla silindi'),
+            content: Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.white),
+                SizedBox(width: 8),
+                Text('Yarışma başarıyla silindi'),
+              ],
+            ),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 3),
           ),
         );
       }
     } catch (e) {
+      // Hata tipine göre farklı mesajlar göster
+      String errorMessage;
+      if (e.toString().contains('Yarışma bulunamadı')) {
+        errorMessage = 'Yarışma bulunamadı veya zaten silinmiş';
+      } else if (e.toString().contains('yetkiniz bulunmuyor')) {
+        errorMessage = 'Bu işlem için yetkiniz bulunmuyor';
+      } else if (e.toString().contains('network')) {
+        errorMessage = 'İnternet bağlantısını kontrol edin ve tekrar deneyin';
+      } else {
+        errorMessage =
+            'Yarışma silinirken bir hata oluştu. Lütfen tekrar deneyin.';
+      }
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Hata: $e'),
+            content: Row(
+              children: [
+                const Icon(Icons.error_outline, color: Colors.white),
+                const SizedBox(width: 8),
+                Expanded(child: Text(errorMessage)),
+              ],
+            ),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 4),
+            action: SnackBarAction(
+              label: 'TAMAM',
+              textColor: Colors.white,
+              onPressed: () {
+                ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              },
+            ),
           ),
         );
       }
+
+      // Debug için console'a da yazdır
+      debugPrint('Yarışma silme hatası: $e');
     }
   }
 
@@ -328,7 +395,7 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
 
                   // Yarışma Ekle Butonu
                   ElevatedButton(
-                    onPressed: _addCompetition,
+                    onPressed: _isLoading ? null : _addCompetition,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: secondaryColor,
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -336,14 +403,38 @@ class _CompetitionManagementPageState extends State<CompetitionManagementPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: const Text(
-                      'Yarışma Ekle',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
+                    child: _isLoading
+                        ? const Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.white),
+                                ),
+                              ),
+                              SizedBox(width: 8),
+                              Text(
+                                'Ekleniyor...',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          )
+                        : const Text(
+                            'Yarışma Ekle',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ],
               ),

@@ -1,6 +1,4 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'app_exception.dart';
@@ -65,17 +63,17 @@ class ErrorHandler {
   /// Hata türüne göre SnackBar rengi döndürür
   static Color getErrorColor(AppException exception) {
     switch (exception.runtimeType) {
-      case AuthException:
+      case const (AuthException):
         return Colors.red.shade600;
-      case DatabaseException:
+      case const (DatabaseException):
         return Colors.orange.shade600;
-      case NetworkException:
+      case const (NetworkException):
         return Colors.blue.shade600;
-      case ValidationException:
+      case const (ValidationException):
         return Colors.yellow.shade700;
-      case BusinessException:
+      case const (BusinessException):
         return Colors.purple.shade600;
-      case StorageException:
+      case const (StorageException):
         return Colors.green.shade600;
       default:
         return Colors.red.shade600;
@@ -85,17 +83,17 @@ class ErrorHandler {
   /// Hata türüne göre ikon döndürür
   static IconData getErrorIcon(AppException exception) {
     switch (exception.runtimeType) {
-      case AuthException:
+      case const (AuthException):
         return Icons.security;
-      case DatabaseException:
+      case const (DatabaseException):
         return Icons.storage;
-      case NetworkException:
+      case const (NetworkException):
         return Icons.wifi_off;
-      case ValidationException:
+      case const (ValidationException):
         return Icons.warning;
-      case BusinessException:
+      case const (BusinessException):
         return Icons.business;
-      case StorageException:
+      case const (StorageException):
         return Icons.folder;
       default:
         return Icons.error;

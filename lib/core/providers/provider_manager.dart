@@ -4,6 +4,7 @@ import 'package:winpoi/core/providers/auth_provider.dart';
 import 'package:winpoi/core/providers/firestore_provider.dart';
 import 'package:winpoi/core/providers/leaderboard_provider.dart';
 import 'package:winpoi/core/providers/user_provider.dart';
+import 'package:winpoi/core/providers/notification_provider.dart';
 
 class ProviderManager extends StatelessWidget {
   final Widget child;
@@ -15,6 +16,7 @@ class ProviderManager extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => NotificationProvider()),
         ChangeNotifierProxyProvider<AuthProvider, FirestoreProvider>(
           create: (context) => FirestoreProvider(
             authProvider: Provider.of<AuthProvider>(context, listen: false),

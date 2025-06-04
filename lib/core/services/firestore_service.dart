@@ -59,24 +59,61 @@ class FirestoreService {
   // Tek bir yarışmayı sil
   Future<void> deleteCompetition(String competitionId) async {
     try {
-      // 1. Yarışmayı sil
+      // 1. Önce yarışmanın var olup olmadığını kontrol et
+      final competitionDoc = await _competitionsRef.doc(competitionId).get();
+      if (!competitionDoc.exists) {
+        throw Exception('Yarışma bulunamadı');
+      }
+
+      // 2. Yarışmayı sil
       await _competitionsRef.doc(competitionId).delete();
 
-      // 2. Tüm kullanıcıların participations alt koleksiyonlarından bu yarışmaya ait katılımları sil
-      final usersSnapshot = await _firestore.collection('users').get();
-      final batch = _firestore.batch();
-      for (final userDoc in usersSnapshot.docs) {
-        final participationsQuery = await userDoc.reference
-            .collection('participations')
-            .where('competitionId', isEqualTo: competitionId)
-            .get();
-        for (final participationDoc in participationsQuery.docs) {
-          batch.delete(participationDoc.reference);
-        }
-      }
-      await batch.commit();
+      // 3. İlgili katılımları asenkron olarak temizle (background işlem)
+      _cleanupParticipationsForCompetition(competitionId);
     } catch (e) {
-      throw Exception('Yarışma silinirken hata oluştu: $e');
+      // Daha detaylı hata mesajı
+      if (e.toString().contains('permission-denied')) {
+        throw Exception('Yarışma silme yetkiniz bulunmuyor');
+      } else if (e.toString().contains('not-found')) {
+        throw Exception('Yarışma bulunamadı veya zaten silinmiş');
+      } else {
+        throw Exception(
+            'Yarışma silinirken beklenmeyen bir hata oluştu: ${e.toString()}');
+      }
+    }
+  }
+
+  // Katılımları temizleme işlemini ayrı bir method haline getir
+  Future<void> _cleanupParticipationsForCompetition(
+      String competitionId) async {
+    try {
+      // Collection group query kullanarak tüm participation'ları bul
+      final participationsQuery = await _firestore
+          .collectionGroup('participations')
+          .where('competitionId', isEqualTo: competitionId)
+          .get();
+
+      // Batch'leri 500'erli gruplara böl (Firestore batch limiti)
+      const batchSize = 500;
+      final docs = participationsQuery.docs;
+
+      for (int i = 0; i < docs.length; i += batchSize) {
+        final batch = _firestore.batch();
+        final endIndex =
+            (i + batchSize > docs.length) ? docs.length : i + batchSize;
+
+        for (int j = i; j < endIndex; j++) {
+          batch.delete(docs[j].reference);
+        }
+
+        await batch.commit();
+      }
+
+      print(
+          'Yarışma $competitionId için ${docs.length} katılım kaydı temizlendi');
+    } catch (e) {
+      // Bu hata ana silme işlemini etkilemez, sadece log'la
+      print('Katılım kayıtları temizlenirken hata oluştu: $e');
     }
   }
 

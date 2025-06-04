@@ -47,5 +47,16 @@
 		<true/>
 		<key>UIStatusBarHidden</key>
 		<false/>
+		
+		<!-- Firebase Cloud Messaging iOS Configuration -->
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>remote-notification</string>
+			<string>background-fetch</string>
+		</array>
+		
+		<!-- Push Notification Capabilities -->
+		<key>aps-environment</key>
+		<string>development</string>
 	</dict>
 </plist>
