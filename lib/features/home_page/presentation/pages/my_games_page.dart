@@ -358,9 +358,9 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                                         const LinearGradient(
                                                       colors: [
                                                         Color(
-                                                            0xFF4ECDC4), // Turkuaz
+                                                            0xFFFFB088), // Soft but vibrant orange light
                                                         Color(
-                                                            0xFF845EC2), // Mor
+                                                            0xFFE28B33), // Soft but vibrant orange dark
                                                       ],
                                                     ),
                                                     borderRadius:
@@ -369,8 +369,8 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                                     boxShadow: [
                                                       BoxShadow(
                                                         color: const Color(
-                                                                0xFF4ECDC4)
-                                                            .withOpacity(0.3),
+                                                                0xFFE28B33)
+                                                            .withOpacity(0.35),
                                                         blurRadius: 8,
                                                         offset:
                                                             const Offset(0, 4),
@@ -674,7 +674,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                   ),
                   child: const Icon(
                     Icons.replay_rounded,
-                    color: Color(0xFF2D3436),
+                    color: Color(0xFFE28B33), // Turuncu renk
                     size: 32,
                   ),
                 ),
@@ -724,14 +724,14 @@ class _MyGamesPageState extends State<MyGamesPage> {
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [
-                            Color(0xFF4ECDC4), // Turkuaz
-                            Color(0xFF845EC2), // Mor
+                            Color(0xFFFFB088), // Soft but vibrant orange light
+                            Color(0xFFE28B33), // Soft but vibrant orange dark
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF4ECDC4).withOpacity(0.3),
+                            color: const Color(0xFFE28B33).withOpacity(0.35),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),

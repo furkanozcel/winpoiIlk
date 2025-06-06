@@ -158,8 +158,7 @@ class _NavigatorPageState extends State<NavigatorPage>
 
   Widget _buildFloatingNavItem(_NavBarItemData item) {
     final bool isSelected = true;
-    Color selectedColor =
-        _selectedIndex == 1 ? const Color(0xFF845EC2) : primaryColor;
+    Color selectedColor = const Color(0xFFE28B33); // Canlı turuncu
     return GestureDetector(
       key: ValueKey(item.pageIndex),
       onTap: () => _onItemTapped(item.pageIndex),
@@ -189,7 +188,7 @@ class _NavigatorPageState extends State<NavigatorPage>
   Widget _buildSideNavItem(_NavBarItemData item) {
     final bool isSelected = false;
     Color selectedColor =
-        Colors.grey[400]!; // Seçili olmayan ikonlar için gri renk
+        const Color(0xFFE28B33).withOpacity(0.5); // Soluk turuncu
     return GestureDetector(
       key: ValueKey(item.pageIndex),
       onTap: () => _onItemTapped(item.pageIndex),

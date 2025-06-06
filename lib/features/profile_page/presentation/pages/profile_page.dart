@@ -178,7 +178,10 @@ class _ProfilePageState extends State<ProfilePage>
       padding: const EdgeInsets.fromLTRB(16, 36, 16, 24),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF4ECDC4), Color(0xFF845EC2)],
+          colors: [
+            Color(0xFF4ECDC4), // Turkuaz - AppBar ile aynı renk
+            Color(0xFF845EC2), // Mor
+          ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -216,12 +219,11 @@ class _ProfilePageState extends State<ProfilePage>
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
-                        Color(0xFF8156A0),
-                        Color(0xFF9B6BB7),
-                        Color(0xFF8156A0),
+                        Color(0xFFFFB088), // Soft but vibrant orange light
+                        Color(0xFFE28B33), // Soft but vibrant orange dark
                       ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
                     ),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
@@ -230,7 +232,7 @@ class _ProfilePageState extends State<ProfilePage>
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF8156A0).withOpacity(0.3),
+                        color: const Color(0xFFE28B33).withOpacity(0.3),
                         blurRadius: 12,
                         offset: const Offset(0, 4),
                       ),
@@ -324,7 +326,7 @@ class _ProfilePageState extends State<ProfilePage>
 
   Widget _buildMenuItems(BuildContext context, UserProvider userProvider,
       app_provider.AuthProvider authProvider) {
-    const Color primaryColor = Color(0xFF5FC9BF);
+    const Color primaryColor = Color(0xFFE28B33); // Turuncu
     const Color textColor = Color(0xFF424242);
 
     final items = [

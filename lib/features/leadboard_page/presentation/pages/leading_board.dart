@@ -440,10 +440,29 @@ class _PodiumUserSimple extends StatelessWidget {
               ),
               decoration: BoxDecoration(
                 color: isMain
-                    ? Colors.white.withOpacity(0.18)
+                    ? null
+                    : (isSecondOrThird ? null : Colors.transparent),
+                gradient: isMain
+                    ? LinearGradient(
+                        colors: [
+                          const Color(0xFFFFB088), // Turuncu açık
+                          const Color(0xFFE28B33), // Turuncu koyu
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      )
                     : isSecondOrThird
-                        ? Colors.white.withOpacity(0.10)
-                        : Colors.transparent,
+                        ? LinearGradient(
+                            colors: [
+                              const Color(0xFFFFB088).withOpacity(
+                                  0.8), // Biraz daha belirgin turuncu açık
+                              const Color(0xFFE28B33).withOpacity(
+                                  0.8), // Biraz daha belirgin turuncu koyu
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          )
+                        : null,
                 borderRadius: BorderRadius.circular(isMain
                     ? 16
                     : isSecondOrThird
@@ -452,13 +471,40 @@ class _PodiumUserSimple extends StatelessWidget {
                 boxShadow: isMain
                     ? [
                         BoxShadow(
-                          color: Colors.yellow.withOpacity(0.25),
-                          blurRadius: 24,
+                          color: const Color(0xFFE28B33).withOpacity(0.5),
+                          blurRadius: 20,
                           spreadRadius: 2,
-                          offset: const Offset(0, 0),
+                          offset: const Offset(0, 4),
+                        ),
+                        BoxShadow(
+                          color: Colors.white.withOpacity(0.2),
+                          blurRadius: 8,
+                          spreadRadius: -1,
+                          offset: const Offset(0, -2),
                         ),
                       ]
-                    : [],
+                    : isSecondOrThird
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFFE28B33).withOpacity(
+                                  0.35), // Gölge opaklığını da artırdım
+                              blurRadius: 12,
+                              spreadRadius: 0,
+                              offset: const Offset(0, 3),
+                            ),
+                          ]
+                        : [],
+                border: isMain
+                    ? Border.all(
+                        color: Colors.white.withOpacity(0.3),
+                        width: 1.5,
+                      )
+                    : isSecondOrThird
+                        ? Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1,
+                          )
+                        : null,
               ),
               child: Text(
                 username,

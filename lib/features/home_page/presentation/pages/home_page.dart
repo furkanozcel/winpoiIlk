@@ -274,7 +274,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       ),
                       child: const Icon(
                         Icons.warning_rounded,
-                        color: Color(0xFF2D3436),
+                        color: Color(0xFFE28B33), // Turuncu renk
                         size: 32,
                       ),
                     ),
@@ -307,14 +307,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [
-                            Color(0xFF4ECDC4), // Turkuaz
-                            Color(0xFF845EC2), // Mor
+                            Color(0xFFFFB088), // Soft but vibrant orange light
+                            Color(0xFFE28B33), // Soft but vibrant orange dark
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF4ECDC4).withOpacity(0.3),
+                            color: const Color(0xFFE28B33).withOpacity(0.35),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -337,7 +337,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                           ),
                         ),
                         child: const Text(
-                          'Mağaza',
+                          'Mağazaya Git',
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight: FontWeight.w600,
@@ -394,7 +394,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   ),
                   child: const Icon(
                     Icons.play_circle_outline_rounded,
-                    color: Color(0xFF2D3436),
+                    color: Color(0xFFE28B33), // Turuncu renk
                     size: 32,
                   ),
                 ),
@@ -412,7 +412,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 const SizedBox(height: 16),
                 // Açıklama
                 Text(
-                  'Bu oyuna katılmak için ${competition.poiCost} POI bakiyenizden düşülecektir.',
+                  'Bu oyuna katılmak için ${competition.poiCost} POI bakiyenizden eksilecektir.',
                   textAlign: TextAlign.center,
                   style: const TextStyle(
                     fontSize: 15,
@@ -449,14 +449,14 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [
-                            Color(0xFF4ECDC4), // Turkuaz
-                            Color(0xFF845EC2), // Mor
+                            Color(0xFFFFB088), // Soft but vibrant orange light
+                            Color(0xFFE28B33), // Soft but vibrant orange dark
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF4ECDC4).withOpacity(0.3),
+                            color: const Color(0xFFE28B33).withOpacity(0.35),
                             blurRadius: 8,
                             offset: const Offset(0, 4),
                           ),
@@ -477,6 +477,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             }
                             return;
                           }
+
+                          // UserProvider referansını başta al
+                          if (!mounted) return;
+                          final userProvider =
+                              Provider.of<UserProvider>(context, listen: false);
 
                           // Kullanıcının POI bakiyesini kontrol et
                           final userDoc = await FirebaseFirestore.instance
@@ -542,7 +547,8 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           ),
                                           child: const Icon(
                                             Icons.warning_rounded,
-                                            color: Color(0xFF2D3436),
+                                            color: Color(
+                                                0xFFE28B33), // Turuncu renk
                                             size: 32,
                                           ),
                                         ),
@@ -572,16 +578,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           decoration: BoxDecoration(
                                             gradient: const LinearGradient(
                                               colors: [
-                                                Color(0xFF4ECDC4), // Turkuaz
-                                                Color(0xFF845EC2), // Mor
+                                                Color(
+                                                    0xFFFFB088), // Soft but vibrant orange light
+                                                Color(
+                                                    0xFFE28B33), // Soft but vibrant orange dark
                                               ],
                                             ),
                                             borderRadius:
                                                 BorderRadius.circular(12),
                                             boxShadow: [
                                               BoxShadow(
-                                                color: const Color(0xFF4ECDC4)
-                                                    .withOpacity(0.3),
+                                                color: const Color(0xFFE28B33)
+                                                    .withOpacity(0.35),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -607,7 +615,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                               ),
                                             ),
                                             child: const Text(
-                                              'Mağaza',
+                                              'Mağazaya Git',
                                               style: TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.w600,
@@ -625,134 +633,166 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                             return;
                           }
 
-                          // Normal onay kutusunu göster
-                          final bool? confirmed = await showDialog<bool>(
-                            context: context,
-                            builder: (context) => Dialog(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(24),
-                              ),
-                              child: Container(
-                                padding: const EdgeInsets.all(24),
-                                decoration: BoxDecoration(
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topCenter,
-                                    end: Alignment.bottomCenter,
-                                    colors: [
-                                      Color(0xFFD4F4F1), // Soft turkuaz
-                                      Color(0xFFE6D4F4), // Soft mor
-                                    ],
-                                  ),
-                                  borderRadius: BorderRadius.circular(24),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: const Color(0xFF4ECDC4)
-                                          .withOpacity(0.2),
-                                      blurRadius: 20,
-                                      offset: const Offset(0, 10),
-                                    ),
-                                  ],
+                          // Yarışmanın aktif olup olmadığını kontrol et
+                          if (!competition.isActive) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Bu yarışma süresi dolmuş'),
+                                  backgroundColor: Colors.red,
                                 ),
-                                child: Column(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    // Kapatma butonu
-                                    Align(
-                                      alignment: Alignment.topRight,
-                                      child: IconButton(
-                                        icon: const Icon(
-                                          Icons.close_rounded,
-                                          color: Color(0xFF2D3436),
-                                        ),
-                                        onPressed: () =>
-                                            Navigator.pop(context, false),
-                                      ),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.all(16),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withOpacity(0.2),
-                                        borderRadius: BorderRadius.circular(16),
-                                      ),
-                                      child: const Icon(
-                                        Icons.play_circle_outline_rounded,
-                                        color: Color(0xFF2D3436),
-                                        size: 32,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 20),
-                                    const Text(
-                                      'Oyunu Başlat',
-                                      style: TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF2D3436),
-                                        letterSpacing: 0.2,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 16),
-                                    Text(
-                                      'Bu oyuna katılmak için ${competition.poiCost} POI bakiyenizden düşülecektir.',
-                                      textAlign: TextAlign.center,
-                                      style: const TextStyle(
-                                        fontSize: 15,
-                                        color: Color(0xFF2D3436),
-                                        height: 1.4,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 24),
-                                    Container(
-                                      width: double.infinity,
-                                      decoration: BoxDecoration(
-                                        gradient: const LinearGradient(
-                                          colors: [
-                                            Color(0xFF4ECDC4), // Turkuaz
-                                            Color(0xFF845EC2), // Mor
-                                          ],
-                                        ),
-                                        borderRadius: BorderRadius.circular(12),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(0xFF4ECDC4)
-                                                .withOpacity(0.3),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: ElevatedButton(
-                                        onPressed: () =>
-                                            Navigator.pop(context, true),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.transparent,
-                                          shadowColor: Colors.transparent,
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 32,
-                                            vertical: 16,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                          ),
-                                        ),
-                                        child: const Text(
-                                          'Oyna',
-                                          style: TextStyle(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w600,
-                                            color: Colors.white,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          );
+                              );
+                            }
+                            return;
+                          }
 
-                          if (confirmed == true) {
-                            _joinCompetition(competition);
+                          try {
+                            // Transaction ile atomik işlem yap
+                            await FirebaseFirestore.instance
+                                .runTransaction((transaction) async {
+                              // Kullanıcı dokümanını oku
+                              final userDoc = await transaction.get(
+                                  FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(user.uid));
+
+                              if (!userDoc.exists) {
+                                throw Exception(
+                                    'Kullanıcı bilgileri bulunamadı');
+                              }
+
+                              // Kullanıcının aynı yarışmaya daha önce katılıp katılmadığını kontrol et
+                              final existingParticipationQuery =
+                                  FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(user.uid)
+                                      .collection('participations')
+                                      .where('competitionId',
+                                          isEqualTo: competition.id)
+                                      .limit(1);
+
+                              final existingParticipation =
+                                  await existingParticipationQuery.get();
+                              if (existingParticipation.docs.isNotEmpty) {
+                                throw Exception(
+                                    'Bu yarışmaya zaten katıldınız');
+                              }
+
+                              final userData =
+                                  userDoc.data() as Map<String, dynamic>;
+                              final currentBalance =
+                                  userData['poiBalance'] ?? 0;
+                              final poiCost = competition.poiCost;
+
+                              if (currentBalance < poiCost) {
+                                throw Exception(
+                                    'Yetersiz POI bakiyesi. Gerekli: $poiCost POI, Mevcut: $currentBalance POI');
+                              }
+
+                              // Yarışma dokümanını kontrol et
+                              final competitionDoc = await transaction.get(
+                                  FirebaseFirestore.instance
+                                      .collection('competitions')
+                                      .doc(competition.id));
+
+                              if (!competitionDoc.exists) {
+                                throw Exception('Yarışma bulunamadı');
+                              }
+
+                              final competitionData =
+                                  competitionDoc.data() as Map<String, dynamic>;
+                              final competitionEndTime =
+                                  (competitionData['endTime'] as Timestamp)
+                                      .toDate();
+
+                              if (DateTime.now().isAfter(competitionEndTime)) {
+                                throw Exception('Bu yarışma süresi dolmuş');
+                              }
+
+                              // POI bakiyesini düş
+                              transaction.update(
+                                  FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(user.uid),
+                                  {
+                                    'poiBalance': FieldValue.increment(-poiCost)
+                                  });
+
+                              // Yarışmaya katılım kaydı oluştur
+                              final participationRef = FirebaseFirestore
+                                  .instance
+                                  .collection('users')
+                                  .doc(user.uid)
+                                  .collection('participations')
+                                  .doc();
+
+                              // Hak sayısını belirle (katılım anındaki kalan süreye göre)
+                              final now = DateTime.now();
+                              final duration =
+                                  competitionEndTime.difference(now);
+                              final int totalAttempts =
+                                  duration.inHours >= 10 ? 3 : 2;
+
+                              transaction.set(participationRef, {
+                                'competitionId': competition.id,
+                                'competitionTitle': competition.title,
+                                'remainingAttempts': totalAttempts,
+                                'joinedAt': FieldValue.serverTimestamp(),
+                                'endTime': competitionEndTime,
+                                'lastPlayedAt': FieldValue.serverTimestamp(),
+                                'poiCost': poiCost,
+                                'status': 'active',
+                              });
+                              // İlk hak otomatik olarak kullanılsın
+                              transaction.update(participationRef, {
+                                'remainingAttempts': totalAttempts - 1,
+                                'lastPlayedAt': FieldValue.serverTimestamp(),
+                              });
+
+                              // Yarışmanın katılımcı sayısını artır
+                              transaction.update(
+                                  FirebaseFirestore.instance
+                                      .collection('competitions')
+                                      .doc(competition.id),
+                                  {
+                                    'participantCount': FieldValue.increment(1)
+                                  });
+
+                              // Toplam oyun sayısını artır
+                              transaction.update(
+                                  FirebaseFirestore.instance
+                                      .collection('users')
+                                      .doc(user.uid),
+                                  {'totalGames': FieldValue.increment(1)});
+                            });
+
+                            // UserProvider'ı güncelle
+                            if (mounted) {
+                              await userProvider.loadUserData();
+
+                              final kalanHak = competition.endTime
+                                          .difference(DateTime.now())
+                                          .inHours >=
+                                      10
+                                  ? 2
+                                  : 1;
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                      'Oyun başlatılıyor... Kalan hak: $kalanHak (${competition.poiCost} POI düşüldü)'),
+                                  backgroundColor: Colors.green,
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Hata: $e'),
+                                  backgroundColor: Colors.red,
+                                ),
+                              );
+                            }
                           }
                         },
                         style: ElevatedButton.styleFrom(
@@ -933,12 +973,11 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
                       colors: [
-                        Color(0xFF845EC2), // Mor
-                        Color(0xFF9B6BB7), // Orta ton mor
+                        Color(0xFF4ECDC4), // Turkuaz
                         Color(0xFF845EC2), // Mor
                       ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
@@ -947,7 +986,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: const Color(0xFF845EC2).withOpacity(0.15),
+                        color: const Color(0xFF4ECDC4).withOpacity(0.15),
                         blurRadius: 8,
                         offset: const Offset(0, 2),
                       ),
@@ -1018,8 +1057,18 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
             const Spacer(),
             IconButton(
-              icon: const Icon(Icons.notifications_outlined,
-                  color: Color(0xFF845EC2)),
+              icon: ShaderMask(
+                shaderCallback: (bounds) => const LinearGradient(
+                  colors: [
+                    Color(0xFF4ECDC4), // Turkuaz
+                    Color(0xFF845EC2), // Mor
+                  ],
+                ).createShader(bounds),
+                child: const Icon(
+                  Icons.notifications_outlined,
+                  color: Colors.white,
+                ),
+              ),
               onPressed: () {
                 Navigator.push(
                   context,
@@ -1045,10 +1094,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
             child: TabBar(
               controller: _tabController,
-              indicatorColor: const Color(0xFF845EC2),
+              indicatorColor: const Color(0xFFE28B33),
               indicatorWeight: 3,
-              labelColor: const Color(0xFF845EC2),
-              unselectedLabelColor: const Color(0xFF845EC2).withOpacity(0.7),
+              labelColor: const Color(0xFFE28B33),
+              unselectedLabelColor: const Color(0xFFE28B33).withOpacity(0.7),
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -1254,9 +1303,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                 gradient: const LinearGradient(
                                                   colors: [
                                                     Color(
-                                                        0xFFD4F4F1), // Soft turkuaz
+                                                        0xFFFFD4B8), // More vibrant orange light
                                                     Color(
-                                                        0xFFE6D4F4), // Soft mor
+                                                        0xFFFFB088), // More vibrant orange dark
                                                   ],
                                                   begin: Alignment.centerLeft,
                                                   end: Alignment.centerRight,
@@ -1271,7 +1320,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                 boxShadow: [
                                                   BoxShadow(
                                                     color:
-                                                        const Color(0xFF4ECDC4)
+                                                        const Color(0xFFE28B33)
                                                             .withOpacity(0.1),
                                                     blurRadius: 4,
                                                     offset: const Offset(0, 2),
@@ -1662,9 +1711,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                                   const LinearGradient(
                                                                 colors: [
                                                                   Color(
-                                                                      0xFF4ECDC4), // Turkuaz
+                                                                      0xFFFFB088), // Soft but vibrant orange light
                                                                   Color(
-                                                                      0xFF845EC2), // Mor
+                                                                      0xFFE28B33), // Soft but vibrant orange dark
                                                                 ],
                                                               ),
                                                               borderRadius:
@@ -1674,9 +1723,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                               boxShadow: [
                                                                 BoxShadow(
                                                                   color: const Color(
-                                                                          0xFF4ECDC4)
+                                                                          0xFFE28B33)
                                                                       .withOpacity(
-                                                                          0.3),
+                                                                          0.35),
                                                                   blurRadius: 8,
                                                                   offset:
                                                                       const Offset(
@@ -1729,79 +1778,38 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                           ),
                                                           const SizedBox(
                                                               height: 16),
-                                                          // Bilgi Notu
-                                                          Container(
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .all(16),
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: Colors
-                                                                  .white
-                                                                  .withOpacity(
-                                                                      0.3),
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          16),
-                                                              border:
-                                                                  Border.all(
+                                                          Row(
+                                                            children: [
+                                                              Icon(
+                                                                Icons
+                                                                    .info_outline_rounded,
+                                                                size: 16,
                                                                 color: Colors
-                                                                    .white
-                                                                    .withOpacity(
-                                                                        0.5),
-                                                                width: 1,
+                                                                    .grey
+                                                                    .shade600,
                                                               ),
-                                                            ),
-                                                            child: Row(
-                                                              children: [
-                                                                Container(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .all(
-                                                                          8),
-                                                                  decoration:
-                                                                      BoxDecoration(
-                                                                    color: const Color(
-                                                                            0xFF4ECDC4)
-                                                                        .withOpacity(
-                                                                            0.2),
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            12),
-                                                                  ),
-                                                                  child:
-                                                                      const Icon(
-                                                                    Icons
-                                                                        .info_outline_rounded,
-                                                                    size: 20,
-                                                                    color: Color(
-                                                                        0xFF4ECDC4),
+                                                              const SizedBox(
+                                                                  width: 8),
+                                                              Expanded(
+                                                                child: Text(
+                                                                  'En iyi yaptığınız süre sıralamada yer alır.',
+                                                                  style:
+                                                                      TextStyle(
+                                                                    fontSize:
+                                                                        13,
+                                                                    color: Colors
+                                                                        .grey
+                                                                        .shade600,
+                                                                    fontStyle:
+                                                                        FontStyle
+                                                                            .italic,
+                                                                    height: 1.4,
+                                                                    letterSpacing:
+                                                                        0.2,
                                                                   ),
                                                                 ),
-                                                                const SizedBox(
-                                                                    width: 12),
-                                                                Expanded(
-                                                                  child: Text(
-                                                                    'En iyi yaptığınız süre sıralamada yer alır.',
-                                                                    style:
-                                                                        const TextStyle(
-                                                                      fontSize:
-                                                                          14,
-                                                                      fontStyle:
-                                                                          FontStyle
-                                                                              .italic,
-                                                                      color: Color(
-                                                                          0xFF2D3436),
-                                                                      height:
-                                                                          1.4,
-                                                                      letterSpacing:
-                                                                          0.2,
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
+                                                              ),
+                                                            ],
                                                           ),
                                                         ],
                                                       ),
@@ -1827,9 +1835,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                       const LinearGradient(
                                                     colors: [
                                                       Color(
-                                                          0xFFD4F4F1), // Soft turkuaz
+                                                          0xFFFFD4B8), // More vibrant orange light
                                                       Color(
-                                                          0xFFE6D4F4), // Soft mor
+                                                          0xFFFFB088), // More vibrant orange dark
                                                     ],
                                                     begin: Alignment.centerLeft,
                                                     end: Alignment.centerRight,
@@ -1844,7 +1852,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                   boxShadow: [
                                                     BoxShadow(
                                                       color: const Color(
-                                                              0xFF4ECDC4)
+                                                              0xFFE28B33)
                                                           .withOpacity(0.1),
                                                       blurRadius: 4,
                                                       offset:
