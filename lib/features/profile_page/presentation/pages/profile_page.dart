@@ -3,8 +3,10 @@ import 'package:provider/provider.dart';
 import 'package:winpoi/core/providers/auth_provider.dart' as app_provider;
 import 'package:winpoi/core/providers/user_provider.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/about_app_page.dart';
-import 'package:winpoi/features/profile_page/presentation/pages/agreements_page.dart';
-import 'package:winpoi/features/profile_page/presentation/pages/profile_details_page.dart';
+import 'package:winpoi/features/profile_page/presentation/pages/agreements_page.dart'
+    as agreements;
+import 'package:winpoi/features/profile_page/presentation/pages/profile_details_page.dart'
+    as profile;
 import 'package:winpoi/features/profile_page/presentation/widgets/logout_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -77,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage>
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: primaryColor,
+        backgroundColor: const Color(0xFF4ECDC4), // Turkuaz
         title: const Row(
           children: [
             Text(
@@ -176,7 +178,7 @@ class _ProfilePageState extends State<ProfilePage>
       padding: const EdgeInsets.fromLTRB(16, 36, 16, 24),
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [primaryColor, secondaryColor],
+          colors: [Color(0xFF4ECDC4), Color(0xFF845EC2)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
@@ -332,7 +334,7 @@ class _ProfilePageState extends State<ProfilePage>
         'onTap': () => Navigator.push(
               context,
               MaterialPageRoute(
-                  builder: (context) => const ProfileDetailsPage()),
+                  builder: (context) => const profile.ProfileDetailsPage()),
             ),
       },
       {
@@ -348,7 +350,8 @@ class _ProfilePageState extends State<ProfilePage>
         'title': 'Sözleşmeler',
         'onTap': () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const AgreementsPage()),
+              MaterialPageRoute(
+                  builder: (context) => const agreements.AgreementsPage()),
             ),
       },
       {

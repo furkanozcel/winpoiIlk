@@ -130,7 +130,7 @@ class _SplashScreenState extends State<SplashScreen> {
               shaderCallback: (bounds) => const LinearGradient(
                 colors: [
                   Color(0xFF4ECDC4), // Turkuaz
-                  Color(0xFFFF6B6B), // Turuncu
+                  Color(0xFF845EC2), // Mor
                 ],
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,

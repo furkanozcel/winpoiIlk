@@ -280,43 +280,138 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                     onPressed: () {
                                       showDialog(
                                         context: context,
-                                        builder: (context) => AlertDialog(
+                                        builder: (context) => Dialog(
                                           shape: RoundedRectangleBorder(
                                             borderRadius:
-                                                BorderRadius.circular(20),
+                                                BorderRadius.circular(24),
                                           ),
-                                          title: Row(
-                                            children: [
-                                              Icon(Icons.map_rounded,
-                                                  color: Color(0xFF5FC9BF),
-                                                  size: 28),
-                                              const SizedBox(width: 8),
-                                              const Text('Haritayı Gör'),
-                                            ],
-                                          ),
-                                          content: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(Icons.map_rounded,
-                                                  size: 80,
-                                                  color: Color(0xFF5FC9BF)),
-                                              const SizedBox(height: 16),
-                                              const Text(
-                                                'Bu yarışmanın oynandığı harita burada gösterilecek. (Şu an temsili harita)',
-                                                textAlign: TextAlign.center,
-                                                style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Colors.black87),
+                                          child: Container(
+                                            padding: const EdgeInsets.all(24),
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                begin: Alignment.topCenter,
+                                                end: Alignment.bottomCenter,
+                                                colors: [
+                                                  Color(
+                                                      0xFFD4F4F1), // Soft turkuaz
+                                                  Color(0xFFE6D4F4), // Soft mor
+                                                ],
                                               ),
-                                            ],
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed: () =>
-                                                  Navigator.pop(context),
-                                              child: const Text('Kapat'),
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFF4ECDC4)
+                                                      .withOpacity(0.2),
+                                                  blurRadius: 20,
+                                                  offset: const Offset(0, 10),
+                                                ),
+                                              ],
                                             ),
-                                          ],
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Container(
+                                                  padding:
+                                                      const EdgeInsets.all(16),
+                                                  decoration: BoxDecoration(
+                                                    color: Colors.white
+                                                        .withOpacity(0.2),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            16),
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.map_rounded,
+                                                    color: Color(0xFF2D3436),
+                                                    size: 32,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 20),
+                                                const Text(
+                                                  'Haritayı Gör',
+                                                  style: TextStyle(
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: Color(0xFF2D3436),
+                                                    letterSpacing: 0.2,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 16),
+                                                Icon(Icons.map_rounded,
+                                                    size: 80,
+                                                    color: Color(0xFF5FC9BF)),
+                                                const SizedBox(height: 16),
+                                                const Text(
+                                                  'Bu yarışmanın oynandığı harita burada gösterilecek. (Şu an temsili harita)',
+                                                  textAlign: TextAlign.center,
+                                                  style: TextStyle(
+                                                    fontSize: 15,
+                                                    color: Color(0xFF2D3436),
+                                                    height: 1.4,
+                                                  ),
+                                                ),
+                                                const SizedBox(height: 24),
+                                                Container(
+                                                  decoration: BoxDecoration(
+                                                    gradient:
+                                                        const LinearGradient(
+                                                      colors: [
+                                                        Color(
+                                                            0xFF4ECDC4), // Turkuaz
+                                                        Color(
+                                                            0xFF845EC2), // Mor
+                                                      ],
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            12),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: const Color(
+                                                                0xFF4ECDC4)
+                                                            .withOpacity(0.3),
+                                                        blurRadius: 8,
+                                                        offset:
+                                                            const Offset(0, 4),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  child: ElevatedButton(
+                                                    onPressed: () =>
+                                                        Navigator.pop(context),
+                                                    style: ElevatedButton
+                                                        .styleFrom(
+                                                      backgroundColor:
+                                                          Colors.transparent,
+                                                      shadowColor:
+                                                          Colors.transparent,
+                                                      padding: const EdgeInsets
+                                                          .symmetric(
+                                                        horizontal: 24,
+                                                        vertical: 12,
+                                                      ),
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(12),
+                                                      ),
+                                                    ),
+                                                    child: const Text(
+                                                      'Kapat',
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: Colors.white,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
                                       );
                                     },
@@ -346,24 +441,72 @@ class _MyGamesPageState extends State<MyGamesPage> {
                             Row(
                               children: [
                                 SizedBox(
-                                  width: 160, // Daha küçük genişlik
-                                  child: ElevatedButton(
-                                    onPressed: () {},
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF8156A0),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 12),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
+                                  width: 160,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [
+                                          Color(0xFFD4F4F1), // Soft turkuaz
+                                          Color(0xFFE6D4F4), // Soft mor
+                                        ],
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
                                       ),
-                                      elevation: 0,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.white.withOpacity(0.5),
+                                        width: 1,
+                                      ),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: const Color(0xFF4ECDC4)
+                                              .withOpacity(0.2),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 4),
+                                        ),
+                                      ],
                                     ),
-                                    child: const Text(
-                                      'Sıralamayı Göster',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.white,
+                                    child: ElevatedButton(
+                                      onPressed: () {},
+                                      style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.transparent,
+                                        shadowColor: Colors.transparent,
+                                        padding: const EdgeInsets.symmetric(
+                                            vertical: 12),
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        elevation: 0,
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.white.withOpacity(0.3),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: const Icon(
+                                              Icons.leaderboard_rounded,
+                                              size: 16,
+                                              color: Color(0xFF2D3436),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Text(
+                                            'Sıralamayı Göster',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: Color(0xFF2D3436),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -372,29 +515,32 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                 Expanded(
                                   child: Container(
                                     decoration: BoxDecoration(
-                                      gradient: remainingAttempts > 0
-                                          ? const LinearGradient(
-                                              begin: Alignment.centerLeft,
-                                              end: Alignment.centerRight,
-                                              colors: [
+                                      gradient: LinearGradient(
+                                        colors: remainingAttempts > 0
+                                            ? const [
                                                 Color(0xFF4ECDC4), // Turkuaz
-                                                Color(0xFFE28B33), // Turuncu
+                                                Color(0xFF845EC2), // Mor
+                                              ]
+                                            : [
+                                                Colors.grey.shade300,
+                                                Colors.grey.shade400,
                                               ],
-                                            )
-                                          : const LinearGradient(
-                                              begin: Alignment.centerLeft,
-                                              end: Alignment.centerRight,
-                                              colors: [
-                                                Color(0xFFCCCCCC), // Açık Gri
-                                                Color(0xFF999999), // Koyu Gri
-                                              ],
-                                            ),
+                                        begin: Alignment.centerLeft,
+                                        end: Alignment.centerRight,
+                                      ),
                                       borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: remainingAttempts > 0
+                                            ? Colors.white.withOpacity(0.5)
+                                            : Colors.grey.shade400
+                                                .withOpacity(0.5),
+                                        width: 1,
+                                      ),
                                       boxShadow: remainingAttempts > 0
                                           ? [
                                               BoxShadow(
                                                 color: const Color(0xFF4ECDC4)
-                                                    .withOpacity(0.2),
+                                                    .withOpacity(0.3),
                                                 blurRadius: 8,
                                                 offset: const Offset(0, 4),
                                               ),
@@ -403,8 +549,10 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                     ),
                                     child: ElevatedButton(
                                       onPressed: remainingAttempts > 0
-                                          ? () => _playGame(
-                                              game.id, remainingAttempts)
+                                          ? () => _replayGame({
+                                                ...data,
+                                                'id': game.id,
+                                              })
                                           : null,
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.transparent,
@@ -417,17 +565,40 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                         ),
                                         elevation: 0,
                                       ),
-                                      child: Text(
-                                        remainingAttempts > 0
-                                            ? 'Tekrar Oyna'
-                                            : 'Hakkınız Kalmadı',
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: remainingAttempts > 0
-                                              ? Colors.white
-                                              : Colors.white.withOpacity(0.7),
-                                        ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color:
+                                                  Colors.white.withOpacity(0.3),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                            child: Icon(
+                                              Icons.replay_rounded,
+                                              size: 16,
+                                              color: remainingAttempts > 0
+                                                  ? Colors.white
+                                                  : Colors.grey.shade600,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            remainingAttempts > 0
+                                                ? 'Tekrar Oyna'
+                                                : 'Hakkınız Kalmadı',
+                                            style: TextStyle(
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w600,
+                                              color: remainingAttempts > 0
+                                                  ? Colors.white
+                                                  : Colors.grey.shade600,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -455,17 +626,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
     return remainingTime.isNegative;
   }
 
-  Future<void> _playGame(String participationId, int remainingAttempts) async {
-    if (remainingAttempts <= 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kalan oyun hakkınız bulunmuyor!'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
+  Future<void> _replayGame(Map<String, dynamic> game) async {
     try {
       final authProvider =
           Provider.of<app_provider.AuthProvider>(context, listen: false);
@@ -475,26 +636,193 @@ class _MyGamesPageState extends State<MyGamesPage> {
         throw Exception('Kullanıcı oturumu bulunamadı');
       }
 
+      // Onay kutusunu göster
+      final bool? confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFFD4F4F1), // Soft turkuaz
+                  Color(0xFFE6D4F4), // Soft mor
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF4ECDC4).withOpacity(0.2),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Icon(
+                    Icons.replay_rounded,
+                    color: Color(0xFF2D3436),
+                    size: 32,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Oyuna Gir',
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF2D3436),
+                    letterSpacing: 0.2,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  'Bu oyuna tekrar girmek istediğinize emin misiniz?',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: Color(0xFF2D3436),
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 12,
+                        ),
+                      ),
+                      child: Text(
+                        'İptal',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: Colors.grey[600],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF4ECDC4), // Turkuaz
+                            Color(0xFF845EC2), // Mor
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF4ECDC4).withOpacity(0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 24,
+                            vertical: 12,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text(
+                          'Oyna',
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+
+      if (confirmed != true) return;
+
+      // Önce katılım dokümanını kontrol et
+      final participationDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('participations')
+          .doc(game['id'])
+          .get();
+
+      if (!participationDoc.exists) {
+        throw Exception('Katılım kaydı bulunamadı');
+      }
+
+      final participationData = participationDoc.data() as Map<String, dynamic>;
+      final remainingAttempts = participationData['remainingAttempts'] as int;
+
+      if (remainingAttempts <= 0) {
+        throw Exception('Kalan hak sayınız yetersiz');
+      }
+
+      // Yarışmanın durumunu kontrol et
+      final competitionDoc = await FirebaseFirestore.instance
+          .collection('competitions')
+          .doc(game['competitionId'])
+          .get();
+
+      if (!competitionDoc.exists) {
+        throw Exception('Yarışma bulunamadı');
+      }
+
+      final competitionData = competitionDoc.data() as Map<String, dynamic>;
+      final competitionEndTime =
+          (competitionData['endTime'] as Timestamp).toDate();
+
+      if (DateTime.now().isAfter(competitionEndTime)) {
+        throw Exception('Bu yarışma süresi dolmuş');
+      }
+
+      // Katılım dokümanını güncelle
       await FirebaseFirestore.instance
           .collection('users')
           .doc(user.uid)
           .collection('participations')
-          .doc(participationId)
+          .doc(game['id'])
           .update({
-        'remainingAttempts': remainingAttempts - 1,
+        'remainingAttempts': FieldValue.increment(-1),
         'lastPlayedAt': FieldValue.serverTimestamp(),
       });
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              remainingAttempts - 1 > 0
-                  ? 'Oyun başlatılıyor... Kalan hak: ${remainingAttempts - 1}'
-                  : 'Son hakkınızı kullandınız! Oyun başlatılıyor...',
-            ),
-            backgroundColor:
-                remainingAttempts - 1 > 0 ? Colors.green : Colors.orange,
+          const SnackBar(
+            content: Text('Oyun başlatılıyor...'),
+            backgroundColor: Colors.green,
           ),
         );
       }

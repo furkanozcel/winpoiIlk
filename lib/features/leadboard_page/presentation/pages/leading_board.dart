@@ -203,8 +203,8 @@ class _LeadingBoardState extends State<LeadingBoard>
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
           colors: [
-            primaryColor,
-            secondaryColor,
+            Color(0xFF4ECDC4), // Turkuaz
+            Color(0xFF845EC2), // Mor
           ],
         ),
       ),

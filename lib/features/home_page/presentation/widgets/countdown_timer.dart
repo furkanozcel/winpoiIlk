@@ -60,9 +60,8 @@ class _CountdownTimerState extends State<CountdownTimer> {
           ? 'Oyun Sona Erdi'
           : _formatDuration(_remainingTime),
       style: TextStyle(
-        color: widget.isCompetitionEnded
-            ? Colors.grey
-            : (widget.color ?? const Color(0xFF5FC9BF)),
+        color:
+            widget.isCompetitionEnded ? Colors.grey : const Color(0xFF2D3436),
         fontWeight: FontWeight.bold,
       ),
     );

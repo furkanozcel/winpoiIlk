@@ -36,9 +36,9 @@ class _NavigatorPageState extends State<NavigatorPage>
 
   Color _getNavBarColor() {
     if (_selectedIndex == 1) {
-      return secondaryColor; // Liderlik tablosu (turuncu)
+      return const Color(0xFF845EC2); // Mor renk (LeadingBoard sayfası için)
     } else {
-      return Colors.white; // Ana sayfa ve profil (beyaz)
+      return Colors.white; // Diğer sayfalar için beyaz
     }
   }
 
@@ -158,7 +158,8 @@ class _NavigatorPageState extends State<NavigatorPage>
 
   Widget _buildFloatingNavItem(_NavBarItemData item) {
     final bool isSelected = true;
-    Color selectedColor = primaryColor;
+    Color selectedColor =
+        _selectedIndex == 1 ? const Color(0xFF845EC2) : primaryColor;
     return GestureDetector(
       key: ValueKey(item.pageIndex),
       onTap: () => _onItemTapped(item.pageIndex),
@@ -187,7 +188,8 @@ class _NavigatorPageState extends State<NavigatorPage>
 
   Widget _buildSideNavItem(_NavBarItemData item) {
     final bool isSelected = false;
-    Color selectedColor = accentColor;
+    Color selectedColor =
+        Colors.grey[400]!; // Seçili olmayan ikonlar için gri renk
     return GestureDetector(
       key: ValueKey(item.pageIndex),
       onTap: () => _onItemTapped(item.pageIndex),

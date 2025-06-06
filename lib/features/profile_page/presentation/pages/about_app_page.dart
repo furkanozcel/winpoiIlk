@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 // Renk paleti
 const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
@@ -6,13 +7,60 @@ const Color secondaryColor = Color(0xFFE28B33); // Turuncu
 const Color accentColor = Color(0xFFB39DDB); // Soft Mor (isteğe bağlı)
 const Color textColor = Color(0xFF424242); // Koyu Gri
 
-class AboutAppPage extends StatelessWidget {
+class AboutAppPage extends StatefulWidget {
   const AboutAppPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final topPadding = MediaQuery.of(context).padding.top;
+  State<AboutAppPage> createState() => _AboutAppPageState();
+}
 
+class _AboutAppPageState extends State<AboutAppPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _logoAnimation;
+  late Animation<double> _titleAnimation;
+  late Animation<double> _contentAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1200),
+    );
+
+    _logoAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+    );
+
+    _titleAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+    );
+
+    _contentAnimation = CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _launchURL(String url) async {
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return GestureDetector(
       onHorizontalDragEnd: (details) {
         if (details.primaryVelocity! > 0) {
@@ -22,199 +70,251 @@ class AboutAppPage extends StatelessWidget {
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: AppBar(
-          backgroundColor: primaryColor,
+          backgroundColor: Colors.white,
           elevation: 0,
-          title: TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 300),
-            tween: Tween(begin: 0, end: 1),
-            builder: (context, value, child) {
-              return Opacity(
-                opacity: value,
-                child: const Text(
-                  'Uygulama Hakkında',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 22,
-                    fontFamily: 'Poppins',
-                    letterSpacing: 0.1,
-                  ),
-                ),
-              );
-            },
+          title: const Text(
+            'Uygulama Hakkında',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+              letterSpacing: 0.2,
+            ),
           ),
-          flexibleSpace: null,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: textColor,
+              size: 22,
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
           child: Column(
             children: [
-              // Üst Kısım
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(
-                  top: 20,
-                  bottom: 32,
-                ),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      primaryColor,
-                      secondaryColor,
-                    ],
+              const SizedBox(height: 40),
+              // WinPoi Text
+              ScaleTransition(
+                scale: _titleAnimation,
+                child: FadeTransition(
+                  opacity: _titleAnimation,
+                  child: ShaderMask(
+                    shaderCallback: (bounds) => const LinearGradient(
+                      colors: [
+                        Color(0xFF4ECDC4), // Turkuaz
+                        Color(0xFF845EC2), // Mor
+                      ],
+                    ).createShader(bounds),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Win',
+                          style: TextStyle(
+                            fontSize: 64,
+                            fontWeight: FontWeight.bold,
+                            letterSpacing: 1.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Poi',
+                          style: TextStyle(
+                            fontSize: 64,
+                            fontWeight: FontWeight.w300,
+                            letterSpacing: 1.5,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-                child: Center(
-                  child: TweenAnimationBuilder(
-                    duration: const Duration(milliseconds: 400),
-                    tween: Tween<double>(begin: 0, end: 1),
-                    builder: (context, double value, child) {
-                      return Transform.scale(
-                        scale: 0.8 + (0.2 * value),
-                        child: Opacity(
-                          opacity: value,
+              ),
+              const SizedBox(height: 12),
+              // Version
+              ScaleTransition(
+                scale: _titleAnimation,
+                child: FadeTransition(
+                  opacity: _titleAnimation,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: secondaryColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Text(
+                      'Versiyon 1.0.0',
+                      style: TextStyle(
+                        color: secondaryColor,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+              // İçerik Kartları
+              FadeTransition(
+                opacity: _contentAnimation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.1),
+                    end: Offset.zero,
+                  ).animate(_contentAnimation),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Column(
+                      children: [
+                        _buildFeatureCard(
+                          icon: Icons.games_rounded,
+                          title: 'Eğlenceli Oyunlar',
+                          description:
+                              'Mini oyunları yaparak XP\'ler kazan,\nBu XP\'ler ile yeneklerini kullan,\nStratejini yap, büyük ödüllere eğlenceli oyunlarla ulaş!',
+                          color: const Color(0xFF4ECDC4),
+                        ),
+                        _buildFeatureCard(
+                          icon: Icons.emoji_events_rounded,
+                          title: 'Ödüller',
+                          description:
+                              'Dijital ödüllerden tatil biletlerine,\ntatil biletlerinden ev eşyalarına\nher türlü ödülün sahibi ol.\nEn hızlı sen bul, ödülü kap!',
+                          color: const Color(0xFF845EC2),
+                        ),
+                        _buildFeatureCard(
+                          icon: Icons.leaderboard_rounded,
+                          title: 'Liderlik Tablosu',
+                          description:
+                              'Başarı puanı bu oyunda çok önemli,\nPuanları topla özel oyunlara katılma fırsatı yakala,\nRakiplerinin üstünde ol, özel ödüllerin sahibi ol.',
+                          color: const Color(0xFFE28B33),
+                        ),
+                        const SizedBox(height: 24),
+                        // Sosyal Medya Kartı
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF4ECDC4).withOpacity(0.1),
+                                const Color(0xFF845EC2).withOpacity(0.1),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.grey[200]!,
+                              width: 1,
+                            ),
+                          ),
                           child: Column(
                             children: [
-                              RichText(
-                                text: const TextSpan(
-                                  children: [
-                                    TextSpan(
-                                      text: 'Win',
-                                      style: TextStyle(
-                                        fontSize: 36,
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.white,
-                                        fontFamily: 'Poppins',
-                                        letterSpacing: -0.5,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black26,
-                                            blurRadius: 8,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: 'Poi',
-                                      style: TextStyle(
-                                        fontSize: 36,
-                                        fontWeight: FontWeight.w400,
-                                        color: Colors.white,
-                                        fontFamily: 'Poppins',
-                                        letterSpacing: -0.5,
-                                        shadows: [
-                                          Shadow(
-                                            color: Colors.black26,
-                                            blurRadius: 8,
-                                            offset: Offset(0, 2),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
+                              const Text(
+                                'Bizi Takip Edin',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: textColor,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
-                              const SizedBox(height: 18),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 22,
-                                  vertical: 8,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.22),
-                                  borderRadius: BorderRadius.circular(22),
-                                  border: Border.all(
-                                    color: Colors.white.withOpacity(0.22),
-                                    width: 1,
+                              const SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  _buildSocialButton(
+                                    icon: Icons.facebook,
+                                    color: const Color(0xFF1877F2),
+                                    onTap: () => _launchURL(
+                                        'https://facebook.com/winpoi'),
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.06),
-                                      blurRadius: 8,
-                                      offset: const Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: const Text(
-                                  'Versiyon 1.0.0',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16,
-                                    fontFamily: 'Poppins',
-                                    letterSpacing: 0.1,
+                                  const SizedBox(width: 20),
+                                  _buildSocialButton(
+                                    icon: Icons.camera_alt_outlined,
+                                    color: const Color(0xFFE4405F),
+                                    onTap: () => _launchURL(
+                                        'https://instagram.com/winpoi'),
                                   ),
-                                ),
+                                  const SizedBox(width: 20),
+                                  _buildSocialButton(
+                                    icon: Icons.language,
+                                    color: const Color(0xFF845EC2),
+                                    onTap: () =>
+                                        _launchURL('https://winpoi.com'),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
                         ),
-                      );
-                    },
-                  ),
-                ),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    TweenAnimationBuilder<double>(
-                      duration: const Duration(milliseconds: 800),
-                      tween: Tween(begin: 0, end: 1),
-                      builder: (context, value, child) {
-                        return Transform.translate(
-                          offset: Offset(0, 30 * (1 - value)),
-                          child: Opacity(
-                            opacity: value,
-                            child: _buildSocialMediaLinks(),
+                        const SizedBox(height: 24),
+                        // İletişim Kartı
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                const Color(0xFF4ECDC4).withOpacity(0.1),
+                                const Color(0xFF845EC2).withOpacity(0.1),
+                              ],
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: Colors.grey[200]!,
+                              width: 1,
+                            ),
                           ),
-                        );
-                      },
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'İletişim',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w600,
+                                  color: textColor,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              _buildContactItem(
+                                icon: Icons.mail_outline,
+                                text: 'info@winpoi.com',
+                                onTap: () =>
+                                    _launchURL('mailto:info@winpoi.com'),
+                              ),
+                              const SizedBox(height: 16),
+                              _buildContactItem(
+                                icon: Icons.phone_outlined,
+                                text: '+90 555 123 4567',
+                                onTap: () => _launchURL('tel:+905551234567'),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Telif Hakkı
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 32),
+                          child: Text(
+                            '© 2024 WinPoi. Tüm hakları saklıdır.',
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 24),
-                    _buildInfoSectionWithAnimation(
-                      icon: Icons.info_outline,
-                      title: 'WinPoi Nedir?',
-                      content:
-                          'WinPoi, kullanıcıların eğlenceli yarışmalara katılarak ödüller kazanabildiği bir platformdur. Yarışmalara katılın, POI kazanın ve harika ödüllerin sahibi olun!',
-                      delay: 200,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInfoSectionWithAnimation(
-                      icon: Icons.emoji_events_outlined,
-                      title: 'Yarışma Kuralları',
-                      content:
-                          '''• Her yarışmaya katılım için minimum POI gereklidir
-• Yarışmalar belirli zaman dilimlerinde gerçekleşir
-• Her yarışmanın kendine özgü kuralları vardır
-• Haksız rekabet oluşturacak davranışlar yasaktır
-• Kazananlar sistem tarafından otomatik belirlenir''',
-                      delay: 400,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInfoSectionWithAnimation(
-                      icon: Icons.currency_exchange_outlined,
-                      title: 'POI Sistemi',
-                      content: '''• POI'ler yarışmalara katılarak kazanılır
-• Kazanılan POI'ler ödül alımında kullanılabilir
-• POI transferi yapılamaz
-• Minimum çekim limiti 1000 POI'dir
-• POI'ler 1 yıl içinde kullanılmalıdır''',
-                      delay: 600,
-                    ),
-                    const SizedBox(height: 16),
-                    _buildInfoSectionWithAnimation(
-                      icon: Icons.contact_support_outlined,
-                      title: 'İletişim',
-                      content:
-                          'E-posta: support@winpoi.com\nWeb: www.winpoi.com',
-                      delay: 800,
-                    ),
-                  ],
+                  ),
                 ),
               ),
             ],
@@ -224,160 +324,67 @@ class AboutAppPage extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoSectionWithAnimation({
+  Widget _buildFeatureCard({
     required IconData icon,
     required String title,
-    required String content,
-    required int delay,
+    required String description,
+    required Color color,
   }) {
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 800),
-      tween: Tween(begin: 0, end: 1),
-      curve: Curves.easeOutCubic,
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(30 * (1 - value), 0),
-          child: Opacity(
-            opacity: value,
-            child: Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
-              margin: const EdgeInsets.only(bottom: 10),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white.withOpacity(0.96),
-                    primaryColor.withOpacity(0.10),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: primaryColor.withOpacity(0.10),
-                  width: 1.2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.06),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(11),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              primaryColor.withOpacity(0.16),
-                              secondaryColor.withOpacity(0.10),
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        child: Icon(
-                          icon,
-                          color: secondaryColor.withOpacity(0.85),
-                          size: 24,
-                        ),
-                      ),
-                      const SizedBox(width: 14),
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.5,
-                          fontFamily: 'Poppins',
-                          color: textColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Text(
-                    content,
-                    style: TextStyle(
-                      color: textColor.withOpacity(0.82),
-                      height: 1.55,
-                      fontSize: 15.5,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildSocialMediaLinks() {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            primaryColor.withOpacity(0.10),
-            secondaryColor.withOpacity(0.07),
+            color.withOpacity(0.1),
+            color.withOpacity(0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: primaryColor.withOpacity(0.13),
-          width: 1.5,
+          color: Colors.grey[200]!,
+          width: 1,
         ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [primaryColor, secondaryColor],
-            ).createShader(bounds),
-            child: const Text(
-              'Bizi Takip Edin',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-                letterSpacing: -0.5,
-                fontFamily: 'Poppins',
-              ),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: color.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              icon,
+              color: color,
+              size: 24,
             ),
           ),
-          const SizedBox(height: 24),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildSocialButton(
-                icon: Icons.camera_alt,
-                onTap: () {},
-                label: 'Instagram',
-              ),
-              const SizedBox(width: 16),
-              _buildSocialButton(
-                icon: Icons.android,
-                onTap: () {},
-                label: 'Android',
-              ),
-              const SizedBox(width: 16),
-              _buildSocialButton(
-                icon: Icons.language,
-                onTap: () {},
-                label: 'Web',
-              ),
-            ],
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: textColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -386,63 +393,59 @@ class AboutAppPage extends StatelessWidget {
 
   Widget _buildSocialButton({
     required IconData icon,
+    required Color color,
     required VoidCallback onTap,
-    required String label,
   }) {
-    return TweenAnimationBuilder<double>(
-      duration: const Duration(milliseconds: 200),
-      tween: Tween(begin: 1, end: 1),
-      builder: (context, scale, child) {
-        return MouseRegion(
-          cursor: SystemMouseCursors.click,
-          child: GestureDetector(
-            onTap: onTap,
-            child: Container(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 16,
-              ),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    primaryColor.withOpacity(0.10),
-                    secondaryColor.withOpacity(0.07),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.10),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    icon,
-                    color: secondaryColor,
-                    size: 30,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    label,
-                    style: const TextStyle(
-                      color: secondaryColor,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Poppins',
-                    ),
-                  ),
-                ],
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(
+          icon,
+          color: color,
+          size: 24,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildContactItem({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: primaryColor,
+              size: 20,
+            ),
+            const SizedBox(width: 12),
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 14,
+                color: textColor,
               ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
 }

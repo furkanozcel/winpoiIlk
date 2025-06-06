@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-// Renk paleti
 const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
 const Color secondaryColor = Color(0xFFE28B33); // Turuncu
 const Color accentColor = Color(0xFFB39DDB); // Soft Mor (isteğe bağlı)
@@ -13,8 +12,217 @@ class AgreementsPage extends StatefulWidget {
   State<AgreementsPage> createState() => _AgreementsPageState();
 }
 
-class _AgreementsPageState extends State<AgreementsPage> {
-  final List<bool> _isExpanded = List.generate(4, (_) => false);
+class _AgreementsPageState extends State<AgreementsPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _scaleAnimation;
+  late Animation<double> _contentAnimation;
+  int? _expandedIndex;
+
+  final List<Map<String, dynamic>> _agreements = [
+    {
+      'title': 'Kullanıcı Sözleşmesi',
+      'icon': Icons.description_outlined,
+      'content': '''
+1. Genel Hükümler
+   • WinPoi uygulamasını kullanarak bu sözleşmeyi kabul etmiş sayılırsınız.
+   • Uygulama içeriğindeki tüm materyaller WinPoi'ye aittir.
+   • Kullanıcılar uygulama içeriğini kopyalayamaz, dağıtamaz veya ticari amaçla kullanamaz.
+   • WinPoi, uygulama içeriğinde değişiklik yapma hakkını saklı tutar.
+
+2. Kullanıcı Sorumlulukları
+   • Kullanıcılar doğru ve güncel bilgilerini sağlamakla yükümlüdür.
+   • Hesap güvenliğinden kullanıcı sorumludur.
+   • Uygulama içinde yasadışı veya uygunsuz içerik paylaşımı yasaktır.
+   • Kullanıcılar diğer kullanıcılara saygılı davranmakla yükümlüdür.
+   • Spam, zararlı içerik veya yanıltıcı bilgi paylaşımı yasaktır.
+
+3. Ödül ve Puan Sistemi
+   • Kazanılan puanlar ve ödüller WinPoi tarafından belirlenen kurallara tabidir.
+   • Puanlar ve ödüller başkalarına devredilemez.
+   • WinPoi, puan ve ödül sisteminde değişiklik yapma hakkını saklı tutar.
+   • Ödüller belirtilen süre içinde kullanılmalıdır.
+   • Hileli yollarla puan kazanımı tespit edilirse hesap kapatılabilir.
+
+4. Hesap Yönetimi
+   • Kullanıcılar tek bir hesap açabilir.
+   • Hesap bilgilerinin güncel tutulması kullanıcının sorumluluğundadır.
+   • Uzun süre kullanılmayan hesaplar pasif duruma alınabilir.
+   • Hesap kapatma talepleri 30 gün içinde işleme alınır.
+
+5. Hizmet Kullanımı
+   • Uygulama hizmetleri kesintisiz sunulmaya çalışılır.
+   • Bakım ve güncelleme durumlarında hizmet kesintisi olabilir.
+   • Kullanıcılar hizmet kalitesini etkileyecek işlemlerden kaçınmalıdır.
+   • Teknik sorunlar için destek ekibiyle iletişime geçilmelidir.
+''',
+    },
+    {
+      'title': 'Gizlilik Politikası',
+      'icon': Icons.privacy_tip_outlined,
+      'content': '''
+1. Veri Toplama
+   • Kişisel bilgileriniz (ad, e-posta, telefon) güvenli şekilde saklanır.
+   • Oyun istatistikleri ve puanlarınız kaydedilir.
+   • Konum bilgisi sadece gerekli hizmetler için kullanılır.
+   • Cihaz bilgileri (model, işletim sistemi) teknik destek için saklanır.
+   • Kullanım istatistikleri hizmet geliştirme için toplanır.
+
+2. Veri Kullanımı
+   • Bilgileriniz hizmet kalitesini artırmak için kullanılır.
+   • Üçüncü taraflarla paylaşılmaz.
+   • İstatistiksel analizler için anonim olarak kullanılabilir.
+   • Pazarlama faaliyetleri için izniniz olmadan kullanılmaz.
+   • Kişiselleştirilmiş öneriler sunmak için kullanılır.
+
+3. Veri Güvenliği
+   • Verileriniz şifrelenerek saklanır.
+   • Düzenli güvenlik güncellemeleri yapılır.
+   • Güvenlik ihlali durumunda siz bilgilendirilirsiniz.
+   • Veri erişimi sıkı kontrol altındadır.
+   • Yedekleme sistemleri düzenli olarak test edilir.
+
+4. Çerezler ve Takip
+   • Oturum yönetimi için gerekli çerezler kullanılır.
+   • Kullanıcı tercihleri yerel olarak saklanır.
+   • Üçüncü taraf çerezleri kullanılmaz.
+   • Çerez tercihleri kullanıcı tarafından değiştirilebilir.
+   • Takip sistemleri şeffaf şekilde kullanılır.
+
+5. Veri Saklama Süresi
+   • Kişisel veriler hesap aktif olduğu sürece saklanır.
+   • Hesap kapatıldığında veriler 6 ay içinde silinir.
+   • Yasal yükümlülükler için gerekli veriler saklanır.
+   • İstatistiksel veriler anonim olarak saklanır.
+   • Veri silme talepleri 30 gün içinde işleme alınır.
+''',
+    },
+    {
+      'title': 'KVKK',
+      'icon': Icons.security_outlined,
+      'content': '''
+1. Veri Sorumlusu
+   • WinPoi, kişisel verilerinizin işlenmesinden sorumludur.
+   • Verileriniz 6698 sayılı KVKK kapsamında korunmaktadır.
+   • Veri işleme faaliyetleri şeffaf şekilde yürütülür.
+   • Veri sorumlusu iletişim bilgileri her zaman güncel tutulur.
+   • Veri işleme politikaları düzenli olarak gözden geçirilir.
+
+2. Veri İşleme Amaçları
+   • Hizmet sunumu ve geliştirme
+   • Müşteri ilişkileri yönetimi
+   • Yasal yükümlülüklerin yerine getirilmesi
+   • Güvenlik ve dolandırıcılık önleme
+   • Kullanıcı deneyimini iyileştirme
+
+3. Haklarınız
+   • Verilerinize erişim
+   • Düzeltme talep etme
+   • Silme veya yok etme talep etme
+   • İşlemeyi sınırlama talep etme
+   • Veri taşınabilirliği talep etme
+   • İşlemeye itiraz etme
+   • Otomatik kararlara itiraz etme
+
+4. Veri İşleme Şartları
+   • Açık rıza
+   • Yasal yükümlülük
+   • Sözleşme ilişkisi
+   • Meşru menfaat
+   • Kamu sağlığı
+   • Bilimsel araştırma
+
+5. Veri Güvenliği Önlemleri
+   • Teknik önlemler
+   • İdari önlemler
+   • Fiziksel güvenlik
+   • Erişim kontrolü
+   • Düzenli denetim
+''',
+    },
+    {
+      'title': 'Telif Hakkı',
+      'icon': Icons.copyright_outlined,
+      'content': '''
+1. Telif Hakkı Sahipliği
+   • WinPoi uygulaması ve içeriği telif hakkı yasaları ile korunmaktadır.
+   • Tüm hakları WinPoi'ye aittir.
+   • Uygulama içeriği özgün ve benzersizdir.
+   • Tasarım ve kodlar özel olarak geliştirilmiştir.
+   • Marka ve logolar tescillidir.
+
+2. İçerik Kullanımı
+   • Uygulama içeriği kişisel kullanım için sunulmuştur.
+   • İçeriğin kopyalanması, dağıtılması veya ticari kullanımı yasaktır.
+   • Ekran görüntüleri kişisel kullanım için alınabilir.
+   • İçerik paylaşımı için yazılı izin gereklidir.
+   • Kullanıcı tarafından oluşturulan içerikler kullanıcıya aittir.
+
+3. İhlal Durumları
+   • Telif hakkı ihlali durumunda yasal işlem başlatılabilir.
+   • İhlal tespitinde hesap kapatılabilir.
+   • Tazminat talepleri söz konusu olabilir.
+   • İhlal bildirimleri 24 saat içinde değerlendirilir.
+   • İhlal durumunda içerik kaldırılır.
+
+4. Lisans ve İzinler
+   • Uygulama kullanımı için lisans gereklidir.
+   • Lisans kişisel ve devredilemezdir.
+   • Özel kullanım için ek izinler gerekebilir.
+   • Lisans ihlali durumunda kullanım hakkı sonlandırılır.
+   • Lisans şartları değiştirilebilir.
+
+5. Kullanıcı İçeriği
+   • Kullanıcılar tarafından paylaşılan içeriklerden kullanıcı sorumludur.
+   • İçerik paylaşımı için telif hakkı kontrolü yapılmalıdır.
+   • Uygunsuz içerik paylaşımı yasaktır.
+   • İçerik şikayetleri değerlendirilir.
+   • İçerik kaldırma talepleri incelenir.
+''',
+    },
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 1200),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+    ));
+
+    _scaleAnimation = Tween<double>(
+      begin: 0.95,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.3, 0.7, curve: Curves.easeOut),
+    ));
+
+    _contentAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.5, 1.0, curve: Curves.easeOut),
+    ));
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,573 +234,289 @@ class _AgreementsPageState extends State<AgreementsPage> {
       },
       child: Scaffold(
         backgroundColor: Colors.white,
-        extendBodyBehindAppBar: true,
         appBar: AppBar(
-          backgroundColor: primaryColor,
+          backgroundColor: Colors.white,
           elevation: 0,
-          title: TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 300),
-            tween: Tween(begin: 0, end: 1),
-            builder: (context, value, child) {
-              return Opacity(
-                opacity: value,
-                child: const Text(
-                  'Sözleşmeler',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w500,
-                    fontSize: 22,
-                    letterSpacing: 0.1,
-                    fontFamily: 'Poppins',
-                  ),
-                ),
-              );
-            },
+          title: const Text(
+            'Sözleşmeler',
+            style: TextStyle(
+              fontFamily: 'Poppins',
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+              letterSpacing: 0.2,
+            ),
           ),
-          flexibleSpace: null,
+          leading: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              color: textColor,
+              size: 22,
+            ),
+            onPressed: () => Navigator.pop(context),
+          ),
         ),
         body: SingleChildScrollView(
           physics: const BouncingScrollPhysics(),
-          child: Padding(
-            padding: EdgeInsets.only(
-              top: MediaQuery.of(context).padding.top + kToolbarHeight + 24,
-              left: 16,
-              right: 16,
-              bottom: 24,
-            ),
-            child: Column(
-              children: [
-                _buildAgreementCard(
-                  title: 'Kullanıcı Sözleşmesi',
-                  icon: Icons.description_outlined,
-                  content: _userAgreementText,
-                  delay: 100,
-                  index: 0,
+          child: Column(
+            children: [
+              // Header Section
+              FadeTransition(
+                opacity: _fadeAnimation,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        const Color(0xFF4ECDC4).withOpacity(0.1),
+                        const Color(0xFF845EC2).withOpacity(0.1),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(16),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: primaryColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Icon(
+                                Icons.description_outlined,
+                                color: primaryColor,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Sözleşmeler ve Politikalar',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                      color: textColor,
+                                      letterSpacing: 0.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'WinPoi uygulamasını kullanırken uymanız gereken kurallar ve politikalar',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      color: Colors.grey[600],
+                                      height: 1.4,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-                _buildAgreementCard(
-                  title: 'Gizlilik Politikası',
-                  icon: Icons.privacy_tip_outlined,
-                  content: _privacyPolicyText,
-                  delay: 200,
-                  index: 1,
+              ),
+              // Agreements List
+              FadeTransition(
+                opacity: _contentAnimation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0, 0.1),
+                    end: Offset.zero,
+                  ).animate(_contentAnimation),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      children: List.generate(_agreements.length, (index) {
+                        return _buildExpandableCard(
+                          title: _agreements[index]['title'],
+                          icon: _agreements[index]['icon'],
+                          content: _agreements[index]['content'],
+                          index: index,
+                        );
+                      }),
+                    ),
+                  ),
                 ),
-                const SizedBox(height: 20),
-                _buildAgreementCard(
-                  title: 'KVKK Aydınlatma Metni',
-                  icon: Icons.security_outlined,
-                  content: _kvkkText,
-                  delay: 300,
-                  index: 2,
+              ),
+              // Footer Section
+              FadeTransition(
+                opacity: _contentAnimation,
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.grey[200]!,
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.info_outline,
+                              color: secondaryColor,
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Text(
+                                'Sözleşmeler ve politikalar düzenli olarak güncellenmektedir. En güncel versiyonları uygulama içerisinden takip edebilirsiniz.',
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  color: Colors.grey[600],
+                                  height: 1.4,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Son güncelleme: ${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[500],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 20),
-                _buildAgreementCard(
-                  title: 'Çerez Politikası',
-                  icon: Icons.cookie_outlined,
-                  content: _cookiePolicyText,
-                  delay: 400,
-                  index: 3,
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
-  Widget _buildAgreementCard({
+  Widget _buildExpandableCard({
     required String title,
     required IconData icon,
     required String content,
-    required int delay,
     required int index,
   }) {
-    return TweenAnimationBuilder<double>(
-      duration: Duration(milliseconds: 500 + delay),
-      tween: Tween(begin: 0, end: 1),
-      builder: (context, value, child) {
-        return Transform.translate(
-          offset: Offset(0, 20 * (1 - value)),
-          child: Opacity(
-            opacity: value,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    primaryColor.withOpacity(0.13),
-                    secondaryColor.withOpacity(0.10),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: primaryColor.withOpacity(0.08),
-                    blurRadius: 16,
-                    offset: const Offset(0, 6),
+    final isExpanded = _expandedIndex == index;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _expandedIndex = isExpanded ? null : index;
+        });
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              const Color(0xFF4ECDC4).withOpacity(0.15), // Turkuaz
+              const Color(0xFF845EC2).withOpacity(0.10), // Mor
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF4ECDC4).withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(
+                      icon,
+                      color: secondaryColor,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Text(
+                      title,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: textColor,
+                        letterSpacing: 0.1,
+                      ),
+                    ),
+                  ),
+                  AnimatedRotation(
+                    duration: const Duration(milliseconds: 200),
+                    turns: isExpanded ? 0.5 : 0,
+                    child: Icon(
+                      Icons.keyboard_arrow_down_rounded,
+                      color: isExpanded ? secondaryColor : Colors.grey[400],
+                      size: 24,
+                    ),
                   ),
                 ],
               ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
-                child: Material(
-                  color: Colors.transparent,
-                  child: Column(
-                    children: [
-                      InkWell(
-                        onTap: () {
-                          setState(() {
-                            _isExpanded[index] = !_isExpanded[index];
-                          });
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  gradient: LinearGradient(
-                                    colors: [
-                                      primaryColor.withOpacity(0.18),
-                                      secondaryColor.withOpacity(0.13),
-                                    ],
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Icon(
-                                  icon,
-                                  color: secondaryColor,
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Text(
-                                  title,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    letterSpacing: -0.5,
-                                    fontFamily: 'Poppins',
-                                    color: textColor,
-                                  ),
-                                ),
-                              ),
-                              Icon(
-                                _isExpanded[index]
-                                    ? Icons.keyboard_arrow_up
-                                    : Icons.keyboard_arrow_down,
-                                color: secondaryColor,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      if (_isExpanded[index])
-                        GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () {
-                            setState(() {
-                              _isExpanded[index] = false;
-                            });
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-                            child: SingleChildScrollView(
-                              physics: const BouncingScrollPhysics(),
-                              child: Text(
-                                content,
-                                style: TextStyle(
-                                  color: textColor.withOpacity(0.85),
-                                  height: 1.5,
-                                  fontSize: 15,
-                                  fontFamily: 'Poppins',
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+            ),
+            if (isExpanded)
+              Container(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      Colors.grey[50]!,
+                      Colors.grey[100]!.withOpacity(0.5),
                     ],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    bottomLeft: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  content,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[700],
+                    height: 1.5,
+                    letterSpacing: 0.1,
                   ),
                 ),
               ),
-            ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
   }
-
-  static const String _userAgreementText = '''
-KULLANICI SÖZLEŞMESİ
-
-İşbu Kullanıcı Sözleşmesi ("Sözleşme"), WinPoi mobil uygulaması ("Uygulama") ile ilgili kullanım şartlarını ve koşullarını düzenlemektedir. Uygulamayı kullanmadan önce lütfen bu sözleşmeyi dikkatle okuyunuz.
-
-1. Taraflar
-
-İşbu Sözleşme, WinPoi Teknoloji A.Ş. ("Şirket") ile Uygulama'yı kullanan gerçek veya tüzel kişi ("Kullanıcı") arasında akdedilmiştir.
-
-2. Tanımlar
-
-• Uygulama: WinPoi mobil uygulaması ve bağlı tüm dijital hizmetler
-• POI: Uygulama içi sanal ödül puanı
-• Yarışma: Uygulama üzerinden düzenlenen tüm etkinlikler
-• Hesap: Kullanıcıya özel oluşturulan profil ve ilgili veriler
-
-3. Kullanım Koşulları
-
-3.1. Hesap Oluşturma ve Güvenlik
-• Kullanıcı, 18 yaşını doldurmuş olmalıdır
-• Doğru ve güncel bilgiler sağlamakla yükümlüdür
-• Hesap güvenliğinden bizzat sorumludur
-• Hesap bilgilerinin üçüncü kişilerle paylaşılması yasaktır
-
-3.2. Yarışmalara Katılım
-• Her yarışmanın özel katılım koşulları geçerlidir
-• Haksız rekabet oluşturacak davranışlar yasaktır
-• Yarışma sonuçlarına itiraz hakkı mevcuttur
-• Şirket, yarışma kurallarını değiştirme hakkını saklı tutar
-
-3.3. POI Kullanımı
-• POI'ler para birimi niteliği taşımaz
-• Transfer edilemez veya satılamaz
-• Kazanıldığı tarihten itibaren 12 ay içinde kullanılmalıdır
-• Şirket, POI değerini ve kullanım koşullarını değiştirme hakkını saklı tutar
-
-4. Kullanıcı Yükümlülükleri
-
-4.1. Genel Kurallar
-• Yasalara ve ahlaki kurallara uygun davranış
-• Diğer kullanıcıların haklarına saygı
-• Fikri mülkiyet haklarına riayet
-• Uygulama güvenliğini tehdit edici davranışlardan kaçınma
-
-4.2. Yasaklı Davranışlar
-• Sahte hesap oluşturma
-• Yanıltıcı bilgi paylaşma
-• Spam veya zararlı içerik yayma
-• Haksız kazanç elde etme girişimleri
-
-5. Fikri Mülkiyet Hakları
-
-5.1. Uygulama içeriğinin tüm fikri mülkiyet hakları Şirket'e aittir
-5.2. Kullanıcı, içeriği yalnızca kişisel kullanım amacıyla görüntüleyebilir
-5.3. İçeriğin kopyalanması, değiştirilmesi veya dağıtılması yasaktır
-
-6. Sözleşme Değişiklikleri
-
-6.1. Şirket, işbu Sözleşme'yi tek taraflı olarak değiştirme hakkını saklı tutar
-6.2. Değişiklikler, Uygulama üzerinden duyurulacaktır
-6.3. Değişikliklerin yayınlanmasından sonra Uygulamayı kullanmaya devam etmeniz, değişiklikleri kabul ettiğiniz anlamına gelir
-
-7. Sözleşme Feshi
-
-7.1. Kullanıcı, hesabını dilediği zaman kapatabilir
-7.2. Şirket, aşağıdaki durumlarda hesabı askıya alabilir veya sonlandırabilir:
-• Sözleşme ihlali
-• Yasadışı faaliyet
-• Sistem güvenliğini tehdit
-• Haksız kazanç elde etme
-
-8. Yürürlük
-
-İşbu Sözleşme, hesap oluşturulması ile yürürlüğe girer ve hesabın kapatılmasına kadar yürürlükte kalır.
-
-Son güncelleme: [Tarih]
-''';
-
-  static const String _privacyPolicyText = '''
-GİZLİLİK POLİTİKASI
-
-İşbu Gizlilik Politikası ("Politika"), WinPoi Teknoloji A.Ş. ("Şirket") tarafından yürütülen veri işleme faaliyetleri ve gizlilik uygulamaları hakkında sizleri bilgilendirmek amacıyla hazırlanmıştır.
-
-1. Kapsam
-
-Bu Politika, Uygulama üzerinden toplanan tüm kişisel verileri ve bunların işlenme süreçlerini kapsar.
-
-2. Toplanan Veriler
-
-2.1. Kullanıcı Tarafından Sağlanan Veriler
-• Kimlik bilgileri
-• İletişim bilgileri
-• Hesap bilgileri
-• Ödeme bilgileri
-
-2.2. Otomatik Toplanan Veriler
-• Kullanım verileri
-• Cihaz bilgileri
-• Konum verileri
-• Log kayıtları
-
-2.3. Üçüncü Taraflardan Alınan Veriler
-• Sosyal medya bilgileri
-• Ödeme sağlayıcı bilgileri
-• Reklam ağı verileri
-
-3. Verilerin Kullanımı
-
-3.1. Ana Kullanım Amaçları
-• Hizmet sunumu ve iyileştirme
-• Güvenlik sağlama
-• Kullanıcı deneyimini kişiselleştirme
-• Yasal yükümlülükleri yerine getirme
-
-3.2. İkincil Kullanım Amaçları
-• Pazarlama ve iletişim
-• Analiz ve raporlama
-• Ürün geliştirme
-• Müşteri desteği
-
-4. Veri Güvenliği
-
-4.1. Teknik Önlemler
-• SSL/TLS şifreleme
-• Güvenlik duvarları
-• Veri şifreleme
-• Erişim kontrolü
-
-4.2. İdari Önlemler
-• Personel eğitimi
-• Düzenli denetimler
-• Veri işleme politikaları
-• Acil durum prosedürleri
-
-5. Veri Paylaşımı
-
-5.1. Yasal Zorunluluklar
-• Mahkeme kararları
-• Yasal düzenlemeler
-• Kamu kurumları talepleri
-
-5.2. İş Ortakları
-• Ödeme sağlayıcıları
-• Hosting hizmetleri
-• Analitik sağlayıcıları
-
-6. Kullanıcı Hakları
-
-6.1. Erişim ve Kontrol
-• Veri erişim hakkı
-• Düzeltme talebi
-• Silme talebi
-• İşleme kısıtlama
-
-6.2. Tercihler
-• Bildirim tercihleri
-• Konum paylaşımı
-• Çerez ayarları
-
-7. Çocukların Gizliliği
-
-7.1. 13 yaş altı kullanıcılardan veri toplanmaz
-7.2. Ebeveyn izni gerektiren durumlar
-7.3. Çocuk kullanıcı tespit prosedürleri
-
-8. Uluslararası Veri Transferi
-
-8.1. Veri Transfer Politikası
-8.2. Güvenlik Önlemleri
-8.3. Yasal Dayanaklar
-
-9. Politika Değişiklikleri
-
-9.1. Değişiklik Bildirimi
-9.2. Geçerlilik
-9.3. Kullanıcı Onayı
-
-10. İletişim
-
-Gizlilik politikamız hakkında sorularınız için: privacy@winpoi.com
-
-Son güncelleme: [Tarih]
-''';
-
-  static const String _kvkkText = '''
-KİŞİSEL VERİLERİN KORUNMASI KANUNU KAPSAMINDA AYDINLATMA METNİ
-
-İşbu Aydınlatma Metni, 6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, WinPoi Teknoloji A.Ş. ("Şirket") tarafından yürütülen kişisel veri işleme faaliyetleri hakkında sizleri bilgilendirmek amacıyla hazırlanmıştır.
-
-1. Veri Sorumlusu ve Temsilcisi
-
-KVKK uyarınca, kişisel verileriniz; veri sorumlusu olarak WinPoi Teknoloji A.Ş. tarafından aşağıda açıklanan kapsamda işlenebilecektir.
-
-2. İşlenen Kişisel Veriler
-
-Şirketimiz tarafından işlenen kişisel verileriniz aşağıdaki kategorilerde yer almaktadır:
-
-• Kimlik Bilgileri: Ad, soyad, T.C. kimlik numarası, doğum tarihi vb.
-• İletişim Bilgileri: Telefon numarası, e-posta adresi, adres vb.
-• Hesap Bilgileri: Kullanıcı adı, şifre, hesap hareketleri vb.
-• Finansal Bilgiler: POI bakiyesi, ödeme bilgileri vb.
-• Kullanım Verileri: Uygulama kullanım istatistikleri, yarışma katılım bilgileri vb.
-• Lokasyon Bilgileri: Konum bilgisi
-• Cihaz Bilgileri: IP adresi, cihaz ID'si, işletim sistemi bilgileri vb.
-
-3. Kişisel Verilerin İşlenme Amaçları
-
-Kişisel verileriniz aşağıdaki amaçlarla işlenmektedir:
-
-• Hizmetlerimizin sunulması ve iyileştirilmesi
-• Kullanıcı hesaplarının yönetilmesi
-• Yarışmaların düzenlenmesi ve yönetilmesi
-• Ödül dağıtım süreçlerinin yürütülmesi
-• Yasal yükümlülüklerin yerine getirilmesi
-• Şirket politika ve prosedürlerine uyumun sağlanması
-• Güvenlik önlemlerinin alınması
-• Dolandırıcılık ve suistimalin önlenmesi
-• İletişim faaliyetlerinin yürütülmesi
-
-4. Kişisel Verilerin Aktarılması
-
-Kişisel verileriniz, yukarıda belirtilen amaçların gerçekleştirilmesi doğrultusunda, aşağıdaki taraflara aktarılabilecektir:
-
-• Yasal düzenlemeler ve yükümlülükler kapsamında yetkili kamu kurum ve kuruluşları
-• Hizmet aldığımız tedarikçiler ve iş ortakları
-• Ödeme ve finans kuruluşları
-• Hukuki süreçlerin yürütülmesi amacıyla avukatlar ve danışmanlar
-
-5. Kişisel Verilerin Toplanma Yöntemi ve Hukuki Sebebi
-
-Kişisel verileriniz, elektronik ortamda:
-• WinPoi mobil uygulaması
-• Web sitesi
-• Çerezler
-• API'ler
-aracılığıyla toplanmaktadır.
-
-Kişisel verilerinizin işlenmesinin hukuki sebepleri:
-• Açık rızanızın bulunması
-• Kanunlarda açıkça öngörülmesi
-• Bir sözleşmenin kurulması veya ifasıyla doğrudan doğruya ilgili olması
-• Hukuki yükümlülüğün yerine getirilmesi
-• Temel hak ve özgürlüklerinize zarar vermemek kaydıyla, meşru menfaatlerimiz için zorunlu olması
-
-6. KVKK Kapsamındaki Haklarınız
-
-KVKK'nın 11. maddesi uyarınca aşağıdaki haklara sahipsiniz:
-
-• Kişisel verilerinizin işlenip işlenmediğini öğrenme
-• Kişisel verileriniz işlenmişse buna ilişkin bilgi talep etme
-• Kişisel verilerinizin işlenme amacını ve bunların amacına uygun kullanılıp kullanılmadığını öğrenme
-• Yurt içinde veya yurt dışında kişisel verilerinizin aktarıldığı üçüncü kişileri bilme
-• Kişisel verilerinizin eksik veya yanlış işlenmiş olması hâlinde bunların düzeltilmesini isteme
-• KVKK'nın 7. maddesinde öngörülen şartlar çerçevesinde kişisel verilerinizin silinmesini veya yok edilmesini isteme
-• Düzeltme, silme ve yok edilme talepleri neticesinde yapılan işlemlerin, kişisel verilerinizin aktarıldığı üçüncü kişilere bildirilmesini isteme
-• İşlenen verilerinizin münhasıran otomatik sistemler vasıtasıyla analiz edilmesi suretiyle aleyhinize bir sonucun ortaya çıkmasına itiraz etme
-• Kişisel verilerinizin kanuna aykırı olarak işlenmesi sebebiyle zarara uğramanız hâlinde zararın giderilmesini talep etme
-
-7. Başvuru Hakkı
-
-Yukarıda belirtilen haklarınızı kullanmak için kimliğinizi tespit edici gerekli bilgiler ve kullanmak istediğiniz hakkınıza yönelik açıklamalarınızla birlikte talebinizi, KVKK'nın 11. maddesinde belirtilen hangi hakkınızın kullanımına ilişkin olduğunu da belirterek kvkk@winpoi.com adresine iletebilirsiniz.
-
-8. Değişiklikler
-
-Şirketimiz, işbu Aydınlatma Metni'nde her zaman değişiklik yapabilir. Bu değişiklikler, değiştirilmiş yeni Aydınlatma Metni'nin uygulamada yayınlanmasıyla birlikte derhal geçerlilik kazanır.
-
-Son güncelleme tarihi: [Tarih]
-
-WinPoi Teknoloji A.Ş.
-''';
-
-  static const String _cookiePolicyText = '''
-ÇEREZ POLİTİKASI
-
-İşbu Çerez Politikası ("Politika"), WinPoi Teknoloji A.Ş. ("Şirket") tarafından web sitesi ve mobil uygulamada kullanılan çerez ve benzeri teknolojiler hakkında bilgilendirme amacıyla hazırlanmıştır.
-
-1. Çerez Teknolojileri
-
-1.1. Tanım
-Çerezler, ziyaret ettiğiniz internet siteleri tarafından cihazınıza yerleştirilen küçük metin dosyalarıdır.
-
-1.2. Kullanım Amacı
-• Hizmet sunumu
-• Kullanıcı deneyimi
-• Güvenlik
-• Analitik
-
-2. Çerez Türleri
-
-2.1. Zorunlu Çerezler
-• Oturum yönetimi
-• Güvenlik
-• Temel işlevsellik
-
-2.2. Performans Çerezleri
-• Sayfa yüklenme hızı
-• Site kullanım analizi
-• Hata tespiti
-
-2.3. İşlevsellik Çerezleri
-• Dil tercihleri
-• Bölge ayarları
-• Kişiselleştirme
-
-2.4. Hedefleme/Reklam Çerezleri
-• İlgi alanı bazlı reklamlar
-• Kampanya etkinliği
-• Dönüşüm takibi
-
-3. Çerez Süreleri
-
-3.1. Oturum Çerezleri
-• Geçici kullanım
-• Tarayıcı kapatıldığında silinme
-
-3.2. Kalıcı Çerezler
-• Uzun süreli kullanım
-• Manuel silinene kadar saklama
-
-4. Çerez Kontrolü
-
-4.1. Tarayıcı Ayarları
-• Çerez engelleme
-• Çerez silme
-• Çerez tercihleri
-
-4.2. Mobil Uygulama Ayarları
-• İzin yönetimi
-• Veri temizleme
-• Tercih ayarları
-
-5. Üçüncü Taraf Çerezleri
-
-5.1. Analitik Sağlayıcılar
-• Google Analytics
-• Firebase
-• AppsFlyer
-
-5.2. Reklam Ağları
-• Google Ads
-• Facebook Ads
-• AdMob
-
-6. Veri Güvenliği
-
-6.1. Şifreleme
-6.2. Erişim Kontrolü
-6.3. Düzenli Denetim
-
-7. Yasal Dayanak
-
-7.1. KVKK Uyumluluğu
-7.2. GDPR Uyumluluğu
-7.3. E-Ticaret Mevzuatı
-
-8. Politika Değişiklikleri
-
-8.1. Güncelleme Bildirimi
-8.2. Yürürlük
-8.3. Geçmiş Versiyonlar
-
-9. İletişim
-
-Çerez politikamız hakkında sorularınız için: privacy@winpoi.com
-
-Son güncelleme: [Tarih]
-''';
 }
