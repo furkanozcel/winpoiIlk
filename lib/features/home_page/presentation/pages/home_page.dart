@@ -218,617 +218,168 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   }
 
   Future<void> _joinCompetition(Competition competition) async {
-    try {
-      final user = FirebaseAuth.instance.currentUser;
-      if (user == null) {
-        throw Exception('Kullanıcı oturumu bulunamadı');
-      }
+    // Doğrudan oyuna katılma işlemini başlat
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      throw Exception('Kullanıcı oturumu bulunamadı');
+    }
 
-      // Kullanıcının POI bakiyesini kontrol et
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
+    // Provider referansını başta al
+    if (!mounted) return;
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
 
-      final currentPoi = userDoc.data()?['poiBalance'] ?? 0;
-      final poiCost = competition.poiCost;
+    // Kullanıcının POI bakiyesini kontrol et
+    final userDoc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
 
-      // Yetersiz POI durumunda farklı dialog göster
-      if (currentPoi < poiCost) {
-        if (context.mounted) {
-          await showDialog(
-            context: context,
-            builder: (context) => Dialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Color(0xFFD4F4F1), // Soft turkuaz
-                      Color(0xFFE6D4F4), // Soft mor
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF4ECDC4).withOpacity(0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // İkon ve Başlık
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: const Icon(
-                        Icons.warning_rounded,
-                        color: Color(0xFFE28B33), // Turuncu renk
-                        size: 32,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    // Başlık
-                    const Text(
-                      'POI\'yi veren düdüğü çalar!',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF2D3436),
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    // Açıklama
-                    Text(
-                      'Bu oyuna katılmak için ${poiCost} POI gerekiyor.\n\nCüzdan Durumu: $currentPoi POI',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Color(0xFF2D3436),
-                        height: 1.4,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    // Mağaza Butonu
-                    Container(
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFFFFB088), // Soft but vibrant orange light
-                            Color(0xFFE28B33), // Soft but vibrant orange dark
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFE28B33).withOpacity(0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.pop(context);
-                          // TODO: Mağaza sayfasına yönlendir
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24,
-                            vertical: 12,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        child: const Text(
-                          'Mağazaya Git',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+    final currentPoi = userDoc.data()?['poiBalance'] ?? 0;
+    final poiCost = competition.poiCost;
+
+    // Yetersiz POI durumunda farklı dialog göster
+    if (currentPoi < poiCost) {
+      if (context.mounted) {
+        showDialog(
+          context: context,
+          builder: (context) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
             ),
-          );
-        }
-        return;
-      }
-
-      // Normal onay kutusunu göster
-      final bool? confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => Dialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Container(
-            padding: const EdgeInsets.all(24),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [
-                  Color(0xFFD4F4F1), // Soft turkuaz
-                  Color(0xFFE6D4F4), // Soft mor
+            child: Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFFD4F4F1), // Soft turkuaz
+                    Color(0xFFE6D4F4), // Soft mor
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(24),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF4ECDC4).withOpacity(0.2),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF4ECDC4).withOpacity(0.2),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // İkon ve Başlık
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Icon(
-                    Icons.play_circle_outline_rounded,
-                    color: Color(0xFFE28B33), // Turuncu renk
-                    size: 32,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                // Başlık
-                const Text(
-                  'Oyunu Başlat',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF2D3436),
-                    letterSpacing: 0.2,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // Açıklama
-                Text(
-                  'Bu oyuna katılmak için ${competition.poiCost} POI bakiyenizden eksilecektir.',
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFF2D3436),
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                // Butonlar
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // İptal Butonu
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      style: TextButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 12,
-                        ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Kapatma butonu
+                  Align(
+                    alignment: Alignment.topRight,
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.close_rounded,
+                        color: Color(0xFF2D3436),
                       ),
-                      child: Text(
-                        'İptal',
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
+                      onPressed: () => Navigator.pop(context),
                     ),
-                    const SizedBox(width: 12),
-                    // Onay Butonu
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFFFFB088), // Soft but vibrant orange light
-                            Color(0xFFE28B33), // Soft but vibrant orange dark
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFFE28B33).withOpacity(0.35),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
+                  ),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: const Icon(
+                      Icons.warning_rounded,
+                      color: Color(0xFFE28B33), // Turuncu renk
+                      size: 32,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    'POI\'yi veren düdüğü çalar!',
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF2D3436),
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Bu oyuna katılmak için ${poiCost} POI gerekiyor.\n\nCüzdan Durumu: $currentPoi POI',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 15,
+                      color: Color(0xFF2D3436),
+                      height: 1.4,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFFFFB088), // Soft but vibrant orange light
+                          Color(0xFFE28B33), // Soft but vibrant orange dark
                         ],
                       ),
-                      child: ElevatedButton(
-                        onPressed: () async {
-                          Navigator.pop(context);
-                          final user = FirebaseAuth.instance.currentUser;
-                          if (user == null) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Kullanıcı oturumu bulunamadı'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                            return;
-                          }
-
-                          // UserProvider referansını başta al
-                          if (!mounted) return;
-                          final userProvider =
-                              Provider.of<UserProvider>(context, listen: false);
-
-                          // Kullanıcının POI bakiyesini kontrol et
-                          final userDoc = await FirebaseFirestore.instance
-                              .collection('users')
-                              .doc(user.uid)
-                              .get();
-
-                          final currentPoi = userDoc.data()?['poiBalance'] ?? 0;
-                          final poiCost = competition.poiCost;
-
-                          // Yetersiz POI durumunda farklı dialog göster
-                          if (currentPoi < poiCost) {
-                            if (context.mounted) {
-                              await showDialog(
-                                context: context,
-                                builder: (context) => Dialog(
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(24),
-                                  ),
-                                  child: Container(
-                                    padding: const EdgeInsets.all(24),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        begin: Alignment.topCenter,
-                                        end: Alignment.bottomCenter,
-                                        colors: [
-                                          Color(0xFFD4F4F1), // Soft turkuaz
-                                          Color(0xFFE6D4F4), // Soft mor
-                                        ],
-                                      ),
-                                      borderRadius: BorderRadius.circular(24),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFF4ECDC4)
-                                              .withOpacity(0.2),
-                                          blurRadius: 20,
-                                          offset: const Offset(0, 10),
-                                        ),
-                                      ],
-                                    ),
-                                    child: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        // Kapatma butonu
-                                        Align(
-                                          alignment: Alignment.topRight,
-                                          child: IconButton(
-                                            icon: const Icon(
-                                              Icons.close_rounded,
-                                              color: Color(0xFF2D3436),
-                                            ),
-                                            onPressed: () =>
-                                                Navigator.pop(context),
-                                          ),
-                                        ),
-                                        Container(
-                                          padding: const EdgeInsets.all(16),
-                                          decoration: BoxDecoration(
-                                            color:
-                                                Colors.white.withOpacity(0.2),
-                                            borderRadius:
-                                                BorderRadius.circular(16),
-                                          ),
-                                          child: const Icon(
-                                            Icons.warning_rounded,
-                                            color: Color(
-                                                0xFFE28B33), // Turuncu renk
-                                            size: 32,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 20),
-                                        const Text(
-                                          'POI\'yi veren düdüğü çalar!',
-                                          style: TextStyle(
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF2D3436),
-                                            letterSpacing: 0.2,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 16),
-                                        Text(
-                                          'Bu oyuna katılmak için ${poiCost} POI gerekiyor.\n\nCüzdan Durumu: $currentPoi POI',
-                                          textAlign: TextAlign.center,
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            color: Color(0xFF2D3436),
-                                            height: 1.4,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 24),
-                                        Container(
-                                          width: double.infinity,
-                                          decoration: BoxDecoration(
-                                            gradient: const LinearGradient(
-                                              colors: [
-                                                Color(
-                                                    0xFFFFB088), // Soft but vibrant orange light
-                                                Color(
-                                                    0xFFE28B33), // Soft but vibrant orange dark
-                                              ],
-                                            ),
-                                            borderRadius:
-                                                BorderRadius.circular(12),
-                                            boxShadow: [
-                                              BoxShadow(
-                                                color: const Color(0xFFE28B33)
-                                                    .withOpacity(0.35),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 4),
-                                              ),
-                                            ],
-                                          ),
-                                          child: ElevatedButton(
-                                            onPressed: () {
-                                              Navigator.pop(context);
-                                              // TODO: Mağaza sayfasına yönlendir
-                                            },
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              shadowColor: Colors.transparent,
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 32,
-                                                vertical: 16,
-                                              ),
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                              ),
-                                            ),
-                                            child: const Text(
-                                              'Mağazaya Git',
-                                              style: TextStyle(
-                                                fontSize: 18,
-                                                fontWeight: FontWeight.w600,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }
-                            return;
-                          }
-
-                          // Yarışmanın aktif olup olmadığını kontrol et
-                          if (!competition.isActive) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Bu yarışma süresi dolmuş'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                            return;
-                          }
-
-                          try {
-                            // Transaction ile atomik işlem yap
-                            await FirebaseFirestore.instance
-                                .runTransaction((transaction) async {
-                              // Kullanıcı dokümanını oku
-                              final userDoc = await transaction.get(
-                                  FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(user.uid));
-
-                              if (!userDoc.exists) {
-                                throw Exception(
-                                    'Kullanıcı bilgileri bulunamadı');
-                              }
-
-                              // Kullanıcının aynı yarışmaya daha önce katılıp katılmadığını kontrol et
-                              final existingParticipationQuery =
-                                  FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(user.uid)
-                                      .collection('participations')
-                                      .where('competitionId',
-                                          isEqualTo: competition.id)
-                                      .limit(1);
-
-                              final existingParticipation =
-                                  await existingParticipationQuery.get();
-                              if (existingParticipation.docs.isNotEmpty) {
-                                throw Exception(
-                                    'Bu yarışmaya zaten katıldınız');
-                              }
-
-                              final userData =
-                                  userDoc.data() as Map<String, dynamic>;
-                              final currentBalance =
-                                  userData['poiBalance'] ?? 0;
-                              final poiCost = competition.poiCost;
-
-                              if (currentBalance < poiCost) {
-                                throw Exception(
-                                    'Yetersiz POI bakiyesi. Gerekli: $poiCost POI, Mevcut: $currentBalance POI');
-                              }
-
-                              // Yarışma dokümanını kontrol et
-                              final competitionDoc = await transaction.get(
-                                  FirebaseFirestore.instance
-                                      .collection('competitions')
-                                      .doc(competition.id));
-
-                              if (!competitionDoc.exists) {
-                                throw Exception('Yarışma bulunamadı');
-                              }
-
-                              final competitionData =
-                                  competitionDoc.data() as Map<String, dynamic>;
-                              final competitionEndTime =
-                                  (competitionData['endTime'] as Timestamp)
-                                      .toDate();
-
-                              if (DateTime.now().isAfter(competitionEndTime)) {
-                                throw Exception('Bu yarışma süresi dolmuş');
-                              }
-
-                              // POI bakiyesini düş
-                              transaction.update(
-                                  FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(user.uid),
-                                  {
-                                    'poiBalance': FieldValue.increment(-poiCost)
-                                  });
-
-                              // Yarışmaya katılım kaydı oluştur
-                              final participationRef = FirebaseFirestore
-                                  .instance
-                                  .collection('users')
-                                  .doc(user.uid)
-                                  .collection('participations')
-                                  .doc();
-
-                              // Hak sayısını belirle (katılım anındaki kalan süreye göre)
-                              final now = DateTime.now();
-                              final duration =
-                                  competitionEndTime.difference(now);
-                              final int totalAttempts =
-                                  duration.inHours >= 10 ? 3 : 2;
-
-                              transaction.set(participationRef, {
-                                'competitionId': competition.id,
-                                'competitionTitle': competition.title,
-                                'remainingAttempts': totalAttempts,
-                                'joinedAt': FieldValue.serverTimestamp(),
-                                'endTime': competitionEndTime,
-                                'lastPlayedAt': FieldValue.serverTimestamp(),
-                                'poiCost': poiCost,
-                                'status': 'active',
-                              });
-                              // İlk hak otomatik olarak kullanılsın
-                              transaction.update(participationRef, {
-                                'remainingAttempts': totalAttempts - 1,
-                                'lastPlayedAt': FieldValue.serverTimestamp(),
-                              });
-
-                              // Yarışmanın katılımcı sayısını artır
-                              transaction.update(
-                                  FirebaseFirestore.instance
-                                      .collection('competitions')
-                                      .doc(competition.id),
-                                  {
-                                    'participantCount': FieldValue.increment(1)
-                                  });
-
-                              // Toplam oyun sayısını artır
-                              transaction.update(
-                                  FirebaseFirestore.instance
-                                      .collection('users')
-                                      .doc(user.uid),
-                                  {'totalGames': FieldValue.increment(1)});
-                            });
-
-                            // UserProvider'ı güncelle
-                            if (mounted) {
-                              await userProvider.loadUserData();
-
-                              final kalanHak = competition.endTime
-                                          .difference(DateTime.now())
-                                          .inHours >=
-                                      10
-                                  ? 2
-                                  : 1;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                      'Oyun başlatılıyor... Kalan hak: $kalanHak (${competition.poiCost} POI düşüldü)'),
-                                  backgroundColor: Colors.green,
-                                ),
-                              );
-                            }
-                          } catch (e) {
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text('Hata: $e'),
-                                  backgroundColor: Colors.red,
-                                ),
-                              );
-                            }
-                          }
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          shadowColor: Colors.transparent,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFE28B33).withOpacity(0.35),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
                         ),
-                        child: const Text(
-                          'Oyna',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Colors.white,
-                          ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // TODO: Mağaza sayfasına yönlendir
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Text(
+                        'Mağazaya Git',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
                         ),
                       ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      );
-
-      // Kullanıcı onaylamadıysa işlemi iptal et
-      if (confirmed != true) return;
-
-      // Yarışmanın aktif olup olmadığını kontrol et
-      if (!competition.isActive) {
-        throw Exception('Bu yarışma süresi dolmuş');
+        );
       }
+      return;
+    }
 
+    // Yarışmanın aktif olup olmadığını kontrol et
+    if (!competition.isActive) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Bu yarışma süresi dolmuş'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
       // Transaction ile atomik işlem yap
       await FirebaseFirestore.instance.runTransaction((transaction) async {
         // Kullanıcı dokümanını oku
@@ -926,7 +477,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
 
       // UserProvider'ı güncelle
       if (mounted) {
-        final userProvider = Provider.of<UserProvider>(context, listen: false);
         await userProvider.loadUserData();
 
         final kalanHak =
@@ -963,123 +513,66 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
         backgroundColor: Colors.white,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: Row(
-          children: [
-            Consumer<UserProvider>(
-              builder: (context, userProvider, child) {
-                return Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFF4ECDC4), // Turkuaz
-                        Color(0xFF845EC2), // Mor
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.3),
-                      width: 1,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFF4ECDC4).withOpacity(0.15),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(
-                        Icons.wallet,
-                        color: Colors.white.withOpacity(0.9),
-                        size: 16,
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        '${userProvider.userData?['poiBalance'] ?? 0}',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'POI',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.9),
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            const Spacer(),
-            ShaderMask(
-              shaderCallback: (bounds) => const LinearGradient(
-                colors: [
-                  Color(0xFF4ECDC4), // Turkuaz
-                  Color(0xFF845EC2), // Mor
-                ],
-              ).createShader(bounds),
-              child: const Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Win',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                      color: Colors.white,
-                    ),
-                  ),
-                  Text(
-                    'Poi',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w300,
-                      letterSpacing: 1,
-                      color: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Spacer(),
-            IconButton(
-              icon: ShaderMask(
-                shaderCallback: (bounds) => const LinearGradient(
-                  colors: [
-                    Color(0xFF4ECDC4), // Turkuaz
-                    Color(0xFF845EC2), // Mor
-                  ],
-                ).createShader(bounds),
-                child: const Icon(
-                  Icons.notifications_outlined,
+        title: ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [
+              Color(0xFF4E43AC), // Mor
+              Color(0xFF43AC9E), // Yeşil
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ).createShader(bounds),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Win',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
                   color: Colors.white,
                 ),
               ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const NotificationsPage(),
-                  ),
-                );
-              },
-            ),
-          ],
+              Text(
+                'Poi',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w300,
+                  letterSpacing: 1,
+                  color: Colors.white,
+                ),
+              ),
+            ],
+          ),
         ),
+        centerTitle: false, // Sola yasla
+        actions: [
+          IconButton(
+            icon: ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0xFF4E43AC),
+                  Color(0xFF43AC9E),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ).createShader(bounds),
+              child: const Icon(
+                Icons.notifications_outlined,
+                color: Colors.white, // Shader ile override
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsPage(),
+                ),
+              );
+            },
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -1094,10 +587,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             ),
             child: TabBar(
               controller: _tabController,
-              indicatorColor: const Color(0xFFE28B33),
+              indicatorColor: const Color(0xFFF7A278),
               indicatorWeight: 3,
-              labelColor: const Color(0xFFE28B33),
-              unselectedLabelColor: const Color(0xFFE28B33).withOpacity(0.7),
+              labelColor: const Color(0xFFF7A278),
+              unselectedLabelColor: const Color(0xFFF7A278),
               labelStyle: const TextStyle(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
@@ -1280,617 +773,283 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                           ),
                                         ),
                                       ),
+                                      // Info ikonu - sağ üst köşe (en üstte ve tıklanabilirliği garanti)
+                                      Positioned(
+                                        top: 12,
+                                        right: 12,
+                                        child: GestureDetector(
+                                          behavior: HitTestBehavior.translucent,
+                                          onTap: () {
+                                            showDialog(
+                                              context: context,
+                                              builder: (context) => Dialog(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(24),
+                                                ),
+                                                child: Container(
+                                                  width: MediaQuery.of(context)
+                                                          .size
+                                                          .width *
+                                                      0.9,
+                                                  constraints: BoxConstraints(
+                                                    maxHeight:
+                                                        MediaQuery.of(context)
+                                                                .size
+                                                                .height *
+                                                            0.7,
+                                                  ),
+                                                  decoration: BoxDecoration(
+                                                    gradient:
+                                                        const LinearGradient(
+                                                      begin:
+                                                          Alignment.topCenter,
+                                                      end: Alignment
+                                                          .bottomCenter,
+                                                      colors: [
+                                                        Color(
+                                                            0xFFD4F4F1), // Soft turkuaz
+                                                        Color(
+                                                            0xFFE6D4F4), // Soft mor
+                                                      ],
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            24),
+                                                    boxShadow: [
+                                                      BoxShadow(
+                                                        color: const Color(
+                                                                0xFF4ECDC4)
+                                                            .withOpacity(0.2),
+                                                        blurRadius: 20,
+                                                        offset:
+                                                            const Offset(0, 10),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.all(24),
+                                                  child: Column(
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      // Başlık
+                                                      const Text(
+                                                        'Ödül Özellikleri',
+                                                        style: TextStyle(
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          color:
+                                                              Color(0xFF2D3436),
+                                                          letterSpacing: 0.3,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 16),
+                                                      // Açıklama
+                                                      Flexible(
+                                                        child:
+                                                            SingleChildScrollView(
+                                                          child: Text(
+                                                            competition
+                                                                .description,
+                                                            style:
+                                                                const TextStyle(
+                                                              fontSize: 16,
+                                                              color: Color(
+                                                                  0xFF2D3436),
+                                                              height: 1.6,
+                                                              letterSpacing:
+                                                                  0.3,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.all(8),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFFF7A278)
+                                                  .withOpacity(0.9),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFFF7A278)
+                                                      .withOpacity(0.3),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 2),
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Icon(
+                                              Icons.info_outline_rounded,
+                                              color: Colors.white,
+                                              size: 20,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
                                     ],
                                   ),
 
                                   // Yarışma bilgileri
-                                  Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        // Geri sayım ve incele butonu
-                                        Row(
-                                          children: [
-                                            Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 10,
-                                                vertical: 6,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                gradient: const LinearGradient(
-                                                  colors: [
-                                                    Color(
-                                                        0xFFFFD4B8), // More vibrant orange light
-                                                    Color(
-                                                        0xFFFFB088), // More vibrant orange dark
-                                                  ],
-                                                  begin: Alignment.centerLeft,
-                                                  end: Alignment.centerRight,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(12),
-                                                border: Border.all(
-                                                  color: Colors.white
-                                                      .withOpacity(0.2),
-                                                  width: 1,
-                                                ),
-                                                boxShadow: [
-                                                  BoxShadow(
-                                                    color:
-                                                        const Color(0xFFE28B33)
-                                                            .withOpacity(0.1),
-                                                    blurRadius: 4,
-                                                    offset: const Offset(0, 2),
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                        colors: [
+                                          Color(
+                                              0xFFD4F4F1), // Daha belirgin Soft Turkuaz
+                                          Color(
+                                              0xFFE6D4F4), // Daha belirgin Soft Mor
+                                        ],
+                                      ),
+                                      borderRadius: const BorderRadius.only(
+                                        bottomLeft: Radius.circular(24),
+                                        bottomRight: Radius.circular(24),
+                                      ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(16),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          // Başlık ve geri sayım aynı satırda
+                                          Row(
+                                            children: [
+                                              const SizedBox(width: 8),
+                                              Expanded(
+                                                child: Text(
+                                                  competition.title,
+                                                  style: const TextStyle(
+                                                    fontSize: 18,
+                                                    fontWeight: FontWeight.w400,
+                                                    color: Color(0xFF444444),
+                                                    letterSpacing: 0.3,
                                                   ),
-                                                ],
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 1,
+                                                ),
                                               ),
-                                              child: Row(
+                                              Row(
                                                 mainAxisSize: MainAxisSize.min,
                                                 children: [
                                                   const Icon(
                                                     Icons.timer,
-                                                    size: 14,
-                                                    color: Color(0xFF2D3436),
+                                                    size: 20,
+                                                    color: Color(
+                                                        0xFFF7A278), // Turuncu
                                                   ),
-                                                  const SizedBox(width: 4),
+                                                  const SizedBox(width: 6),
                                                   DefaultTextStyle(
                                                     style: const TextStyle(
-                                                      fontSize: 14,
+                                                      fontSize: 20,
                                                       fontWeight:
                                                           FontWeight.bold,
-                                                      color: Color(0xFF2D3436),
+                                                      color: Color(0xFFF7A278),
                                                     ),
                                                     child: CountdownTimer(
                                                       endTime:
                                                           competition.endTime,
                                                       isCompetitionEnded: false,
+                                                      color: const Color(
+                                                          0xFFF7A278),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              const SizedBox(width: 8),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 12),
+                                          // Oyna butonu - tam genişlik
+                                          Container(
+                                            width: double.infinity,
+                                            height: 54,
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [
+                                                  Color(0xFF4E43AC),
+                                                  Color(0xFF43AC9E),
+                                                ],
+                                                begin: Alignment.centerLeft,
+                                                end: Alignment.centerRight,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFF4E43AC)
+                                                      .withOpacity(0.2),
+                                                  blurRadius: 8,
+                                                  offset: const Offset(0, 4),
+                                                ),
+                                              ],
+                                            ),
+                                            child: ElevatedButton(
+                                              onPressed: () =>
+                                                  _joinCompetition(competition),
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                shadowColor: Colors.transparent,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                padding: EdgeInsets.zero,
+                                                minimumSize:
+                                                    const Size.fromHeight(54),
+                                              ),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.center,
+                                                children: [
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.all(6),
+                                                    decoration: BoxDecoration(
+                                                      color: Colors.white
+                                                          .withOpacity(0.3),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              8),
+                                                    ),
+                                                    child: const Icon(
+                                                      Icons.play_arrow_rounded,
+                                                      size: 16,
+                                                      color: Colors.white,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  const Text(
+                                                    'Oyna',
+                                                    style: TextStyle(
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      color: Colors.white,
                                                     ),
                                                   ),
                                                 ],
                                               ),
                                             ),
-                                            const SizedBox(width: 8),
-                                            Expanded(
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  gradient:
-                                                      const LinearGradient(
-                                                    colors: [
-                                                      Color(
-                                                          0xFFD4F4F1), // Soft turkuaz
-                                                      Color(
-                                                          0xFFE6D4F4), // Soft mor
-                                                    ],
-                                                    begin: Alignment.centerLeft,
-                                                    end: Alignment.centerRight,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color: Colors.white
-                                                        .withOpacity(0.2),
-                                                    width: 1,
-                                                  ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: const Color(
-                                                              0xFF4ECDC4)
-                                                          .withOpacity(0.1),
-                                                      blurRadius: 4,
-                                                      offset:
-                                                          const Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    const Icon(
-                                                      Icons
-                                                          .card_giftcard_rounded,
-                                                      size: 16,
-                                                      color: Color(0xFF2D3436),
-                                                    ),
-                                                    const SizedBox(width: 6),
-                                                    Flexible(
-                                                      child: Text(
-                                                        competition.title,
-                                                        style: const TextStyle(
-                                                          fontSize: 14,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                          color:
-                                                              Color(0xFF2D3436),
-                                                          letterSpacing: 0.3,
-                                                        ),
-                                                        overflow: TextOverflow
-                                                            .ellipsis,
-                                                        textAlign:
-                                                            TextAlign.center,
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                            const SizedBox(width: 8),
-                                            TextButton(
-                                              onPressed: () {
-                                                showDialog(
-                                                  context: context,
-                                                  builder: (context) => Dialog(
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              24),
-                                                    ),
-                                                    child: Container(
-                                                      width:
-                                                          MediaQuery.of(context)
-                                                                  .size
-                                                                  .width *
-                                                              0.9,
-                                                      constraints:
-                                                          BoxConstraints(
-                                                        minHeight:
-                                                            MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .height *
-                                                                0.4,
-                                                        maxHeight:
-                                                            MediaQuery.of(
-                                                                        context)
-                                                                    .size
-                                                                    .height *
-                                                                0.8,
-                                                      ),
-                                                      decoration: BoxDecoration(
-                                                        gradient:
-                                                            const LinearGradient(
-                                                          begin: Alignment
-                                                              .topCenter,
-                                                          end: Alignment
-                                                              .bottomCenter,
-                                                          colors: [
-                                                            Color(
-                                                                0xFFD4F4F1), // Soft turkuaz
-                                                            Color(
-                                                                0xFFE6D4F4), // Soft mor
-                                                          ],
-                                                        ),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(24),
-                                                        boxShadow: [
-                                                          BoxShadow(
-                                                            color: const Color(
-                                                                    0xFF4ECDC4)
-                                                                .withOpacity(
-                                                                    0.2),
-                                                            blurRadius: 20,
-                                                            offset:
-                                                                const Offset(
-                                                                    0, 10),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      padding:
-                                                          const EdgeInsets.all(
-                                                              24),
-                                                      child: Column(
-                                                        mainAxisSize:
-                                                            MainAxisSize.min,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          // Başlık
-                                                          Row(
-                                                            children: [
-                                                              Container(
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .all(
-                                                                        12),
-                                                                decoration:
-                                                                    BoxDecoration(
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withOpacity(
-                                                                          0.3),
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              16),
-                                                                  border: Border
-                                                                      .all(
-                                                                    color: Colors
-                                                                        .white
-                                                                        .withOpacity(
-                                                                            0.5),
-                                                                    width: 1,
-                                                                  ),
-                                                                ),
-                                                                child:
-                                                                    const Icon(
-                                                                  Icons
-                                                                      .card_giftcard_rounded,
-                                                                  size: 32,
-                                                                  color: Color(
-                                                                      0xFF2D3436),
-                                                                ),
-                                                              ),
-                                                              const SizedBox(
-                                                                  width: 16),
-                                                              Expanded(
-                                                                child: Text(
-                                                                  competition
-                                                                      .title,
-                                                                  style:
-                                                                      const TextStyle(
-                                                                    fontSize:
-                                                                        24,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: Color(
-                                                                        0xFF2D3436),
-                                                                    letterSpacing:
-                                                                        0.5,
-                                                                  ),
-                                                                  maxLines: 2,
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 24),
-                                                          // Oynama Puanı
-                                                          Container(
-                                                            width:
-                                                                double.infinity,
-                                                            padding:
-                                                                const EdgeInsets
-                                                                    .symmetric(
-                                                                    horizontal:
-                                                                        20,
-                                                                    vertical:
-                                                                        16),
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              color: Colors
-                                                                  .white
-                                                                  .withOpacity(
-                                                                      0.3),
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          16),
-                                                              border:
-                                                                  Border.all(
-                                                                color: Colors
-                                                                    .white
-                                                                    .withOpacity(
-                                                                        0.5),
-                                                                width: 1,
-                                                              ),
-                                                            ),
-                                                            child: Row(
-                                                              mainAxisAlignment:
-                                                                  MainAxisAlignment
-                                                                      .center,
-                                                              children: [
-                                                                Container(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .all(
-                                                                          8),
-                                                                  decoration:
-                                                                      BoxDecoration(
-                                                                    color: const Color(
-                                                                            0xFFE28B33)
-                                                                        .withOpacity(
-                                                                            0.2),
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            12),
-                                                                  ),
-                                                                  child:
-                                                                      const Icon(
-                                                                    Icons
-                                                                        .star_rounded,
-                                                                    color: Color(
-                                                                        0xFFE28B33),
-                                                                    size: 24,
-                                                                  ),
-                                                                ),
-                                                                const SizedBox(
-                                                                    width: 12),
-                                                                const Text(
-                                                                  'Oynama Puanı:',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        16,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w500,
-                                                                    color: Color(
-                                                                        0xFF2D3436),
-                                                                  ),
-                                                                ),
-                                                                const SizedBox(
-                                                                    width: 8),
-                                                                Text(
-                                                                  '${competition.poiCost ?? 100} POI',
-                                                                  style:
-                                                                      const TextStyle(
-                                                                    fontSize:
-                                                                        18,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .bold,
-                                                                    color: Color(
-                                                                        0xFFE28B33),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 24),
-                                                          // Ürün Detayları
-                                                          Flexible(
-                                                            child: Container(
-                                                              width: double
-                                                                  .infinity,
-                                                              padding:
-                                                                  const EdgeInsets
-                                                                      .all(20),
-                                                              decoration:
-                                                                  BoxDecoration(
-                                                                color: Colors
-                                                                    .white
-                                                                    .withOpacity(
-                                                                        0.3),
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            16),
-                                                                border:
-                                                                    Border.all(
-                                                                  color: Colors
-                                                                      .white
-                                                                      .withOpacity(
-                                                                          0.5),
-                                                                  width: 1,
-                                                                ),
-                                                              ),
-                                                              child:
-                                                                  SingleChildScrollView(
-                                                                child: Text(
-                                                                  competition
-                                                                      .description,
-                                                                  style:
-                                                                      const TextStyle(
-                                                                    fontSize:
-                                                                        16,
-                                                                    color: Color(
-                                                                        0xFF2D3436),
-                                                                    height: 1.6,
-                                                                    letterSpacing:
-                                                                        0.3,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 24),
-                                                          // Oyna butonu
-                                                          Container(
-                                                            width:
-                                                                double.infinity,
-                                                            decoration:
-                                                                BoxDecoration(
-                                                              gradient:
-                                                                  const LinearGradient(
-                                                                colors: [
-                                                                  Color(
-                                                                      0xFFFFB088), // Soft but vibrant orange light
-                                                                  Color(
-                                                                      0xFFE28B33), // Soft but vibrant orange dark
-                                                                ],
-                                                              ),
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          16),
-                                                              boxShadow: [
-                                                                BoxShadow(
-                                                                  color: const Color(
-                                                                          0xFFE28B33)
-                                                                      .withOpacity(
-                                                                          0.35),
-                                                                  blurRadius: 8,
-                                                                  offset:
-                                                                      const Offset(
-                                                                          0, 4),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                            child:
-                                                                ElevatedButton(
-                                                              onPressed: () {
-                                                                Navigator.pop(
-                                                                    context);
-                                                                _joinCompetition(
-                                                                    competition);
-                                                              },
-                                                              style:
-                                                                  ElevatedButton
-                                                                      .styleFrom(
-                                                                backgroundColor:
-                                                                    Colors
-                                                                        .transparent,
-                                                                shadowColor: Colors
-                                                                    .transparent,
-                                                                padding:
-                                                                    const EdgeInsets
-                                                                        .symmetric(
-                                                                        vertical:
-                                                                            16),
-                                                                shape:
-                                                                    RoundedRectangleBorder(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              16),
-                                                                ),
-                                                              ),
-                                                              child: const Text(
-                                                                'Oyna',
-                                                                style:
-                                                                    TextStyle(
-                                                                  fontSize: 18,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .bold,
-                                                                  color: Colors
-                                                                      .white,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 16),
-                                                          Row(
-                                                            children: [
-                                                              Icon(
-                                                                Icons
-                                                                    .info_outline_rounded,
-                                                                size: 16,
-                                                                color: Colors
-                                                                    .grey
-                                                                    .shade600,
-                                                              ),
-                                                              const SizedBox(
-                                                                  width: 8),
-                                                              Expanded(
-                                                                child: Text(
-                                                                  'En iyi yaptığınız süre sıralamada yer alır.',
-                                                                  style:
-                                                                      TextStyle(
-                                                                    fontSize:
-                                                                        13,
-                                                                    color: Colors
-                                                                        .grey
-                                                                        .shade600,
-                                                                    fontStyle:
-                                                                        FontStyle
-                                                                            .italic,
-                                                                    height: 1.4,
-                                                                    letterSpacing:
-                                                                        0.2,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                );
-                                              },
-                                              style: TextButton.styleFrom(
-                                                padding: EdgeInsets.zero,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                              ),
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 6,
-                                                ),
-                                                decoration: BoxDecoration(
-                                                  gradient:
-                                                      const LinearGradient(
-                                                    colors: [
-                                                      Color(
-                                                          0xFFFFD4B8), // More vibrant orange light
-                                                      Color(
-                                                          0xFFFFB088), // More vibrant orange dark
-                                                    ],
-                                                    begin: Alignment.centerLeft,
-                                                    end: Alignment.centerRight,
-                                                  ),
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                  border: Border.all(
-                                                    color: Colors.white
-                                                        .withOpacity(0.2),
-                                                    width: 1,
-                                                  ),
-                                                  boxShadow: [
-                                                    BoxShadow(
-                                                      color: const Color(
-                                                              0xFFE28B33)
-                                                          .withOpacity(0.1),
-                                                      blurRadius: 4,
-                                                      offset:
-                                                          const Offset(0, 2),
-                                                    ),
-                                                  ],
-                                                ),
-                                                child: Row(
-                                                  mainAxisSize:
-                                                      MainAxisSize.min,
-                                                  children: [
-                                                    const Icon(
-                                                      Icons.search_rounded,
-                                                      size: 16,
-                                                      color: Color(0xFF2D3436),
-                                                    ),
-                                                    const SizedBox(width: 6),
-                                                    const Text(
-                                                      'İncele',
-                                                      style: TextStyle(
-                                                        fontSize: 14,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color:
-                                                            Color(0xFF2D3436),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                        const SizedBox(height: 16),
-
-                                        // Oyna butonu
-                                        _buildPlayButton(competition),
-                                      ],
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
@@ -1937,51 +1096,6 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
     final seconds = twoDigits(difference.inSeconds.remainder(60));
 
     return '$hours:$minutes:$seconds';
-  }
-
-  Widget _buildPlayButton(Competition competition) {
-    return SizedBox(
-      width: double.infinity,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(12),
-          gradient: const LinearGradient(
-            colors: [
-              Color(0xFF4ECDC4), // Turkuaz
-              Color(0xFF845EC2), // Mor
-            ],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF4ECDC4).withOpacity(0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: ElevatedButton(
-          onPressed: () => _joinCompetition(competition),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
-          ),
-          child: const Text(
-            'Oyna',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
 

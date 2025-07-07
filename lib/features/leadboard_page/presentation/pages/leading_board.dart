@@ -127,64 +127,77 @@ class _LeadingBoardState extends State<LeadingBoard>
           ),
         ],
       ),
-      body: leaderboardProvider.isLoading
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    color: primaryColor,
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    "Liderlik tablosu yükleniyor...",
-                    style: TextStyle(color: primaryColor),
-                  ),
-                ],
-              ),
-            )
-          : leaderboardProvider.error != null
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.error_outline,
-                          size: 48, color: Colors.red[300]),
-                      const SizedBox(height: 16),
-                      Text(
-                        leaderboardProvider.error!,
-                        style: TextStyle(color: Colors.grey[800], fontSize: 16),
-                      ),
-                      const SizedBox(height: 16),
-                      ElevatedButton(
-                        onPressed: () =>
-                            leaderboardProvider.loadGlobalLeaderboard(),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: primaryColor,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Color(0xFF4E43AC), // Mor
+              Color(0xFF43AC9E), // Yeşil
+            ],
+          ),
+        ),
+        child: leaderboardProvider.isLoading
+            ? const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(
+                      color: primaryColor,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      "Liderlik tablosu yükleniyor...",
+                      style: TextStyle(color: primaryColor),
+                    ),
+                  ],
+                ),
+              )
+            : leaderboardProvider.error != null
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.error_outline,
+                            size: 48, color: Colors.red[300]),
+                        const SizedBox(height: 16),
+                        Text(
+                          leaderboardProvider.error!,
+                          style:
+                              TextStyle(color: Colors.grey[800], fontSize: 16),
                         ),
-                        child: const Text("Tekrar Dene"),
-                      ),
-                    ],
-                  ),
-                )
-              : leaderboardProvider.leaderboardData.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.people_outline,
-                              size: 64, color: Colors.grey[400]),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Henüz kullanıcı yok',
-                            style: TextStyle(
-                                color: Colors.grey[800], fontSize: 16),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () =>
+                              leaderboardProvider.loadGlobalLeaderboard(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primaryColor,
                           ),
-                        ],
-                      ),
-                    )
-                  : _buildAnimatedLeaderboard(
-                      context, leaderboardProvider.leaderboardData),
+                          child: const Text("Tekrar Dene"),
+                        ),
+                      ],
+                    ),
+                  )
+                : leaderboardProvider.leaderboardData.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.people_outline,
+                                size: 64, color: Colors.grey[400]),
+                            const SizedBox(height: 16),
+                            Text(
+                              'Henüz kullanıcı yok',
+                              style: TextStyle(
+                                  color: Colors.grey[800], fontSize: 16),
+                            ),
+                          ],
+                        ),
+                      )
+                    : _buildAnimatedLeaderboard(
+                        context, leaderboardProvider.leaderboardData),
+      ),
     );
   }
 
@@ -197,192 +210,165 @@ class _LeadingBoardState extends State<LeadingBoard>
     final sortedUsers = List<Map<String, dynamic>>.from(users)
       ..sort((a, b) =>
           (b['successPoints'] as num).compareTo(a['successPoints'] as num));
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [
-            Color(0xFF4ECDC4), // Turkuaz
-            Color(0xFF845EC2), // Mor
-          ],
-        ),
-      ),
-      child: SafeArea(
-        bottom: false,
-        child: Column(
-          children: [
-            const SizedBox(height: 16),
-            const Text(
-              '01.03.2025 - 31.03.2025 tarihleri arasında geçerlidir.',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 13,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            const SizedBox(height: 36),
-            // Podium animasyonu
-            SlideTransition(
-              position: _podiumSlide,
-              child: ScaleTransition(
-                scale: _podiumScale,
-                child: FadeTransition(
-                  opacity: _podiumOpacity,
-                  child: SizedBox(
-                    height: 140,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 32.0,
-                      ),
-                      child: Stack(
-                        children: [
-                          if (sortedUsers.length > 1)
-                            Align(
-                              alignment: Alignment.bottomLeft,
-                              child: _PodiumUserSimple(
-                                username:
-                                    sortedUsers[1]['username']?.toString() ??
-                                        '',
-                                point:
-                                    sortedUsers[1]['successPoints'].toString(),
-                                isMain: false,
-                                isSecondOrThird: true,
-                                maxBoxWidth: 100,
-                              ),
+    return SafeArea(
+      bottom: false,
+      child: Column(
+        children: [
+          const SizedBox(height: 36),
+          // Podium animasyonu
+          SlideTransition(
+            position: _podiumSlide,
+            child: ScaleTransition(
+              scale: _podiumScale,
+              child: FadeTransition(
+                opacity: _podiumOpacity,
+                child: SizedBox(
+                  height: 140,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32.0,
+                    ),
+                    child: Stack(
+                      children: [
+                        if (sortedUsers.length > 1)
+                          Align(
+                            alignment: Alignment.bottomLeft,
+                            child: _PodiumUserSimple(
+                              username:
+                                  sortedUsers[1]['username']?.toString() ?? '',
+                              point: sortedUsers[1]['successPoints'].toString(),
+                              isMain: false,
+                              isSecondOrThird: true,
+                              maxBoxWidth: 100,
                             ),
-                          if (sortedUsers.isNotEmpty)
-                            Align(
-                              alignment: Alignment.topCenter,
-                              child: _PodiumUserSimple(
-                                username:
-                                    sortedUsers[0]['username']?.toString() ??
-                                        '',
-                                point:
-                                    sortedUsers[0]['successPoints'].toString(),
-                                isMain: true,
-                                isSecondOrThird: false,
-                                maxBoxWidth: 100,
-                              ),
+                          ),
+                        if (sortedUsers.isNotEmpty)
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: _PodiumUserSimple(
+                              username:
+                                  sortedUsers[0]['username']?.toString() ?? '',
+                              point: sortedUsers[0]['successPoints'].toString(),
+                              isMain: true,
+                              isSecondOrThird: false,
+                              maxBoxWidth: 100,
                             ),
-                          if (sortedUsers.length > 2)
-                            Align(
-                              alignment: Alignment.bottomRight,
-                              child: _PodiumUserSimple(
-                                username:
-                                    sortedUsers[2]['username']?.toString() ??
-                                        '',
-                                point:
-                                    sortedUsers[2]['successPoints'].toString(),
-                                isMain: false,
-                                isSecondOrThird: true,
-                                maxBoxWidth: 100,
-                              ),
+                          ),
+                        if (sortedUsers.length > 2)
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: _PodiumUserSimple(
+                              username:
+                                  sortedUsers[2]['username']?.toString() ?? '',
+                              point: sortedUsers[2]['successPoints'].toString(),
+                              isMain: false,
+                              isSecondOrThird: true,
+                              maxBoxWidth: 100,
                             ),
-                        ],
-                      ),
+                          ),
+                      ],
                     ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 20),
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              height: 1,
-              color: Colors.white.withOpacity(0.3),
-            ),
-            const SizedBox(height: 8),
-            // Liste animasyonu
-            Expanded(
-              child: SlideTransition(
-                position: _listSlide,
-                child: FadeTransition(
-                  opacity: _listOpacity,
-                  child: RefreshIndicator(
-                    color: primaryColor,
-                    backgroundColor: Colors.white,
-                    onRefresh: () async {
-                      await leaderboardProvider.loadGlobalLeaderboard();
-                    },
-                    child: ListView.builder(
-                      padding: const EdgeInsets.only(bottom: 120),
-                      itemCount: sortedUsers.length,
-                      itemBuilder: (context, index) {
-                        if (index < 3) return const SizedBox.shrink();
-                        final user = sortedUsers[index];
-                        final isCurrentUser = user['email'] == currentUserEmail;
-                        return Container(
-                          margin: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 2),
-                          decoration: isCurrentUser
-                              ? BoxDecoration(
-                                  color: Colors.amber[50],
-                                  borderRadius: BorderRadius.circular(12),
-                                )
-                              : null,
-                          child: ListTile(
-                            dense: true,
-                            leading: Text(
-                              (index + 1).toString(),
-                              style: TextStyle(
+          ),
+          const SizedBox(height: 20),
+          Container(
+            margin: const EdgeInsets.symmetric(horizontal: 16),
+            height: 1,
+            color: Colors.white.withOpacity(0.3),
+          ),
+          const SizedBox(height: 8),
+          // Liste animasyonu
+          Expanded(
+            child: SlideTransition(
+              position: _listSlide,
+              child: FadeTransition(
+                opacity: _listOpacity,
+                child: RefreshIndicator(
+                  color: primaryColor,
+                  backgroundColor: Colors.white,
+                  onRefresh: () async {
+                    await leaderboardProvider.loadGlobalLeaderboard();
+                  },
+                  child: ListView.builder(
+                    padding: const EdgeInsets.only(bottom: 120),
+                    itemCount: sortedUsers.length,
+                    itemBuilder: (context, index) {
+                      if (index < 3) return const SizedBox.shrink();
+                      final user = sortedUsers[index];
+                      final isCurrentUser = user['email'] == currentUserEmail;
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 2),
+                        decoration: isCurrentUser
+                            ? BoxDecoration(
+                                color: Colors.amber[50],
+                                borderRadius: BorderRadius.circular(12),
+                              )
+                            : null,
+                        child: ListTile(
+                          dense: true,
+                          leading: Text(
+                            (index + 1).toString(),
+                            style: TextStyle(
+                              color: isCurrentUser
+                                  ? Colors.grey[900]
+                                  : Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          title: Text(
+                            user['username']?.toString() ?? '',
+                            style: TextStyle(
+                              color: isCurrentUser
+                                  ? Colors.grey[900]
+                                  : Colors.white,
+                              fontWeight: isCurrentUser
+                                  ? FontWeight.bold
+                                  : FontWeight.normal,
+                              fontSize: 16,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.workspace_premium,
                                 color: isCurrentUser
                                     ? Colors.grey[900]
                                     : Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
+                                size: 18,
                               ),
-                            ),
-                            title: Text(
-                              user['username']?.toString() ?? '',
-                              style: TextStyle(
-                                color: isCurrentUser
-                                    ? Colors.grey[900]
-                                    : Colors.white,
-                                fontWeight: isCurrentUser
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              textAlign: TextAlign.center,
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.workspace_premium,
+                              const SizedBox(width: 4),
+                              Text(
+                                user['successPoints'].toString(),
+                                style: TextStyle(
                                   color: isCurrentUser
                                       ? Colors.grey[900]
                                       : Colors.white,
-                                  size: 18,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 16,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  user['successPoints'].toString(),
-                                  style: TextStyle(
-                                    color: isCurrentUser
-                                        ? Colors.grey[900]
-                                        : Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ],
-                            ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                        );
-                      },
-                    ),
+                        ),
+                      );
+                    },
                   ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

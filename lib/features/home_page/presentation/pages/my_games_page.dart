@@ -174,79 +174,45 @@ class _MyGamesPageState extends State<MyGamesPage> {
                         children: [
                           Row(
                             children: [
+                              const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
                                   data['competitionTitle'],
                                   style: const TextStyle(
                                     fontSize: 18,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2D3436),
+                                    fontWeight: FontWeight.w400,
+                                    color: Color(0xFF444444),
+                                    letterSpacing: 0.3,
                                   ),
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                 ),
                               ),
                               if (!isCompetitionEnded)
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 6),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFE28B33)
-                                        .withOpacity(0.1),
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                        color: const Color(0xFFE28B33)
-                                            .withOpacity(0.3)),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(Icons.refresh,
-                                          size: 16, color: Color(0xFFE28B33)),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        '$remainingAttempts Hak',
-                                        style: const TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w600,
-                                          color: Color(0xFFE28B33),
-                                        ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.timer,
+                                        size: 20, color: Color(0xFFF7A278)),
+                                    const SizedBox(width: 6),
+                                    DefaultTextStyle(
+                                      style: const TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFFF7A278),
                                       ),
-                                    ],
-                                  ),
+                                      child: CountdownTimer(
+                                        endTime: endTime,
+                                        isCompetitionEnded: isCompetitionEnded,
+                                        color: const Color(0xFFF7A278),
+                                      ),
+                                    ),
+                                  ],
                                 ),
+                              const SizedBox(width: 8),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFE28B33).withOpacity(0.08),
-                              borderRadius: BorderRadius.circular(14),
-                              border: Border.all(
-                                  color:
-                                      const Color(0xFFE28B33).withOpacity(0.2)),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.timer,
-                                    size: 20, color: Color(0xFFE28B33)),
-                                const SizedBox(width: 8),
-                                DefaultTextStyle(
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFFE28B33),
-                                  ),
-                                  child: CountdownTimer(
-                                    endTime: endTime,
-                                    isCompetitionEnded: isCompetitionEnded,
-                                    color: const Color(0xFFE28B33),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                           const SizedBox(height: 20),
                           if (isCompetitionEnded)
                             Row(
@@ -446,8 +412,10 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                     decoration: BoxDecoration(
                                       gradient: const LinearGradient(
                                         colors: [
-                                          Color(0xFFD4F4F1), // Soft turkuaz
-                                          Color(0xFFE6D4F4), // Soft mor
+                                          Color(
+                                              0xFFFFB088), // Soft but vibrant orange light
+                                          Color(
+                                              0xFFE28B33), // Soft but vibrant orange dark
                                         ],
                                         begin: Alignment.centerLeft,
                                         end: Alignment.centerRight,
@@ -459,7 +427,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                       ),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFF4ECDC4)
+                                          color: const Color(0xFFE28B33)
                                               .withOpacity(0.2),
                                           blurRadius: 8,
                                           offset: const Offset(0, 4),
@@ -494,7 +462,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                             child: const Icon(
                                               Icons.leaderboard_rounded,
                                               size: 16,
-                                              color: Color(0xFF2D3436),
+                                              color: Colors.white,
                                             ),
                                           ),
                                           const SizedBox(width: 8),
@@ -503,7 +471,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                             style: TextStyle(
                                               fontSize: 14,
                                               fontWeight: FontWeight.w600,
-                                              color: Color(0xFF2D3436),
+                                              color: Colors.white,
                                             ),
                                           ),
                                         ],
@@ -518,8 +486,8 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                       gradient: LinearGradient(
                                         colors: remainingAttempts > 0
                                             ? const [
-                                                Color(0xFF4ECDC4), // Turkuaz
-                                                Color(0xFF845EC2), // Mor
+                                                Color(0xFF4E43AC), // Mor
+                                                Color(0xFF43AC9E), // Yeşil
                                               ]
                                             : [
                                                 Colors.grey.shade300,
@@ -569,6 +537,17 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                         mainAxisAlignment:
                                             MainAxisAlignment.center,
                                         children: [
+                                          if (remainingAttempts > 0)
+                                            Text(
+                                              '$remainingAttempts',
+                                              style: const TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          if (remainingAttempts > 0)
+                                            const SizedBox(width: 8),
                                           Container(
                                             padding: const EdgeInsets.all(6),
                                             decoration: BoxDecoration(
@@ -932,13 +911,39 @@ class _MyGamesPageState extends State<MyGamesPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // Oyun Başlığı
-                  Text(
-                    competition.title,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2D3436),
-                    ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          competition.title,
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF2D3436),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Row(
+                        children: [
+                          const Icon(Icons.timer,
+                              size: 18, color: Color(0xFFF7A278)),
+                          const SizedBox(width: 4),
+                          DefaultTextStyle(
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFF7A278),
+                            ),
+                            child: CountdownTimer(
+                              endTime: endTime,
+                              isCompetitionEnded: !isActive,
+                              color: const Color(0xFFF7A278),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 12),
                   // Bilgi Satırları

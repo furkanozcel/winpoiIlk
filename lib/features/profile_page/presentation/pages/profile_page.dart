@@ -5,10 +5,9 @@ import 'package:winpoi/core/providers/user_provider.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/about_app_page.dart';
 import 'package:winpoi/features/profile_page/presentation/pages/agreements_page.dart'
     as agreements;
-import 'package:winpoi/features/profile_page/presentation/pages/profile_details_page.dart'
-    as profile;
 import 'package:winpoi/features/profile_page/presentation/widgets/logout_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -70,7 +69,8 @@ class _ProfilePageState extends State<ProfilePage>
     final authProvider = Provider.of<app_provider.AuthProvider>(context);
 
     // Tema renkleri
-    const Color primaryColor = Color(0xFF5FC9BF); // Turkuaz
+    const Color primaryColor =
+        Color(0xFFF7A278); // Turuncu (NavigationBar ile aynı)
     const Color secondaryColor = Color(0xFFE28B33); // Turuncu
     const Color backgroundColor = Color(0xFFF5F5F5); // Açık Gri
     const Color textColor = Color(0xFF424242); // Koyu Gri
@@ -79,7 +79,7 @@ class _ProfilePageState extends State<ProfilePage>
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF4ECDC4), // Turkuaz
+        backgroundColor: const Color(0xFF4E43AC), // Mor (header ile aynı)
         title: const Row(
           children: [
             Text(
@@ -179,8 +179,8 @@ class _ProfilePageState extends State<ProfilePage>
       decoration: const BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Color(0xFF4ECDC4), // Turkuaz - AppBar ile aynı renk
-            Color(0xFF845EC2), // Mor
+            Color(0xFF4E43AC), // Mor
+            Color(0xFF43AC9E), // Yeşil
           ],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
@@ -196,92 +196,184 @@ class _ProfilePageState extends State<ProfilePage>
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 Expanded(
-                  child: Text(
-                    userData?['username']?.toString() ??
-                        userData?['name']?.toString() ??
-                        'Kullanıcı',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 28,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.5,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFFFB088), // Soft but vibrant orange light
-                        Color(0xFFE28B33), // Soft but vibrant orange dark
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: Colors.white.withOpacity(0.5),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFE28B33).withOpacity(0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                      BoxShadow(
-                        color: Colors.white.withOpacity(0.1),
-                        blurRadius: 4,
-                        offset: const Offset(0, -2),
-                      ),
-                    ],
-                  ),
                   child: Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(
-                        Icons.wallet,
-                        color: Colors.white.withOpacity(0.95),
-                        size: 20,
+                      Flexible(
+                        child: Text(
+                          userData?['username']?.toString() ??
+                              userData?['name']?.toString() ??
+                              'Kullanıcı',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.5,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      Text(
-                        '${userData?['poiBalance'] ?? 0}',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.95),
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.2),
-                              offset: const Offset(0, 1),
-                              blurRadius: 2,
+                      IconButton(
+                        icon: const Icon(Icons.edit,
+                            color: Colors.white, size: 22),
+                        tooltip: 'Kullanıcı adını düzenle',
+                        onPressed: () async {
+                          final controller = TextEditingController(
+                              text: userData?['username']?.toString() ?? '');
+                          final result = await showDialog<String>(
+                            context: context,
+                            builder: (context) => Dialog(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(24),
+                              ),
+                              child: Container(
+                                width: MediaQuery.of(context).size.width * 0.9,
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topCenter,
+                                    end: Alignment.bottomCenter,
+                                    colors: [
+                                      Color(0xFFD4F4F1), // Soft turkuaz
+                                      Color(0xFFE6D4F4), // Soft mor
+                                    ],
+                                  ),
+                                  borderRadius: BorderRadius.circular(24),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF4ECDC4)
+                                          .withOpacity(0.2),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 10),
+                                    ),
+                                  ],
+                                ),
+                                padding: const EdgeInsets.all(24),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    // TextField
+                                    TextField(
+                                      controller: controller,
+                                      decoration: InputDecoration(
+                                        labelText: 'Kullanıcı Adı',
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                        ),
+                                        filled: true,
+                                        fillColor:
+                                            Colors.white.withOpacity(0.3),
+                                        labelStyle: const TextStyle(
+                                          color: Color(0xFF2D3436),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 24),
+                                    // Butonlar
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        TextButton(
+                                          onPressed: () =>
+                                              Navigator.pop(context),
+                                          style: TextButton.styleFrom(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 16,
+                                              vertical: 12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            'İptal',
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              color: Colors.grey[600],
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Container(
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [
+                                                Color(
+                                                    0xFFFFB088), // Soft but vibrant orange light
+                                                Color(
+                                                    0xFFE28B33), // Soft but vibrant orange dark
+                                              ],
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            boxShadow: [
+                                              BoxShadow(
+                                                color: const Color(0xFFE28B33)
+                                                    .withOpacity(0.35),
+                                                blurRadius: 8,
+                                                offset: const Offset(0, 4),
+                                              ),
+                                            ],
+                                          ),
+                                          child: ElevatedButton(
+                                            onPressed: () async {
+                                              final newUsername =
+                                                  controller.text.trim();
+                                              if (newUsername.isEmpty) return;
+                                              final user = FirebaseAuth
+                                                  .instance.currentUser;
+                                              if (user != null) {
+                                                await FirebaseFirestore.instance
+                                                    .collection('users')
+                                                    .doc(user.uid)
+                                                    .update({
+                                                  'username': newUsername
+                                                });
+                                              }
+                                              Navigator.pop(
+                                                  context, newUsername);
+                                            },
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor:
+                                                  Colors.transparent,
+                                              shadowColor: Colors.transparent,
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 24,
+                                                vertical: 12,
+                                              ),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                            ),
+                                            child: const Text(
+                                              'Kaydet',
+                                              style: TextStyle(
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.w600,
+                                                color: Colors.white,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'POI',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.95),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          shadows: [
-                            Shadow(
-                              color: Colors.black.withOpacity(0.2),
-                              offset: const Offset(0, 1),
-                              blurRadius: 2,
-                            ),
-                          ],
-                        ),
+                          );
+                          if (result != null && result.isNotEmpty && mounted) {
+                            setState(
+                                () {}); // Güncellenen kullanıcı adı anında görünsün
+                          }
+                        },
                       ),
                     ],
                   ),
@@ -326,18 +418,20 @@ class _ProfilePageState extends State<ProfilePage>
 
   Widget _buildMenuItems(BuildContext context, UserProvider userProvider,
       app_provider.AuthProvider authProvider) {
-    const Color primaryColor = Color(0xFFE28B33); // Turuncu
+    const Color primaryColor =
+        Color(0xFFF7A278); // Turuncu (NavigationBar ile aynı)
     const Color textColor = Color(0xFF424242);
 
     final items = [
       {
-        'icon': Icons.person_outline,
-        'title': 'Profil Bilgileri',
-        'onTap': () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const profile.ProfileDetailsPage()),
-            ),
+        'icon': Icons.card_giftcard,
+        'title': 'Hediyelerim',
+        'onTap': () {},
+      },
+      {
+        'icon': Icons.settings,
+        'title': 'Oyun Ayarları',
+        'onTap': () {},
       },
       {
         'icon': Icons.info_outline,
@@ -356,11 +450,6 @@ class _ProfilePageState extends State<ProfilePage>
                   builder: (context) => const agreements.AgreementsPage()),
             ),
       },
-      {
-        'icon': Icons.support_agent,
-        'title': 'Destek',
-        'onTap': () {},
-      },
       if (userProvider.userData?['role'] == 'admin')
         {
           'icon': Icons.admin_panel_settings,
@@ -371,6 +460,12 @@ class _ProfilePageState extends State<ProfilePage>
         'icon': Icons.logout,
         'title': 'Çıkış Yap',
         'onTap': () => _showLogoutDialog(context, authProvider),
+        'iconColor': Colors.redAccent,
+      },
+      {
+        'icon': Icons.delete_forever,
+        'title': 'Hesabı Sil',
+        'onTap': () {}, // İşlevsiz
         'iconColor': Colors.redAccent,
       },
     ];
