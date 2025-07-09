@@ -12,12 +12,17 @@ class LogoutDialog extends StatelessWidget {
 
       // SharedPreferences'daki kullanıcı bilgilerini temizle
       final prefs = await SharedPreferences.getInstance();
-      await prefs.clear(); // Tüm verileri temizle
+      // Sadece gerekli verileri temizle, onboarding durumunu koru
+      await prefs.remove('user_id');
+      await prefs.remove('user_email');
+      await prefs.remove('user_name');
+      // hasRegistered'ı false yap ki kullanıcı tekrar giriş yapabilsin
+      await prefs.setBool('hasRegistered', true);
 
       if (context.mounted) {
-        // Login sayfasına yönlendir
+        // Auth sayfasına yönlendir
         Navigator.of(context)
-            .pushNamedAndRemoveUntil('/login', (route) => false);
+            .pushNamedAndRemoveUntil('/auth', (route) => false);
       }
     } catch (error) {
       if (context.mounted) {

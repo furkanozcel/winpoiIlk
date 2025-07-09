@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:winpoi/features/auth/presentation/pages/register_page.dart';
-import 'package:winpoi/features/game/presentation/pages/game_page.dart';
+import 'package:winpoi/features/auth/presentation/pages/auth_page.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -99,10 +98,7 @@ class _OnboardingPageState extends State<OnboardingPage>
     await prefs.setBool('hasSeenOnboarding', true);
     if (mounted) {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-            builder: (context) => _currentPage == _pages.length - 1
-                ? const GamePage()
-                : const RegisterPage()),
+        MaterialPageRoute(builder: (context) => const AuthPage()),
       );
     }
   }
@@ -161,6 +157,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Widget _buildPage(OnboardingItem page) {
+    final isLastPage = page.title.contains('Kazanmak Senin Elinde');
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: SlideTransition(
@@ -172,33 +169,61 @@ class _OnboardingPageState extends State<OnboardingPage>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Container(
-                  width: 200,
-                  height: 200,
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        page.color,
-                        page.secondaryColor,
-                      ],
-                    ),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: page.color.withOpacity(0.3),
-                        blurRadius: 20,
-                        offset: const Offset(0, 10),
+                isLastPage
+                    ? Container(
+                        width: 200,
+                        height: 200,
+                        decoration: const BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Color(0xFF4E43AC),
+                              Color(0xFF43AC9E),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Color(0xFF4E43AC),
+                              blurRadius: 20,
+                              offset: Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: const Icon(
+                          Icons.emoji_events,
+                          size: 90,
+                          color: Colors.white,
+                        ),
+                      )
+                    : Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              page.color,
+                              page.secondaryColor,
+                            ],
+                          ),
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: page.color.withOpacity(0.3),
+                              blurRadius: 20,
+                              offset: const Offset(0, 10),
+                            ),
+                          ],
+                        ),
+                        child: Icon(
+                          page.icon,
+                          size: 90,
+                          color: Colors.white,
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Icon(
-                    page.icon,
-                    size: 90,
-                    color: Colors.white,
-                  ),
-                ),
                 const SizedBox(height: 40),
                 Text(
                   page.title,
@@ -240,6 +265,7 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Widget _buildBottomNavigation() {
+    final isLastPage = _currentPage == _pages.length - 1;
     return Container(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -288,14 +314,23 @@ class _OnboardingPageState extends State<OnboardingPage>
             height: 56,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(30),
-              gradient: LinearGradient(
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-                colors: [
-                  _pages[_currentPage].color,
-                  _pages[_currentPage].secondaryColor,
-                ],
-              ),
+              gradient: isLastPage
+                  ? const LinearGradient(
+                      colors: [
+                        Color(0xFF4E43AC),
+                        Color(0xFF43AC9E),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    )
+                  : LinearGradient(
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                      colors: [
+                        _pages[_currentPage].color,
+                        _pages[_currentPage].secondaryColor,
+                      ],
+                    ),
               boxShadow: [
                 BoxShadow(
                   color: _pages[_currentPage].color.withOpacity(0.3),
@@ -314,7 +349,7 @@ class _OnboardingPageState extends State<OnboardingPage>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _currentPage == _pages.length - 1 ? 'Oyna' : 'Sonraki',
+                        isLastPage ? 'Keşfetmeye Başla' : 'Sonraki',
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 18,
@@ -322,10 +357,10 @@ class _OnboardingPageState extends State<OnboardingPage>
                           letterSpacing: 0.5,
                         ),
                       ),
-                      if (_currentPage == _pages.length - 1) ...[
+                      if (isLastPage) ...[
                         const SizedBox(width: 8),
                         const Icon(
-                          Icons.play_arrow_rounded,
+                          Icons.login_rounded,
                           color: Colors.white,
                           size: 24,
                         ),

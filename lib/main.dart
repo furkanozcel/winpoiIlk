@@ -6,8 +6,7 @@ import 'package:winpoi/core/providers/provider_manager.dart';
 import 'package:winpoi/core/services/firebase_notification_service.dart';
 import 'package:winpoi/core/theme/app_theme.dart';
 import 'package:winpoi/features/admin/presentation/pages/competition_management_page.dart';
-import 'package:winpoi/features/auth/presentation/pages/login_page.dart';
-import 'package:winpoi/features/auth/presentation/pages/register_page.dart';
+import 'package:winpoi/features/auth/presentation/pages/auth_page.dart';
 import 'package:winpoi/features/onboarding/presentation/pages/onboarding_page.dart';
 import 'package:winpoi/features/settings/presentation/pages/notification_settings_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,8 +64,7 @@ class MyApp extends StatelessWidget {
       title: 'Winpoi',
       theme: AppTheme.theme,
       routes: {
-        '/login': (context) => const LoginPage(),
-        '/register': (context) => const RegisterPage(),
+        '/auth': (context) => const AuthPage(),
         '/home': (context) => const NavigatorPage(),
         '/admin/competitions': (context) => const CompetitionManagementPage(),
         '/notification-settings': (context) => const NotificationSettingsPage(),
@@ -104,7 +102,7 @@ class _SplashScreenState extends State<SplashScreen> {
               ? const OnboardingPage()
               : widget.isLoggedIn
                   ? const NavigatorPage()
-                  : const LoginPage(),
+                  : const AuthPage(),
         ),
       );
     });

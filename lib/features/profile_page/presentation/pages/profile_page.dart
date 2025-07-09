@@ -572,8 +572,8 @@ class _ProfilePageState extends State<ProfilePage>
             ),
           );
 
-          // Login sayfasına yönlendir
-          Navigator.of(context).pushReplacementNamed('/login');
+          // Auth sayfasına yönlendir
+          Navigator.of(context).pushReplacementNamed('/auth');
         }
       } catch (e) {
         if (mounted) {
