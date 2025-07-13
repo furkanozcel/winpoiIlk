@@ -212,8 +212,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                               const SizedBox(width: 8),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          const SizedBox(height: 20),
+                          const SizedBox(height: 8),
                           if (isCompetitionEnded)
                             Row(
                               children: [
@@ -240,7 +239,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: OutlinedButton.icon(
                                     onPressed: () {
@@ -479,7 +478,7 @@ class _MyGamesPageState extends State<MyGamesPage> {
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 8),
                                 Expanded(
                                   child: Container(
                                     decoration: BoxDecoration(

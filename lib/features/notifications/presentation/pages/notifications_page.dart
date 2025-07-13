@@ -19,24 +19,57 @@ class _NotificationsPageState extends State<NotificationsPage> {
       backgroundColor: Colors.white,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: const Color(0xFF5FC9BF),
-        title: const Row(
-          children: [
-            Text(
-              'Bildirimler',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
+        backgroundColor: Colors.transparent,
+        leading: IconButton(
+          icon: ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              colors: [
+                Color(0xFF4E43AC),
+                Color(0xFF43AC9E),
+              ],
+              begin: Alignment.centerLeft,
+              end: Alignment.centerRight,
+            ).createShader(bounds),
+            child: const Icon(
+              Icons.arrow_back_ios_rounded,
+              color: Colors.white,
             ),
-          ],
+          ),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: ShaderMask(
+          shaderCallback: (bounds) => const LinearGradient(
+            colors: [
+              Color(0xFF4E43AC), // Mor
+              Color(0xFF43AC9E), // Yeşil
+            ],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ).createShader(bounds),
+          child: const Text(
+            'Bildirimler',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.done_all,
-              color: Colors.white,
+            icon: ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [
+                  Color(0xFF4E43AC),
+                  Color(0xFF43AC9E),
+                ],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ).createShader(bounds),
+              child: const Icon(
+                Icons.done_all,
+                color: Colors.white,
+              ),
             ),
             onPressed: () async {
               if (userId != null) {
@@ -57,6 +90,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
             },
           ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: Colors.grey.withOpacity(0.25),
+          ),
+        ),
       ),
       body: userId == null
           ? const Center(child: Text('Lütfen giriş yapın'))
@@ -104,27 +145,24 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                     Colors.white,
                                   ]
                                 : [
-                                    const Color(0xFF5FC9BF).withOpacity(0.1),
-                                    const Color(0xFFE28B33).withOpacity(0.1),
+                                    const Color(0xFFD4F4F1).withOpacity(0.3),
+                                    const Color(0xFFE6D4F4).withOpacity(0.3),
                                   ],
                           ),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
                             color: isRead
                                 ? Colors.grey.withOpacity(0.2)
-                                : const Color(0xFF8156A0).withOpacity(0.3),
+                                : const Color(0xFF4E43AC).withOpacity(0.2),
                             width: 1,
                           ),
-                          boxShadow: isRead
-                              ? []
-                              : [
-                                  BoxShadow(
-                                    color: const Color(0xFF8156A0)
-                                        .withOpacity(0.1),
-                                    blurRadius: 8,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.08),
+                              blurRadius: 8,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
                         child: Material(
                           color: Colors.transparent,
@@ -147,14 +185,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                         begin: Alignment.topLeft,
                                         end: Alignment.bottomRight,
                                         colors: [
-                                          Color(0xFF5FC9BF),
-                                          Color(0xFFE28B33),
+                                          Color(0xFF4E43AC), // Mor
+                                          Color(0xFF43AC9E), // Yeşil
                                         ],
                                       ),
                                       borderRadius: BorderRadius.circular(12),
                                       boxShadow: [
                                         BoxShadow(
-                                          color: const Color(0xFFE28B33)
+                                          color: const Color(0xFF4E43AC)
                                               .withOpacity(0.2),
                                           blurRadius: 8,
                                           offset: const Offset(0, 4),
@@ -178,11 +216,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
                                           style: TextStyle(
                                             fontSize: 16,
                                             fontWeight: isRead
-                                                ? FontWeight.w500
-                                                : FontWeight.bold,
+                                                ? FontWeight.w400
+                                                : FontWeight.w600,
                                             color: isRead
                                                 ? Colors.grey.shade700
-                                                : const Color(0xFF8156A0),
+                                                : const Color(0xFF2D3436),
                                           ),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
@@ -266,7 +304,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
   Widget _buildLoadingState() {
     return const Center(
       child: CircularProgressIndicator(
-        color: Color(0xFF5FC9BF),
+        color: Color(0xFF4E43AC),
       ),
     );
   }
@@ -314,8 +352,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  Color(0xFF5FC9BF),
-                  Color(0xFFE28B33),
+                  Color(0xFF4E43AC), // Mor
+                  Color(0xFF43AC9E), // Yeşil
                 ],
               ),
               shape: BoxShape.circle,

@@ -21,11 +21,14 @@ class _NavigatorPageState extends State<NavigatorPage>
   late AnimationController _controller;
   late Animation<double> _animation;
 
-  final List<Widget> _pages = [
-    const HomePage(),
-    const LeadingBoard(),
-    const ProfilePage(),
-  ];
+  List<Widget> get pages => [
+        HomePage(
+          onSwipeLeft: _onSwipeLeft,
+          onSwipeRight: _onSwipeRight,
+        ),
+        const LeadingBoard(),
+        const ProfilePage(),
+      ];
 
   // NavigationBar item bilgileri
   final List<_NavBarItemData> _navBarItems = const [
@@ -36,7 +39,7 @@ class _NavigatorPageState extends State<NavigatorPage>
 
   Color _getNavBarColor() {
     if (_selectedIndex == 1) {
-      return const Color(0xFF43AC9E); // Turkuaz (Leaderboard sayfası için)
+      return Colors.white; // Beyaz (Leaderboard sayfası için)
     } else {
       return Colors.white; // Diğer sayfalar için beyaz
     }
@@ -90,8 +93,21 @@ class _NavigatorPageState extends State<NavigatorPage>
       _navBarItems[selected],
       _navBarItems[right],
     ];
+
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: GestureDetector(
+        onHorizontalDragEnd: (details) {
+          // Swipe yönünü belirle
+          if (details.primaryVelocity! < 0) {
+            // Sola swipe - sağ taraftaki sayfa
+            _onSwipeRight();
+          } else if (details.primaryVelocity! > 0) {
+            // Sağa swipe - sol taraftaki sayfa
+            _onSwipeLeft();
+          }
+        },
+        child: pages[_selectedIndex],
+      ),
       bottomNavigationBar: Stack(
         clipBehavior: Clip.none,
         children: [
@@ -136,7 +152,7 @@ class _NavigatorPageState extends State<NavigatorPage>
           ),
           // Ortadaki floating ikon
           Positioned(
-            top: -18,
+            top: -12,
             left: 0,
             right: 0,
             child: Center(
@@ -154,6 +170,45 @@ class _NavigatorPageState extends State<NavigatorPage>
         ],
       ),
     );
+  }
+
+  // Navigation bar'daki ikonların yerlerini dinamik olarak hesapla
+  Map<String, int> _getNavBarPositions() {
+    final int selected = _selectedIndex;
+    int left, right;
+
+    if (selected == 0) {
+      left = 1; // Leaderboard
+      right = 2; // Profile
+    } else if (selected == 1) {
+      left = 0; // HomePage
+      right = 2; // Profile
+    } else {
+      left = 0; // HomePage
+      right = 1; // Leaderboard
+    }
+
+    return {
+      'left': left,
+      'center': selected,
+      'right': right,
+    };
+  }
+
+  void _onSwipeLeft() {
+    // Sola kaydırma - sol taraftaki sayfaya geç
+    final positions = _getNavBarPositions();
+    setState(() {
+      _selectedIndex = positions['left']!;
+    });
+  }
+
+  void _onSwipeRight() {
+    // Sağa kaydırma - sağ taraftaki sayfaya geç
+    final positions = _getNavBarPositions();
+    setState(() {
+      _selectedIndex = positions['right']!;
+    });
   }
 
   Widget _buildFloatingNavItem(_NavBarItemData item) {
