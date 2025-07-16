@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'package:winpoi/features/home_page/presentation/pages/my_games_page.dart';
 import 'package:winpoi/features/home_page/presentation/widgets/countdown_timer.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class HomePage extends StatefulWidget {
   final Function()? onSwipeLeft;
@@ -86,7 +87,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               children: [
                 Text(
                   'Uygulamayı kullanmaya başlamak için bir kullanıcı adı oluşturmalısınız.',
-                  style: TextStyle(
+                  style: GoogleFonts.quicksand(
                     color: Colors.grey.shade600,
                     fontSize: 14,
                   ),
@@ -528,12 +529,12 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ).createShader(bounds),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Win',
-                style: TextStyle(
+                style: GoogleFonts.quicksand(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
@@ -542,7 +543,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               ),
               Text(
                 'Poi',
-                style: TextStyle(
+                style: GoogleFonts.quicksand(
                   fontSize: 28,
                   fontWeight: FontWeight.w300,
                   letterSpacing: 1,
@@ -597,17 +598,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               indicatorWeight: 3,
               labelColor: const Color(0xFFF7A278),
               unselectedLabelColor: const Color(0xFFF7A278),
-              labelStyle: const TextStyle(
+              labelStyle: GoogleFonts.quicksand(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
                 letterSpacing: 0.5,
-                fontFamily: 'Poppins',
               ),
-              unselectedLabelStyle: const TextStyle(
+              unselectedLabelStyle: GoogleFonts.quicksand(
                 fontWeight: FontWeight.w500,
                 fontSize: 16,
                 letterSpacing: 0.5,
-                fontFamily: 'Poppins',
               ),
               dividerColor: Colors.transparent,
               tabs: const [
@@ -1075,8 +1074,9 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                     ),
                                                     const SizedBox(width: 3),
                                                     DefaultTextStyle(
-                                                      style: const TextStyle(
-                                                        fontSize: 16,
+                                                      style:
+                                                          GoogleFonts.quicksand(
+                                                        fontSize: 18,
                                                         fontWeight:
                                                             FontWeight.bold,
                                                         color:
@@ -1163,9 +1163,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                                                       ),
                                                     ),
                                                     const SizedBox(width: 3),
-                                                    const Text(
+                                                    Text(
                                                       'Oyna',
-                                                      style: TextStyle(
+                                                      style:
+                                                          GoogleFonts.quicksand(
                                                         fontSize: 16,
                                                         fontWeight:
                                                             FontWeight.bold,

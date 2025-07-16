@@ -6,6 +6,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:provider/provider.dart';
 import 'package:winpoi/core/providers/leaderboard_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class LeadingBoard extends StatefulWidget {
   const LeadingBoard({super.key});
@@ -93,12 +94,12 @@ class _LeadingBoardState extends State<LeadingBoard>
             begin: Alignment.centerLeft,
             end: Alignment.centerRight,
           ).createShader(bounds),
-          child: const Row(
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Win',
-                style: TextStyle(
+                style: GoogleFonts.quicksand(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
@@ -107,7 +108,7 @@ class _LeadingBoardState extends State<LeadingBoard>
               ),
               Text(
                 'Poi',
-                style: TextStyle(
+                style: GoogleFonts.quicksand(
                   fontSize: 28,
                   fontWeight: FontWeight.w300,
                   letterSpacing: 1,
@@ -137,13 +138,20 @@ class _LeadingBoardState extends State<LeadingBoard>
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text("Liderlik Tablosu"),
-                  content: const Text(
+                  title: Text(
+                    "Liderlik Tablosu",
+                    style: GoogleFonts.quicksand(),
+                  ),
+                  content: Text(
                     "Bu tablo, en yüksek Poi puanına sahip kullanıcıları gösterir. Daha fazla Poi kazanarak sıralamada yükselebilirsiniz!",
+                    style: GoogleFonts.quicksand(),
                   ),
                   actions: [
                     TextButton(
-                      child: const Text("Anladım"),
+                      child: Text(
+                        "Anladım",
+                        style: GoogleFonts.quicksand(),
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
                     ),
                   ],
@@ -235,7 +243,7 @@ class _LeadingBoardState extends State<LeadingBoard>
                                 width: 28,
                                 child: Text(
                                   (index + 1).toString(),
-                                  style: TextStyle(
+                                  style: GoogleFonts.quicksand(
                                     color: Colors.black,
                                     fontWeight: FontWeight.normal,
                                     fontSize: isFirst
@@ -253,7 +261,7 @@ class _LeadingBoardState extends State<LeadingBoard>
                               Expanded(
                                 child: Text(
                                   user['username']?.toString() ?? '',
-                                  style: TextStyle(
+                                  style: GoogleFonts.quicksand(
                                     color: Colors.black,
                                     fontWeight: FontWeight.normal,
                                     fontSize: isFirst
@@ -275,16 +283,16 @@ class _LeadingBoardState extends State<LeadingBoard>
                                     width: 38,
                                     child: Text(
                                       user['successPoints'].toString(),
-                                      style: TextStyle(
+                                      style: GoogleFonts.quicksand(
                                         color: Colors.black,
                                         fontWeight: FontWeight.normal,
                                         fontSize: isFirst
-                                            ? 24
+                                            ? 20
                                             : isSecond
-                                                ? 22
+                                                ? 18
                                                 : isThird
-                                                    ? 20
-                                                    : 16,
+                                                    ? 16
+                                                    : 14,
                                       ),
                                       textAlign: TextAlign.end,
                                     ),
@@ -342,7 +350,7 @@ class _LeadingBoardState extends State<LeadingBoard>
                         width: 28,
                         child: Text(
                           (currentUserIndex + 1).toString(),
-                          style: const TextStyle(
+                          style: GoogleFonts.quicksand(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 20,
@@ -354,7 +362,7 @@ class _LeadingBoardState extends State<LeadingBoard>
                       Expanded(
                         child: Text(
                           user['username']?.toString() ?? '',
-                          style: const TextStyle(
+                          style: GoogleFonts.quicksand(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
                             fontSize: 18,
@@ -370,10 +378,10 @@ class _LeadingBoardState extends State<LeadingBoard>
                             width: 38,
                             child: Text(
                               user['successPoints'].toString(),
-                              style: const TextStyle(
+                              style: GoogleFonts.quicksand(
                                 color: Colors.white,
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18,
+                                fontSize: 16,
                               ),
                               textAlign: TextAlign.end,
                             ),

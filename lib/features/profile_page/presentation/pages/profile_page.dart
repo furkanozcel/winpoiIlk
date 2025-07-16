@@ -9,6 +9,7 @@ import 'package:winpoi/features/profile_page/presentation/widgets/logout_dialog.
 import 'package:winpoi/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -140,12 +141,12 @@ class _ProfilePageState extends State<ProfilePage>
                                     begin: Alignment.centerLeft,
                                     end: Alignment.centerRight,
                                   ).createShader(bounds),
-                                  child: const Row(
+                                  child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Text(
                                         'Win',
-                                        style: TextStyle(
+                                        style: GoogleFonts.quicksand(
                                           fontSize: 28,
                                           fontWeight: FontWeight.bold,
                                           letterSpacing: 1,
@@ -154,7 +155,7 @@ class _ProfilePageState extends State<ProfilePage>
                                       ),
                                       Text(
                                         'Poi',
-                                        style: TextStyle(
+                                        style: GoogleFonts.quicksand(
                                           fontSize: 28,
                                           fontWeight: FontWeight.w300,
                                           letterSpacing: 1,
@@ -273,7 +274,7 @@ class _ProfilePageState extends State<ProfilePage>
                   userData?['username']?.toString() ??
                       userData?['name']?.toString() ??
                       'Kullanıcı',
-                  style: const TextStyle(
+                  style: GoogleFonts.quicksand(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
                     color: Color(0xFF2D3436),
@@ -378,7 +379,7 @@ class _ProfilePageState extends State<ProfilePage>
               children: [
                 Text(
                   value,
-                  style: const TextStyle(
+                  style: GoogleFonts.quicksand(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
@@ -387,7 +388,7 @@ class _ProfilePageState extends State<ProfilePage>
                 const SizedBox(height: 2),
                 Text(
                   label,
-                  style: TextStyle(
+                  style: GoogleFonts.quicksand(
                     fontSize: 11,
                     color: Colors.white.withOpacity(0.9),
                     fontWeight: FontWeight.w500,
@@ -470,7 +471,7 @@ class _ProfilePageState extends State<ProfilePage>
             ),
             title: Text(
               item['title'] as String,
-              style: const TextStyle(
+              style: GoogleFonts.quicksand(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: Color(0xFF2D3436),
@@ -478,7 +479,7 @@ class _ProfilePageState extends State<ProfilePage>
             ),
             subtitle: Text(
               item['subtitle'] as String,
-              style: TextStyle(
+              style: GoogleFonts.quicksand(
                 fontSize: 14,
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w400,

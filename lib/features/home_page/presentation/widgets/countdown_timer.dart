@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:google_fonts/google_fonts.dart';
 
 class CountdownTimer extends StatefulWidget {
   final DateTime endTime;
@@ -59,7 +60,8 @@ class _CountdownTimerState extends State<CountdownTimer> {
       widget.isCompetitionEnded
           ? 'Oyun Sona Erdi'
           : _formatDuration(_remainingTime),
-      style: TextStyle(
+      style: GoogleFonts.quicksand(
+        fontSize: 18,
         color:
             widget.isCompetitionEnded ? Colors.grey : const Color(0xFF2D3436),
         fontWeight: FontWeight.bold,

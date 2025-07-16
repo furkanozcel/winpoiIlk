@@ -8,6 +8,7 @@ import 'package:winpoi/core/errors/error_widgets.dart';
 import 'package:winpoi/core/errors/app_exception.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AuthPage extends StatefulWidget {
   const AuthPage({super.key});
@@ -258,10 +259,10 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                             ),
                             child: Column(
                               children: [
-                                const Text(
+                                Text(
                                   "WinPoi'ye hoş geldin",
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
+                                  style: GoogleFonts.quicksand(
                                     fontSize: 28,
                                     fontWeight: FontWeight.bold,
                                     color: Color(0xFF2C3E50),
@@ -273,7 +274,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                 Text(
                                   'Ödül avına başlamak için Google hesabınızla giriş yapın',
                                   textAlign: TextAlign.center,
-                                  style: TextStyle(
+                                  style: GoogleFonts.quicksand(
                                     fontSize: 16,
                                     color: Colors.grey.shade700,
                                     height: 1.4,
@@ -336,7 +337,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                         const SizedBox(width: 16),
                                         Text(
                                           'Google ile Devam Et',
-                                          style: TextStyle(
+                                          style: GoogleFonts.quicksand(
                                             fontSize: 18,
                                             color: Colors.grey.shade800,
                                             fontWeight: FontWeight.w600,
@@ -388,7 +389,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                 child: RichText(
                                   text: TextSpan(
                                     text: 'Kullanım Koşulları',
-                                    style: TextStyle(
+                                    style: GoogleFonts.quicksand(
                                       color: Colors.grey.shade700,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 13,
@@ -401,7 +402,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                     children: [
                                       TextSpan(
                                         text: ' ve ',
-                                        style: TextStyle(
+                                        style: GoogleFonts.quicksand(
                                           color: Colors.grey.shade600,
                                           fontWeight: FontWeight.normal,
                                           decoration: TextDecoration.none,
@@ -409,7 +410,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                       ),
                                       TextSpan(
                                         text: 'Gizlilik Politikası',
-                                        style: TextStyle(
+                                        style: GoogleFonts.quicksand(
                                           color: Colors.grey.shade700,
                                           fontWeight: FontWeight.w600,
                                           decoration: TextDecoration.underline,
@@ -421,7 +422,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                       ),
                                       TextSpan(
                                         text: "'nı kabul ediyorum.",
-                                        style: TextStyle(
+                                        style: GoogleFonts.quicksand(
                                           color: Colors.grey.shade600,
                                           fontWeight: FontWeight.normal,
                                           decoration: TextDecoration.none,
@@ -470,7 +471,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                 Expanded(
                                   child: Text(
                                     'Güvenli ve hızlı giriş. Yeni kullanıcılar otomatik olarak kayıt olur.',
-                                    style: TextStyle(
+                                    style: GoogleFonts.quicksand(
                                       fontSize: 14,
                                       color: Colors.grey.shade700,
                                       height: 1.3,

@@ -14,6 +14,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:async';
 import 'firebase_options.dart';
 import 'core/errors/async_error_handler.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 void main() async {
   // Widget binding'i başlat
@@ -134,11 +135,11 @@ class _SplashScreenState extends State<SplashScreen> {
                 end: Alignment.centerRight,
               ).createShader(bounds),
               child: RichText(
-                text: const TextSpan(
+                text: TextSpan(
                   children: [
                     TextSpan(
                       text: 'WIN',
-                      style: TextStyle(
+                      style: GoogleFonts.quicksand(
                         fontSize: 42,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
@@ -146,7 +147,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                     TextSpan(
                       text: 'POI',
-                      style: TextStyle(
+                      style: GoogleFonts.quicksand(
                         fontSize: 42,
                         fontWeight: FontWeight.w300,
                         color: Colors.white,

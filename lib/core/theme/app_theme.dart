@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Ana renkler
@@ -20,6 +21,7 @@ class AppTheme {
 
   static ThemeData get theme {
     return ThemeData(
+      textTheme: GoogleFonts.quicksandTextTheme(),
       // Ana renk şeması
       colorScheme: ColorScheme.light(
         primary: primaryColor,
@@ -30,10 +32,15 @@ class AppTheme {
       ),
 
       // AppBar teması
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: primaryColor,
         foregroundColor: Colors.white,
         elevation: 0,
+        titleTextStyle: GoogleFonts.quicksand(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
       ),
 
       // Buton teması
@@ -45,6 +52,10 @@ class AppTheme {
             borderRadius: BorderRadius.circular(12),
           ),
           padding: const EdgeInsets.symmetric(vertical: 16),
+          textStyle: GoogleFonts.quicksand(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
 
@@ -66,8 +77,12 @@ class AppTheme {
           borderRadius: BorderRadius.all(Radius.circular(12)),
           borderSide: BorderSide(color: primaryColor),
         ),
-        labelStyle: TextStyle(color: textSecondaryColor),
-        hintStyle: TextStyle(color: textSecondaryColor),
+        labelStyle: GoogleFonts.quicksand(
+          color: textSecondaryColor,
+        ),
+        hintStyle: GoogleFonts.quicksand(
+          color: textSecondaryColor,
+        ),
       ),
 
       // IconButton teması
@@ -81,6 +96,10 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primaryColor,
+          textStyle: GoogleFonts.quicksand(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ),
 
@@ -94,12 +113,20 @@ class AppTheme {
       ),
 
       // Bottom Navigation Bar teması
-      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: surfaceColor,
         selectedItemColor: primaryColor,
         unselectedItemColor: Colors.grey,
         type: BottomNavigationBarType.fixed,
         elevation: 8,
+        selectedLabelStyle: GoogleFonts.quicksand(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: GoogleFonts.quicksand(
+          fontSize: 12,
+          fontWeight: FontWeight.w500,
+        ),
       ),
     );
   }
