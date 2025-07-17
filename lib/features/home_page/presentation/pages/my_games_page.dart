@@ -61,26 +61,87 @@ class _MyGamesPageState extends State<MyGamesPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.gamepad_outlined,
-                  size: 64,
-                  color: Colors.grey.shade400,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Oynamakta olduğunuz oyun yoktur',
-                  style: TextStyle(
-                    color: Colors.grey.shade700,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
+                Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFD4F4F1).withOpacity(0.3),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Icon(
+                    Icons.sports_esports_outlined,
+                    size: 80,
+                    color: const Color(0xFF4ECDC4),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 24),
                 Text(
-                  'Katıldığınız oyunlar burada görünecek',
+                  'Henüz bir oyuna katılmadınız',
                   style: TextStyle(
-                    color: Colors.grey.shade500,
-                    fontSize: 16,
+                    color: const Color(0xFF2D3436),
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.3,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: Text(
+                    'Yarışmalara katılarak oyunlarınızı burada görebilirsiniz',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: 16,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFF4ECDC4),
+                        Color(0xFF845EC2),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF4ECDC4).withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      // Ana sayfaya yönlendir
+                      Navigator.of(context).pushReplacementNamed('/home');
+                    },
+                    icon:
+                        const Icon(Icons.explore_rounded, color: Colors.white),
+                    label: const Text(
+                      'Yarışmaları Keşfet',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.transparent,
+                      shadowColor: Colors.transparent,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -88,46 +149,45 @@ class _MyGamesPageState extends State<MyGamesPage> {
           );
         }
 
+        // Yarışmaları sırala ve silinen yarışmaları filtrele
+        final sortedDocs = snapshot.data!.docs.toList()
+          ..sort((a, b) {
+            final aData = a.data() as Map<String, dynamic>;
+            final bData = b.data() as Map<String, dynamic>;
+
+            // Önce biten yarışmaları en alta al
+            final aEndTime = (aData['endTime'] as Timestamp).toDate();
+            final bEndTime = (bData['endTime'] as Timestamp).toDate();
+            final aRemainingTime = aEndTime.difference(DateTime.now());
+            final bRemainingTime = bEndTime.difference(DateTime.now());
+
+            if (aRemainingTime.isNegative && !bRemainingTime.isNegative)
+              return 1;
+            if (!aRemainingTime.isNegative && bRemainingTime.isNegative)
+              return -1;
+
+            // Sonra hakkı kalmayan yarışmaları en alta al
+            final aRemainingAttempts = aData['remainingAttempts'] as int;
+            final bRemainingAttempts = bData['remainingAttempts'] as int;
+
+            if (aRemainingAttempts == 0 && bRemainingAttempts > 0) return 1;
+            if (aRemainingAttempts > 0 && bRemainingAttempts == 0) return -1;
+
+            // Son olarak katılım zamanına göre sırala (en son katılan en üstte)
+            final aJoinedAt = aData['joinedAt'] as Timestamp?;
+            final bJoinedAt = bData['joinedAt'] as Timestamp?;
+
+            if (aJoinedAt == null && bJoinedAt == null) return 0;
+            if (aJoinedAt == null) return 1;
+            if (bJoinedAt == null) return -1;
+
+            return bJoinedAt.compareTo(aJoinedAt);
+          });
+
         return ListView.builder(
           padding: const EdgeInsets.all(16),
-          itemCount: snapshot.data!.docs.length,
+          itemCount: sortedDocs.length,
           itemBuilder: (context, index) {
-            // Yarışmaları sırala
-            final sortedDocs = snapshot.data!.docs.toList()
-              ..sort((a, b) {
-                final aData = a.data() as Map<String, dynamic>;
-                final bData = b.data() as Map<String, dynamic>;
-
-                // Önce biten yarışmaları en alta al
-                final aEndTime = (aData['endTime'] as Timestamp).toDate();
-                final bEndTime = (bData['endTime'] as Timestamp).toDate();
-                final aRemainingTime = aEndTime.difference(DateTime.now());
-                final bRemainingTime = bEndTime.difference(DateTime.now());
-
-                if (aRemainingTime.isNegative && !bRemainingTime.isNegative)
-                  return 1;
-                if (!aRemainingTime.isNegative && bRemainingTime.isNegative)
-                  return -1;
-
-                // Sonra hakkı kalmayan yarışmaları en alta al
-                final aRemainingAttempts = aData['remainingAttempts'] as int;
-                final bRemainingAttempts = bData['remainingAttempts'] as int;
-
-                if (aRemainingAttempts == 0 && bRemainingAttempts > 0) return 1;
-                if (aRemainingAttempts > 0 && bRemainingAttempts == 0)
-                  return -1;
-
-                // Son olarak katılım zamanına göre sırala (en son katılan en üstte)
-                final aJoinedAt = aData['joinedAt'] as Timestamp?;
-                final bJoinedAt = bData['joinedAt'] as Timestamp?;
-
-                if (aJoinedAt == null && bJoinedAt == null) return 0;
-                if (aJoinedAt == null) return 1;
-                if (bJoinedAt == null) return -1;
-
-                return bJoinedAt.compareTo(aJoinedAt);
-              });
-
             final game = sortedDocs[index];
             final data = game.data() as Map<String, dynamic>;
             final endTime = (data['endTime'] as Timestamp).toDate();
@@ -140,455 +200,520 @@ class _MyGamesPageState extends State<MyGamesPage> {
 
             final isCompetitionEnded = _isCompetitionEnded(remainingTime);
 
-            return Stack(
-              children: [
-                Card(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  elevation: 0,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          Color(0xFFD4F4F1), // Daha belirgin Soft Turkuaz
-                          Color(0xFFE6D4F4), // Daha belirgin Soft Mor
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF4ECDC4).withOpacity(0.2),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
+            // Yarışmanın hala mevcut olup olmadığını kontrol et
+            return FutureBuilder<DocumentSnapshot>(
+              future: FirebaseFirestore.instance
+                  .collection('competitions')
+                  .doc(data['competitionId'])
+                  .get(),
+              builder: (context, competitionSnapshot) {
+                // Yarışma silinmişse, katılım kaydını da sil ve widget'ı gösterme
+                if (competitionSnapshot.hasData &&
+                    !competitionSnapshot.data!.exists) {
+                  // Silinen yarışmanın katılım kaydını da sil
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    _removeOrphanedParticipation(game.id);
+                  });
+                  return const SizedBox.shrink();
+                }
+
+                // Yarışma yükleniyor
+                if (competitionSnapshot.connectionState ==
+                    ConnectionState.waiting) {
+                  return const Card(
+                    margin: EdgeInsets.only(bottom: 16),
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
+                      padding: EdgeInsets.all(16),
+                      child: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                  );
+                }
+
+                // Yarışma mevcut, normal şekilde göster
+                return Stack(
+                  children: [
+                    Card(
+                      margin: const EdgeInsets.only(bottom: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      elevation: 0,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              Color(0xFFD4F4F1), // Daha belirgin Soft Turkuaz
+                              Color(0xFFE6D4F4), // Daha belirgin Soft Mor
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: const Color(0xFF4ECDC4).withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  data['competitionTitle'],
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w400,
-                                    color: Color(0xFF444444),
-                                    letterSpacing: 0.3,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 1,
-                                ),
-                              ),
-                              if (!isCompetitionEnded)
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.timer,
-                                        size: 20, color: Color(0xFFF7A278)),
-                                    const SizedBox(width: 6),
-                                    DefaultTextStyle(
+                              Row(
+                                children: [
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      data['competitionTitle'],
                                       style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFFF7A278),
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w400,
+                                        color: Color(0xFF444444),
+                                        letterSpacing: 0.3,
                                       ),
-                                      child: CountdownTimer(
-                                        endTime: endTime,
-                                        isCompetitionEnded: isCompetitionEnded,
-                                        color: const Color(0xFFF7A278),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                  if (!isCompetitionEnded)
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.timer,
+                                            size: 20, color: Color(0xFFF7A278)),
+                                        const SizedBox(width: 6),
+                                        DefaultTextStyle(
+                                          style: const TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFFF7A278),
+                                          ),
+                                          child: CountdownTimer(
+                                            endTime: endTime,
+                                            isCompetitionEnded:
+                                                isCompetitionEnded,
+                                            color: const Color(0xFFF7A278),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  const SizedBox(width: 8),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              if (isCompetitionEnded)
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () {},
+                                        icon: const Icon(
+                                            Icons.leaderboard_rounded,
+                                            color: Color(0xFF5FC9BF)),
+                                        label: const Text(
+                                          'Sonucu Göster',
+                                          style: TextStyle(
+                                            color: Color(0xFF5FC9BF),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          side: const BorderSide(
+                                              color: Color(0xFF5FC9BF),
+                                              width: 1.5),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 14),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: OutlinedButton.icon(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => Dialog(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(24),
+                                              ),
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(24),
+                                                decoration: BoxDecoration(
+                                                  gradient:
+                                                      const LinearGradient(
+                                                    begin: Alignment.topCenter,
+                                                    end: Alignment.bottomCenter,
+                                                    colors: [
+                                                      Color(
+                                                          0xFFD4F4F1), // Soft turkuaz
+                                                      Color(
+                                                          0xFFE6D4F4), // Soft mor
+                                                    ],
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(24),
+                                                  boxShadow: [
+                                                    BoxShadow(
+                                                      color: const Color(
+                                                              0xFF4ECDC4)
+                                                          .withOpacity(0.2),
+                                                      blurRadius: 20,
+                                                      offset:
+                                                          const Offset(0, 10),
+                                                    ),
+                                                  ],
+                                                ),
+                                                child: Column(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              16),
+                                                      decoration: BoxDecoration(
+                                                        color: Colors.white
+                                                            .withOpacity(0.2),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(16),
+                                                      ),
+                                                      child: const Icon(
+                                                        Icons.map_rounded,
+                                                        color:
+                                                            Color(0xFF2D3436),
+                                                        size: 32,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 20),
+                                                    const Text(
+                                                      'Haritayı Gör',
+                                                      style: TextStyle(
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color:
+                                                            Color(0xFF2D3436),
+                                                        letterSpacing: 0.2,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 16),
+                                                    Icon(Icons.map_rounded,
+                                                        size: 80,
+                                                        color:
+                                                            Color(0xFF5FC9BF)),
+                                                    const SizedBox(height: 16),
+                                                    const Text(
+                                                      'Bu yarışmanın oynandığı harita burada gösterilecek. (Şu an temsili harita)',
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: TextStyle(
+                                                        fontSize: 15,
+                                                        color:
+                                                            Color(0xFF2D3436),
+                                                        height: 1.4,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(height: 24),
+                                                    Container(
+                                                      decoration: BoxDecoration(
+                                                        gradient:
+                                                            const LinearGradient(
+                                                          colors: [
+                                                            Color(
+                                                                0xFFFFB088), // Soft but vibrant orange light
+                                                            Color(
+                                                                0xFFE28B33), // Soft but vibrant orange dark
+                                                          ],
+                                                        ),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(12),
+                                                        boxShadow: [
+                                                          BoxShadow(
+                                                            color: const Color(
+                                                                    0xFFE28B33)
+                                                                .withOpacity(
+                                                                    0.35),
+                                                            blurRadius: 8,
+                                                            offset:
+                                                                const Offset(
+                                                                    0, 4),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      child: ElevatedButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context),
+                                                        style: ElevatedButton
+                                                            .styleFrom(
+                                                          backgroundColor:
+                                                              Colors
+                                                                  .transparent,
+                                                          shadowColor: Colors
+                                                              .transparent,
+                                                          padding:
+                                                              const EdgeInsets
+                                                                  .symmetric(
+                                                            horizontal: 24,
+                                                            vertical: 12,
+                                                          ),
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        12),
+                                                          ),
+                                                        ),
+                                                        child: const Text(
+                                                          'Kapat',
+                                                          style: TextStyle(
+                                                            fontSize: 15,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                            color: Colors.white,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        icon: const Icon(Icons.map_rounded,
+                                            color: Color(0xFF5FC9BF)),
+                                        label: const Text(
+                                          'Haritayı Gör',
+                                          style: TextStyle(
+                                            color: Color(0xFF5FC9BF),
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                        style: OutlinedButton.styleFrom(
+                                          side: const BorderSide(
+                                              color: Color(0xFF5FC9BF),
+                                              width: 1.5),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                              vertical: 14),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                )
+                              else
+                                Row(
+                                  children: [
+                                    SizedBox(
+                                      width: 160,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          gradient: const LinearGradient(
+                                            colors: [
+                                              Color(
+                                                  0xFFFFB088), // Soft but vibrant orange light
+                                              Color(
+                                                  0xFFE28B33), // Soft but vibrant orange dark
+                                            ],
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color:
+                                                Colors.white.withOpacity(0.5),
+                                            width: 1,
+                                          ),
+                                          boxShadow: [
+                                            BoxShadow(
+                                              color: const Color(0xFFE28B33)
+                                                  .withOpacity(0.2),
+                                              blurRadius: 8,
+                                              offset: const Offset(0, 4),
+                                            ),
+                                          ],
+                                        ),
+                                        child: ElevatedButton(
+                                          onPressed: () {},
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
+                                            shadowColor: Colors.transparent,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 12),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            elevation: 0,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white
+                                                      .withOpacity(0.3),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: const Icon(
+                                                  Icons.leaderboard_rounded,
+                                                  size: 16,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              const Text(
+                                                'Sıralamayı Göster',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: Colors.white,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Expanded(
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          gradient: LinearGradient(
+                                            colors: remainingAttempts > 0
+                                                ? const [
+                                                    Color(0xFF4E43AC), // Mor
+                                                    Color(0xFF43AC9E), // Yeşil
+                                                  ]
+                                                : [
+                                                    Colors.grey.shade300,
+                                                    Colors.grey.shade400,
+                                                  ],
+                                            begin: Alignment.centerLeft,
+                                            end: Alignment.centerRight,
+                                          ),
+                                          borderRadius:
+                                              BorderRadius.circular(12),
+                                          border: Border.all(
+                                            color: remainingAttempts > 0
+                                                ? Colors.white.withOpacity(0.5)
+                                                : Colors.grey.shade400
+                                                    .withOpacity(0.5),
+                                            width: 1,
+                                          ),
+                                          boxShadow: remainingAttempts > 0
+                                              ? [
+                                                  BoxShadow(
+                                                    color:
+                                                        const Color(0xFF4ECDC4)
+                                                            .withOpacity(0.3),
+                                                    blurRadius: 8,
+                                                    offset: const Offset(0, 4),
+                                                  ),
+                                                ]
+                                              : null,
+                                        ),
+                                        child: ElevatedButton(
+                                          onPressed: remainingAttempts > 0
+                                              ? () => _replayGame({
+                                                    ...data,
+                                                    'id': game.id,
+                                                  })
+                                              : null,
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: Colors.transparent,
+                                            shadowColor: Colors.transparent,
+                                            padding: const EdgeInsets.symmetric(
+                                                vertical: 12),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                            ),
+                                            elevation: 0,
+                                          ),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              if (remainingAttempts > 0)
+                                                Text(
+                                                  '$remainingAttempts',
+                                                  style: const TextStyle(
+                                                    fontSize: 16,
+                                                    fontWeight: FontWeight.bold,
+                                                    color: Colors.white,
+                                                  ),
+                                                ),
+                                              if (remainingAttempts > 0)
+                                                const SizedBox(width: 8),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.all(6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white
+                                                      .withOpacity(0.3),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                                child: Icon(
+                                                  Icons.replay_rounded,
+                                                  size: 16,
+                                                  color: remainingAttempts > 0
+                                                      ? Colors.white
+                                                      : Colors.grey.shade600,
+                                                ),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                remainingAttempts > 0
+                                                    ? 'Tekrar Oyna'
+                                                    : 'Hakkınız Kalmadı',
+                                                style: TextStyle(
+                                                  fontSize: 14,
+                                                  fontWeight: FontWeight.w600,
+                                                  color: remainingAttempts > 0
+                                                      ? Colors.white
+                                                      : Colors.grey.shade600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
                                       ),
                                     ),
                                   ],
                                 ),
-                              const SizedBox(width: 8),
                             ],
                           ),
-                          const SizedBox(height: 8),
-                          if (isCompetitionEnded)
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {},
-                                    icon: const Icon(Icons.leaderboard_rounded,
-                                        color: Color(0xFF5FC9BF)),
-                                    label: const Text(
-                                      'Sonucu Göster',
-                                      style: TextStyle(
-                                        color: Color(0xFF5FC9BF),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                          color: Color(0xFF5FC9BF), width: 1.5),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 14),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: OutlinedButton.icon(
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => Dialog(
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(24),
-                                          ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(24),
-                                            decoration: BoxDecoration(
-                                              gradient: const LinearGradient(
-                                                begin: Alignment.topCenter,
-                                                end: Alignment.bottomCenter,
-                                                colors: [
-                                                  Color(
-                                                      0xFFD4F4F1), // Soft turkuaz
-                                                  Color(0xFFE6D4F4), // Soft mor
-                                                ],
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(24),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: const Color(0xFF4ECDC4)
-                                                      .withOpacity(0.2),
-                                                  blurRadius: 20,
-                                                  offset: const Offset(0, 10),
-                                                ),
-                                              ],
-                                            ),
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Container(
-                                                  padding:
-                                                      const EdgeInsets.all(16),
-                                                  decoration: BoxDecoration(
-                                                    color: Colors.white
-                                                        .withOpacity(0.2),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            16),
-                                                  ),
-                                                  child: const Icon(
-                                                    Icons.map_rounded,
-                                                    color: Color(0xFF2D3436),
-                                                    size: 32,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 20),
-                                                const Text(
-                                                  'Haritayı Gör',
-                                                  style: TextStyle(
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.w600,
-                                                    color: Color(0xFF2D3436),
-                                                    letterSpacing: 0.2,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 16),
-                                                Icon(Icons.map_rounded,
-                                                    size: 80,
-                                                    color: Color(0xFF5FC9BF)),
-                                                const SizedBox(height: 16),
-                                                const Text(
-                                                  'Bu yarışmanın oynandığı harita burada gösterilecek. (Şu an temsili harita)',
-                                                  textAlign: TextAlign.center,
-                                                  style: TextStyle(
-                                                    fontSize: 15,
-                                                    color: Color(0xFF2D3436),
-                                                    height: 1.4,
-                                                  ),
-                                                ),
-                                                const SizedBox(height: 24),
-                                                Container(
-                                                  decoration: BoxDecoration(
-                                                    gradient:
-                                                        const LinearGradient(
-                                                      colors: [
-                                                        Color(
-                                                            0xFFFFB088), // Soft but vibrant orange light
-                                                        Color(
-                                                            0xFFE28B33), // Soft but vibrant orange dark
-                                                      ],
-                                                    ),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            12),
-                                                    boxShadow: [
-                                                      BoxShadow(
-                                                        color: const Color(
-                                                                0xFFE28B33)
-                                                            .withOpacity(0.35),
-                                                        blurRadius: 8,
-                                                        offset:
-                                                            const Offset(0, 4),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                  child: ElevatedButton(
-                                                    onPressed: () =>
-                                                        Navigator.pop(context),
-                                                    style: ElevatedButton
-                                                        .styleFrom(
-                                                      backgroundColor:
-                                                          Colors.transparent,
-                                                      shadowColor:
-                                                          Colors.transparent,
-                                                      padding: const EdgeInsets
-                                                          .symmetric(
-                                                        horizontal: 24,
-                                                        vertical: 12,
-                                                      ),
-                                                      shape:
-                                                          RoundedRectangleBorder(
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(12),
-                                                      ),
-                                                    ),
-                                                    child: const Text(
-                                                      'Kapat',
-                                                      style: TextStyle(
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: Colors.white,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                    icon: const Icon(Icons.map_rounded,
-                                        color: Color(0xFF5FC9BF)),
-                                    label: const Text(
-                                      'Haritayı Gör',
-                                      style: TextStyle(
-                                        color: Color(0xFF5FC9BF),
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    style: OutlinedButton.styleFrom(
-                                      side: const BorderSide(
-                                          color: Color(0xFF5FC9BF), width: 1.5),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      padding: const EdgeInsets.symmetric(
-                                          vertical: 14),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            )
-                          else
-                            Row(
-                              children: [
-                                SizedBox(
-                                  width: 160,
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [
-                                          Color(
-                                              0xFFFFB088), // Soft but vibrant orange light
-                                          Color(
-                                              0xFFE28B33), // Soft but vibrant orange dark
-                                        ],
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: Colors.white.withOpacity(0.5),
-                                        width: 1,
-                                      ),
-                                      boxShadow: [
-                                        BoxShadow(
-                                          color: const Color(0xFFE28B33)
-                                              .withOpacity(0.2),
-                                          blurRadius: 8,
-                                          offset: const Offset(0, 4),
-                                        ),
-                                      ],
-                                    ),
-                                    child: ElevatedButton(
-                                      onPressed: () {},
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.transparent,
-                                        shadowColor: Colors.transparent,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  Colors.white.withOpacity(0.3),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: const Icon(
-                                              Icons.leaderboard_rounded,
-                                              size: 16,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'Sıralamayı Göster',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: Colors.white,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      gradient: LinearGradient(
-                                        colors: remainingAttempts > 0
-                                            ? const [
-                                                Color(0xFF4E43AC), // Mor
-                                                Color(0xFF43AC9E), // Yeşil
-                                              ]
-                                            : [
-                                                Colors.grey.shade300,
-                                                Colors.grey.shade400,
-                                              ],
-                                        begin: Alignment.centerLeft,
-                                        end: Alignment.centerRight,
-                                      ),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: remainingAttempts > 0
-                                            ? Colors.white.withOpacity(0.5)
-                                            : Colors.grey.shade400
-                                                .withOpacity(0.5),
-                                        width: 1,
-                                      ),
-                                      boxShadow: remainingAttempts > 0
-                                          ? [
-                                              BoxShadow(
-                                                color: const Color(0xFF4ECDC4)
-                                                    .withOpacity(0.3),
-                                                blurRadius: 8,
-                                                offset: const Offset(0, 4),
-                                              ),
-                                            ]
-                                          : null,
-                                    ),
-                                    child: ElevatedButton(
-                                      onPressed: remainingAttempts > 0
-                                          ? () => _replayGame({
-                                                ...data,
-                                                'id': game.id,
-                                              })
-                                          : null,
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.transparent,
-                                        shadowColor: Colors.transparent,
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 12),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(12),
-                                        ),
-                                        elevation: 0,
-                                      ),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          if (remainingAttempts > 0)
-                                            Text(
-                                              '$remainingAttempts',
-                                              style: const TextStyle(
-                                                fontSize: 16,
-                                                fontWeight: FontWeight.bold,
-                                                color: Colors.white,
-                                              ),
-                                            ),
-                                          if (remainingAttempts > 0)
-                                            const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.all(6),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  Colors.white.withOpacity(0.3),
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            child: Icon(
-                                              Icons.replay_rounded,
-                                              size: 16,
-                                              color: remainingAttempts > 0
-                                                  ? Colors.white
-                                                  : Colors.grey.shade600,
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            remainingAttempts > 0
-                                                ? 'Tekrar Oyna'
-                                                : 'Hakkınız Kalmadı',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w600,
-                                              color: remainingAttempts > 0
-                                                  ? Colors.white
-                                                  : Colors.grey.shade600,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
-              ],
+                  ],
+                );
+              },
             );
           },
         );
@@ -1078,5 +1203,57 @@ class _MyGamesPageState extends State<MyGamesPage> {
     // Oyunu devam ettirme mantığı
     final competition = game['competition'] as Competition;
     // TODO: Oyun sayfasına yönlendirme
+  }
+
+  Future<void> _removeOrphanedParticipation(String participationId) async {
+    try {
+      final authProvider =
+          Provider.of<app_provider.AuthProvider>(context, listen: false);
+      final user = authProvider.currentUser;
+
+      if (user == null) {
+        return;
+      }
+
+      final participationDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .collection('participations')
+          .doc(participationId)
+          .get();
+
+      if (participationDoc.exists) {
+        final competitionDoc = await FirebaseFirestore.instance
+            .collection('competitions')
+            .doc(participationDoc.data()!['competitionId'])
+            .get();
+
+        if (!competitionDoc.exists) {
+          await FirebaseFirestore.instance
+              .collection('users')
+              .doc(user.uid)
+              .collection('participations')
+              .doc(participationId)
+              .delete();
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Katılım kaydı silindi (yok edilmiş yarışma)'),
+                backgroundColor: Colors.orange,
+              ),
+            );
+          }
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Hata oluştu: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }

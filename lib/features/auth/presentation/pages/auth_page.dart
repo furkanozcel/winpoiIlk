@@ -305,7 +305,7 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                 borderRadius: BorderRadius.circular(16),
                                 child: Container(
                                   padding:
-                                      const EdgeInsets.symmetric(vertical: 18),
+                                      const EdgeInsets.symmetric(vertical: 16),
                                   decoration: BoxDecoration(
                                     color: Colors.white,
                                     borderRadius: BorderRadius.circular(16),
@@ -330,11 +330,15 @@ class _AuthPageState extends State<AuthPage> with TickerProviderStateMixin {
                                           ),
                                         )
                                       else ...[
-                                        Image.asset(
-                                          'lib/features/auth/assets/images/google_logo.png',
-                                          height: 28,
+                                        Container(
+                                          width: 18,
+                                          height: 18,
+                                          child: Image.asset(
+                                            'lib/features/auth/assets/images/google_logo.png',
+                                            fit: BoxFit.contain,
+                                          ),
                                         ),
-                                        const SizedBox(width: 16),
+                                        const SizedBox(width: 10),
                                         Text(
                                           'Google ile Devam Et',
                                           style: GoogleFonts.quicksand(
